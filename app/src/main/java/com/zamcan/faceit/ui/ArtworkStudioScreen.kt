@@ -187,3 +187,38 @@ fun ArtworkHero(file: File, modifier: Modifier = Modifier) {
         DisposableEffect(bitmap) { onDispose { bitmap.recycle() } }
     }
 }
+
+@Composable
+fun CompositionPreview(
+    environment: com.zamcan.faceit.data.PersonalEnvironment,
+    artworkFile: File?,
+    modifier: Modifier = Modifier
+) {
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(environment, artworkFile?.absolutePath, artworkFile?.lastModified()) {
+        val next = withContext(Dispatchers.Default) {
+            com.zamcan.faceit.graphics.WallpaperRenderer.render(540, 960, environment, artworkFile)
+        }
+        val previous = bitmap
+        bitmap = next
+        previous?.recycle()
+    }
+    DisposableEffect(Unit) {
+        onDispose { bitmap?.recycle() }
+    }
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap!!.asImageBitmap(),
+            contentDescription = "Live preview of the FaceIt composition",
+            modifier = modifier.clip(RoundedCornerShape(28.dp)),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = modifier.clip(RoundedCornerShape(28.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+}
