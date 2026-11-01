@@ -54,13 +54,18 @@ class ArtworkRepository(context: Context) {
     @Synchronized
     fun importImage(context: Context, uri: Uri): LocalArtwork {
         val resolver = context.contentResolver
-        val mime = resolver.getType(uri)?.lowercase()
-            ?: throw IllegalArgumentException("The selected file is not a recognised image.")
-        require(mime in SUPPORTED_TYPES) { "Choose a PNG, JPEG or WebP image." }
-
         val displayName = resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
             ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
             ?: "FaceIt artwork"
+        val extensionMime = when (displayName.substringAfterLast('.', "").lowercase()) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            "webp" -> "image/webp"
+            else -> null
+        }
+        val mime = resolver.getType(uri)?.lowercase() ?: extensionMime
+            ?: throw IllegalArgumentException("The selected file is not a recognised image.")
+        require(mime in SUPPORTED_TYPES) { "Choose a PNG, JPEG or WebP image." }
 
         val id = UUID.randomUUID().toString()
         val extension = when (mime) {
