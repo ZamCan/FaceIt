@@ -57,6 +57,7 @@ import com.zamcan.faceit.keyboard.KeyShape
 import com.zamcan.faceit.keyboard.KeyboardFont
 import com.zamcan.faceit.keyboard.KeyboardLayout
 import com.zamcan.faceit.messaging.SmsTransportHandoff
+import com.zamcan.faceit.messaging.SmsSegmentEstimator
 import com.zamcan.faceit.vault.LocalVaultStore
 
 private fun readLimited(input: InputStream, maximum: Int): ByteArray {
@@ -227,7 +228,20 @@ fun SmsComposerScreen(modifier: Modifier = Modifier) {
         PreferenceChips("Preview font", listOf("Sans", "Serif", "Mono"), fontChoice) { fontChoice = it }
         PreferenceChips("Preview colour", listOf("Pearl", "Mint", "Violet", "Warm"), colourChoice) { colourChoice = it }
         OutlinedTextField(value = body, onValueChange = { body = it }, modifier = Modifier.fillMaxWidth().weight(1f), label = { Text("Message") }, minLines = 5, textStyle = TextStyle(color = messageColour, fontFamily = messageFont, fontSize = 16.sp))
-        Text("${body.length} characters · styling is preview-only; SMS body remains unchanged", color = mutedColor, style = MaterialTheme.typography.bodySmall)
+        val estimate = SmsSegmentEstimator.estimate(body)
+        val transportLabel = when (estimate.encoding) {
+            SmsSegmentEstimator.Encoding.GSM_7 -> "GSM-7"
+            SmsSegmentEstimator.Encoding.UCS_2 -> "UCS-2 / Unicode"
+        }
+        val capacity = if (estimate.segments <= 1) estimate.singleSegmentCapacity else estimate.concatenatedSegmentCapacity
+        Text(
+            "${body.length} characters · $transportLabel · ${estimate.units} encoding units · ${estimate.segments} SMS segment${if (estimate.segments == 1) "" else "s"}",
+            color = mutedColor, style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            "Estimated capacity: $capacity units per ${if (estimate.segments <= 1) "single" else "joined"} segment. Actual carrier/app handling may vary; styling remains preview-only.",
+            color = mutedColor, style = MaterialTheme.typography.bodySmall
+        )
         Button(onClick = {
             runCatching { SmsTransportHandoff.openComposer(context, recipient.trim(), body) }
                 .onFailure { Toast.makeText(context, it.localizedMessage ?: "Could not open SMS app", Toast.LENGTH_LONG).show() }
