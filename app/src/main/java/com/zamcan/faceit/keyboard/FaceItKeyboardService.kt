@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
-import kotlin.math.max
 
 /**
  * Minimal, offline FaceIt IME. It never records keystrokes or requests network access.
@@ -27,7 +26,7 @@ class FaceItKeyboardService : InputMethodService() {
         val inputClass = attribute?.inputType?.and(InputType.TYPE_MASK_CLASS)
         numericMode = inputClass == InputType.TYPE_CLASS_NUMBER ||
             inputClass == InputType.TYPE_CLASS_PHONE
-        shift = attribute?.imeOptions?.and(EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0
+        shift = false
     }
 
     override fun onCreateInputView(): View {
@@ -111,6 +110,7 @@ class FaceItKeyboardService : InputMethodService() {
                 } else connection.commitText("\n", 1)
             }
             "空白" -> connection.commitText(" ", 1)
+            "−" -> connection.commitText("-", 1)
             "⇧" -> { shift = !shift; renderKeys() }
             "?123" -> { numericMode = true; renderKeys() }
             "ABC" -> { numericMode = false; renderKeys() }
