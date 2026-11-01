@@ -207,12 +207,13 @@ fun ArtworkHero(file: File, modifier: Modifier = Modifier) {
 fun CompositionPreview(
     environment: com.zamcan.faceit.data.PersonalEnvironment,
     artworkFile: File?,
+    objectArtworkFile: File?,
     modifier: Modifier = Modifier
 ) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(environment, artworkFile?.absolutePath, artworkFile?.lastModified()) {
+    LaunchedEffect(environment, artworkFile?.absolutePath, artworkFile?.lastModified(), objectArtworkFile?.absolutePath, objectArtworkFile?.lastModified()) {
         val next = withContext(Dispatchers.Default) {
-            com.zamcan.faceit.graphics.WallpaperRenderer.render(540, 960, environment, artworkFile)
+            com.zamcan.faceit.graphics.WallpaperRenderer.render(540, 960, environment, artworkFile, objectArtworkFile)
         }
         val previous = bitmap
         bitmap = next
