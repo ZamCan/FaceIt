@@ -94,6 +94,17 @@ class LocalVaultStore(context: Context) {
     private fun getOrCreateKey(): SecretKey {
         val store = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+
+        // Never silently create a replacement key while encrypted records exist:
+        // doing so would make the old ciphertext permanently unreadable.
+        val hasEncryptedItems = directory.listFiles { file ->
+            file.isFile && file.name.endsWith(".vlt")
+        }?.isNotEmpty() == true
+        check(!hasEncryptedItems) {
+            "The FaceIt Vault key is unavailable. Existing encrypted files were preserved; " +
+                "a replacement key was not generated because it cannot decrypt those files."
+        }
+
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
         generator.init(
             KeyGenParameterSpec.Builder(
