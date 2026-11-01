@@ -38,7 +38,8 @@ fun FaceItApp() {
     val store = remember { EnvironmentStore(context) }
     val artworkRepository = remember { ArtworkRepository(context) }
     var environment by remember { mutableStateOf(store.load()) }
-    var destination by remember { mutableStateOf(Destination.Discover) }\n    var toolsPage by remember { mutableStateOf("Home") }
+    var destination by remember { mutableStateOf(Destination.Discover) }
+    var toolsPage by remember { mutableStateOf("Home") }
     val scope = rememberCoroutineScope()
     fun update(next: PersonalEnvironment) { environment = next; store.save(next) }
     Scaffold(containerColor = Color(0xFF111318), bottomBar = {
@@ -79,7 +80,13 @@ fun FaceItApp() {
             Destination.Dialer -> DialerScreen(environment.dialerStyle, Modifier.padding(padding)) {
                 update(environment.copy(dialerStyle = it))
             }
-            Destination.Tools -> ToolsHubScreen(Modifier.padding(padding),\n                onKeyboard = { destination = Destination.Tools; toolsPage = "Keyboard" },\n                onVault = { destination = Destination.Tools; toolsPage = "Vault" },\n                onSms = { destination = Destination.Tools; toolsPage = "SMS" },\n                page = toolsPage, onBack = { toolsPage = "Home" }\n            )\n            Destination.Library -> ArtworkStudioScreen(
+            Destination.Tools -> ToolsHubScreen(Modifier.padding(padding),
+                onKeyboard = { destination = Destination.Tools; toolsPage = "Keyboard" },
+                onVault = { destination = Destination.Tools; toolsPage = "Vault" },
+                onSms = { destination = Destination.Tools; toolsPage = "SMS" },
+                page = toolsPage, onBack = { toolsPage = "Home" }
+            )
+            Destination.Library -> ArtworkStudioScreen(
                 environment.selectedArtworkFile,
                 environment.selectedObjectFile,
                 onSelected = { selected, layer ->
