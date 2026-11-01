@@ -30,15 +30,15 @@ The current main branch includes:
 - Deterministic adaptive rendering policy with unit tests.
 - Artwork manifest and rights/provenance validation tooling.
 - Adaptive launcher identity with foreground, background and monochrome icon variants.
-- Native offline FaceIt keyboard input-method service with a keyboard personalisation domain model for key geometry, materials, typography, layouts and palettes.
-- AES-256-GCM local vault storage backed by Android Keystore and private no-backup storage.
-- Explicit SMS composer handoff that preserves plain-text message bodies.
+- Native offline FaceIt keyboard input-method service, connected keyboard studio, Android enable/select handoff, and persisted key geometry, material, typography, layout, palette and haptic preferences.
+- Private Vault screens for file import, encrypted inventory, authenticated decryption on open, export and deletion; AES-256-GCM storage uses Android Keystore and private no-backup storage.
+- SMS composer with local font/colour previews and explicit SMS-app handoff; the original plain-text body is preserved.
 
 The in-app dialer keypad is not yet a replacement for the phone's default dialler. The current wallpaper composition renderer provides a procedural foundation; curated photographic artwork and refined production-grade object assets are still required.
 
 ## Important implementation boundaries
 
-The native keyboard service is an initial functional IME foundation, not yet a complete user-facing keyboard studio: profile persistence, full language/input-type coverage, accessibility review, privacy-field verification and physical-device testing remain release gates. Vault storage is an encrypted storage engine, not yet a complete vault-management experience. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
+The keyboard studio and IME are connected, but remain an initial release: full language/input-type coverage, accessibility review, privacy-field verification and physical-device testing remain release gates. The Vault has local import/open/export/delete workflows; biometric gating, recovery design and optional encrypted cloud backup are not implemented. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
 
 ## Planned capabilities
 
@@ -47,9 +47,9 @@ The native keyboard service is an initial functional IME foundation, not yet a c
 - Native widget studio and deeper widget configuration.
 - Supported icon personalisation.
 - Optional default-dialer integration, subject to Android role and telephony requirements.
-- Separate optional text-entry keyboard.
+- Expanded keyboard language/input-type coverage and accessibility verification.
 - On-demand interactive 3D studio.
-- Secure local Vault.
+- Optional encrypted Google Drive backup/restore with explicit consent and a verified recovery design.
 - Platform-specific iOS feasibility and native implementation.
 
 Unimplemented modules are not represented as completed functionality in the app.
