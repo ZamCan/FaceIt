@@ -13,13 +13,19 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 /**
- * Minimal, offline FaceIt IME. It never records keystrokes or requests network access.
- * Android users must explicitly enable and select it in system keyboard settings.
+ * Offline native input method. It does not persist, inspect, or transmit typed content.
+ * Users enable and select it themselves through Android's input-method settings.
  */
 class FaceItKeyboardService : InputMethodService() {
     private var numericMode = false
     private var shift = false
-    private var root: LinearLayout? = null\n    private var keySurface = Color.rgb(49, 52, 62)\n    private var specialSurface = Color.rgb(62, 58, 76)\n    private var keyText = Color.rgb(244, 242, 248)\n    private var keyRadius = 13\n    private var keyTypeface = "sans-serif-medium"\n    private var hapticsEnabled = true
+    private var root: LinearLayout? = null
+    private var keySurface = Color.rgb(49, 52, 62)
+    private var specialSurface = Color.rgb(62, 58, 76)
+    private var keyText = Color.rgb(244, 242, 248)
+    private var keyRadiusDp = 13
+    private var keyTypeface = "sans-serif-medium"
+    private var hapticsEnabled = true
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
@@ -34,7 +40,6 @@ class FaceItKeyboardService : InputMethodService() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(5), dp(7), dp(5), dp(7))
-            setBackgroundColor(Color.rgb(23, 25, 31))
         }
         renderKeys()
         return root!!
@@ -46,19 +51,63 @@ class FaceItKeyboardService : InputMethodService() {
     }
 
     private fun renderKeys() {
+        val prefs = getSharedPreferences("faceit_keyboard", MODE_PRIVATE)
+        val palette = prefs.getString("palette", "OBSIDIAN_CERAMIC")
+        val colors = when (palette) {
+            "WARM_STONE" -> intArrayOf(Color.rgb(81, 70, 60), Color.rgb(103, 83, 68), Color.rgb(245, 235, 221))
+            "PEARL_MINT" -> intArrayOf(Color.WHITE, Color.rgb(225, 235, 229), Color.rgb(37, 43, 41))
+            "GRAPHITE_ICE" -> intArrayOf(Color.rgb(48, 58, 67), Color.rgb(65, 77, 88), Color.rgb(240, 244, 247))
+            else -> intArrayOf(Color.rgb(49, 52, 62), Color.rgb(62, 58, 76), Color.rgb(244, 242, 248))
+        }
+        keySurface = colors[0]
+        specialSurface = colors[1]
+        keyText = colors[2]
+        keyRadiusDp = when (prefs.getString("shape", "ROUNDED_RECTANGLE")) {
+            "PILL" -> 28
+            "SOFT_SQUARE" -> 7
+            "CIRCULAR" -> 30
+            else -> 13
+        }
+        keyTypeface = when (prefs.getString("font", "SYSTEM")) {
+            "SERIF" -> "serif"
+            "MONOSPACE" -> "monospace"
+            "ROUNDED" -> "sans-serif-rounded"
+            "SANS" -> "sans-serif"
+            else -> "sans-serif-medium"
+        }
+        hapticsEnabled = prefs.getBoolean("haptics", true)
         val container = root ?: return
         container.removeAllViews()
+        container.setBackgroundColor(
+            when (palette) {
+                "PEARL_MINT" -> Color.rgb(233, 236, 233)
+                "WARM_STONE" -> Color.rgb(40, 35, 31)
+                else -> Color.rgb(23, 25, 31)
+            }
+        )
+
         if (numericMode) {
-            listOf(listOf("1","2","3"), listOf("4","5","6"), listOf("7","8","9"), listOf("−","0","⌫"))
-                .forEach { addRow(container, it) }
-            addRow(container, listOf("ABC", "空白", "↵"))
+            listOf(
+                listOf("1", "2", "3"),
+                listOf("4", "5", "6"),
+                listOf("7", "8", "9"),
+                listOf("-", "0", "⌫")
+            ).forEach { addRow(container, it) }
+            addRow(container, listOf("ABC", "Space", "↵"))
             return
         }
-        val rows = when (getSharedPreferences("faceit_keyboard", MODE_PRIVATE).getString("layout", "QWERTY")) {\n            "QWERTZ" -> listOf("qwertzuiop", "asdfghjkl", "yxcvbnm")\n            "AZERTY" -> listOf("azertyuiop", "qsdfghjklm", "wxcvbn")\n            else -> listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")\n        }\n        rows.forEachIndexed { index, row ->
-            val keys = row.map { if (shift) it.uppercase() else it.toString() }
-            if (index == 2) addRow(container, listOf("⇧") + keys + listOf("⌫")) else addRow(container, keys)
+
+        val rows = when (prefs.getString("layout", "QWERTY")) {
+            "QWERTZ" -> listOf("qwertzuiop", "asdfghjkl", "yxcvbnm")
+            "AZERTY" -> listOf("azertyuiop", "qsdfghjklm", "wxcvbn")
+            else -> listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
         }
-        addRow(container, listOf("?123", ",", "空白", ".", "↵"))
+        rows.forEachIndexed { index, row ->
+            val keys = row.map { if (shift) it.uppercase() else it.toString() }
+            if (index == 2) addRow(container, listOf("⇧") + keys + listOf("⌫"))
+            else addRow(container, keys)
+        }
+        addRow(container, listOf("?123", ",", "Space", ".", "↵"))
     }
 
     private fun addRow(parent: LinearLayout, labels: List<String>) {
@@ -67,22 +116,23 @@ class FaceItKeyboardService : InputMethodService() {
             gravity = Gravity.CENTER
         }
         labels.forEach { label ->
+            val special = label in listOf("Space", "⇧", "⌫", "↵", "?123", "ABC")
             val view = TextView(this).apply {
-                text = label
+                text = if (label == "Space") "" else label
                 gravity = Gravity.CENTER
                 textSize = if (label.length > 1) 13f else 19f
-                setTextColor(Color.rgb(244, 242, 248))
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                setTextColor(keyText)
+                typeface = Typeface.create(keyTypeface, Typeface.NORMAL)
                 contentDescription = when (label) {
                     "⌫" -> "Delete previous character"
                     "↵" -> "Enter"
-                    "空白" -> "Space"
+                    "Space" -> "Space"
                     "⇧" -> "Shift"
                     else -> label
                 }
                 background = GradientDrawable().apply {
-                    setColor(if (label in listOf("空白", "⇧", "⌫", "↵", "?123", "ABC")) Color.rgb(62, 58, 76) else Color.rgb(49, 52, 62))
-                    cornerRadius = dp(13).toFloat()
+                    setColor(if (special) specialSurface else keySurface)
+                    cornerRadius = dp(keyRadiusDp).toFloat()
                     setStroke(dp(1), Color.argb(34, 255, 255, 255))
                 }
                 setPadding(dp(3), 0, dp(3), 0)
@@ -90,7 +140,11 @@ class FaceItKeyboardService : InputMethodService() {
                 isClickable = true
                 setOnClickListener { handleKey(label, this) }
             }
-            val weight = if (label == "空白") 4f else if (label.length > 1 || label in listOf("⇧","⌫","↵","?123","ABC")) 1.35f else 1f
+            val weight = when (label) {
+                "Space" -> 4f
+                "⇧", "⌫", "↵", "?123", "ABC" -> 1.35f
+                else -> 1f
+            }
             row.addView(view, LinearLayout.LayoutParams(0, dp(48), weight).apply {
                 setMargins(dp(2), dp(3), dp(2), dp(3))
             })
@@ -105,19 +159,31 @@ class FaceItKeyboardService : InputMethodService() {
             "⌫" -> connection.deleteSurroundingText(1, 0)
             "↵" -> {
                 val action = currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
-                if (action != null && action != EditorInfo.IME_ACTION_NONE && action != EditorInfo.IME_ACTION_UNSPECIFIED) {
-                    connection.performEditorAction(action)
-                } else connection.commitText("\n", 1)
+                if (action != null && action != EditorInfo.IME_ACTION_NONE &&
+                    action != EditorInfo.IME_ACTION_UNSPECIFIED
+                ) connection.performEditorAction(action)
+                else connection.commitText("\n", 1)
             }
-            "空白" -> connection.commitText(" ", 1)
-            "−" -> connection.commitText("-", 1)
-            "⇧" -> { shift = !shift; renderKeys() }
-            "?123" -> { numericMode = true; renderKeys() }
-            "ABC" -> { numericMode = false; renderKeys() }
+            "Space" -> connection.commitText(" ", 1)
+            "⇧" -> {
+                shift = !shift
+                renderKeys()
+            }
+            "?123" -> {
+                numericMode = true
+                renderKeys()
+            }
+            "ABC" -> {
+                numericMode = false
+                renderKeys()
+            }
             else -> {
-                val text = if (label.length == 1) label else return
-                connection.commitText(text, 1)
-                if (shift) { shift = false; renderKeys() }
+                if (label.length != 1) return
+                connection.commitText(label, 1)
+                if (shift) {
+                    shift = false
+                    renderKeys()
+                }
             }
         }
     }
