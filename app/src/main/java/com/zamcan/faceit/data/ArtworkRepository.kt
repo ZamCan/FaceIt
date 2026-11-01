@@ -52,7 +52,7 @@ class ArtworkRepository(context: Context) {
     }
 
     @Synchronized
-    fun import(context: Context, uri: Uri): LocalArtwork {
+    fun importImage(context: Context, uri: Uri): LocalArtwork {
         val resolver = context.contentResolver
         val mime = resolver.getType(uri)?.lowercase()
             ?: throw IllegalArgumentException("The selected file is not a recognised image.")
