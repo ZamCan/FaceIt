@@ -220,13 +220,13 @@ private fun DialerScreen(style: String, modifier: Modifier, onStyle: (String)->U
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                 for(col in 0..2) {
                     val (digit,letters)=digits[row*3+col]
-                    Surface(Modifier.weight(1f).height(72.dp).shadow(7.dp,RoundedCornerShape(23.dp)).clickable { number+=digit },
-                        color=surface,shape=RoundedCornerShape(23.dp),tonalElevation=5.dp,shadowElevation=3.dp) {
-                        Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
-                            Text(digit,color=ink,fontSize=27.sp,fontWeight=FontWeight.SemiBold)
-                            if(letters.isNotEmpty()) Text(letters,color=ink.copy(alpha=.68f),fontSize=9.sp,letterSpacing=2.sp)
-                        }
-                    }
+                    SculptedDialKey(
+                        digit = digit,
+                        letters = letters,
+                        style = style,
+                        onClick = { number += digit },
+                        modifier = Modifier.weight(1f).height(72.dp)
+                    )
                 }
             }
             Spacer(Modifier.height(10.dp))
