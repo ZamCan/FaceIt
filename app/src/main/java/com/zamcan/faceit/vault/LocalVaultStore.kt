@@ -81,6 +81,11 @@ class LocalVaultStore(context: Context) {
         }
     }
 
+    fun listIds(): List<String> = directory.listFiles { file -> file.isFile && file.name.endsWith(".vlt") }
+        ?.map { it.name.removeSuffix(".vlt") }
+        ?.sorted()
+        ?: emptyList()
+
     fun delete(id: String): Boolean {
         require(ID_PATTERN.matches(id)) { "Invalid vault item identifier" }
         return File(directory, "$id.vlt").let { !it.exists() || it.delete() }
