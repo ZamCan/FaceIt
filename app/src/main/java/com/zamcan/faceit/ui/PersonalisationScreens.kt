@@ -94,6 +94,7 @@ fun KeyboardStudioScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun PreferenceChips(title: String, options: List<String>, selected: String, onSelected: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
