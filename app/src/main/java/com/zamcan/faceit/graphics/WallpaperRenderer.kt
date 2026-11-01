@@ -302,8 +302,7 @@ object WallpaperRenderer {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-        var sample = 1
-        while (bounds.outWidth / (sample * 2) >= width && bounds.outHeight / (sample * 2) >= height) sample *= 2
+        val sample = sampleSize(bounds.outWidth, bounds.outHeight, width, height)
         return BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
             inSampleSize = sample
             inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -314,8 +313,11 @@ object WallpaperRenderer {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-        var sample = 1
-        while (bounds.outWidth / (sample * 2) > width && bounds.outHeight / (sample * 2) > height) sample *= 2
+        val sample = sampleSize(
+            bounds.outWidth, bounds.outHeight,
+            (width * .68f).toInt().coerceAtLeast(1),
+            (height * .42f).toInt().coerceAtLeast(1)
+        )
         return BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
             inSampleSize = sample
             inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -332,6 +334,15 @@ object WallpaperRenderer {
         val top = height * .38f - drawHeight / 2f
         val destination = RectF(left, top, left + drawWidth, top + drawHeight)
         canvas.drawBitmap(source, null, destination, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+    }
+
+    private fun sampleSize(sourceWidth: Int, sourceHeight: Int, targetWidth: Int, targetHeight: Int): Int {
+        val pixelBudget = targetWidth.toLong() * targetHeight.toLong() * 4L
+        var sample = 1
+        while ((sourceWidth.toLong() / (sample * 2L)) *
+            (sourceHeight.toLong() / (sample * 2L)) > pixelBudget
+        ) sample *= 2
+        return sample
     }
 
     private fun drawCenterCrop(canvas: Canvas, source: Bitmap, width: Int, height: Int) {
