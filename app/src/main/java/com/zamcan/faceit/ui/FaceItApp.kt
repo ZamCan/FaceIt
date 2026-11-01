@@ -62,12 +62,15 @@ fun FaceItApp() {
         when(destination) {
             Destination.Discover -> DiscoverScreen(environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()), Modifier.padding(padding),
                 onCreate = { destination = Destination.Create },
-                onApply = {
+                onApply = { targetFlags ->
                     scope.launch(Dispatchers.IO) {
                         runCatching {
                             val bitmap = WallpaperRenderer.render(1080, 2400, environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()))
-                            WallpaperManager.getInstance(context).setBitmap(bitmap)
-                            bitmap.recycle()
+                            try {
+                                WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
+                            } finally {
+                                bitmap.recycle()
+                            }
                         }.onSuccess { launch(Dispatchers.Main) {
                             Toast.makeText(context, "Wallpaper applied", Toast.LENGTH_SHORT).show()
                         } }.onFailure { error -> launch(Dispatchers.Main) {
@@ -88,7 +91,8 @@ fun FaceItApp() {
 }
 
 @Composable
-private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?, modifier: Modifier, onCreate: () -> Unit, onApply: () -> Unit) {
+private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?, modifier: Modifier, onCreate: () -> Unit, onApply: (Int) -> Unit) {
+    var showApplyDialog by remember { mutableStateOf(false) }
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -111,7 +115,7 @@ private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?,
         Text("${env.background} · ${env.mainObject} · ${env.material}", color = Color(0xFFB7B8C1), fontSize = 12.sp)
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = onApply, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp)) {
+            Button(onClick = { showApplyDialog = true }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp)) {
                 Icon(Icons.Rounded.Wallpaper, null); Spacer(Modifier.width(8.dp)); Text("Apply wallpaper")
             }
             OutlinedButton(onClick = onCreate, shape = RoundedCornerShape(16.dp)) {
@@ -121,6 +125,31 @@ private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?,
         Spacer(Modifier.height(18.dp))
         Text("Widgets ${if(env.widgetsEnabled) "on" else "off"}  ·  Icons ${if(env.iconsEnabled) "on" else "off"}  ·  ${env.resourceProfile}",
             color = Color(0xFF9FA2AD), fontSize = 12.sp)
+    }
+    if (showApplyDialog) {
+        AlertDialog(
+            onDismissRequest = { showApplyDialog = false },
+            title = { Text("Apply wallpaper") },
+            text = { Text("Choose where FaceIt should apply this composition.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showApplyDialog = false
+                    onApply(WallpaperManager.FLAG_SYSTEM)
+                }) { Text("Home screen") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        showApplyDialog = false
+                        onApply(WallpaperManager.FLAG_LOCK)
+                    }) { Text("Lock screen") }
+                    TextButton(onClick = {
+                        showApplyDialog = false
+                        onApply(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
+                    }) { Text("Both") }
+                }
+            }
+        )
     }
 }
 
