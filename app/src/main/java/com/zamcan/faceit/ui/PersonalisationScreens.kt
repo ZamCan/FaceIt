@@ -51,7 +51,7 @@ import com.zamcan.faceit.keyboard.KeyboardLayout
 import com.zamcan.faceit.messaging.SmsTransportHandoff
 import com.zamcan.faceit.vault.LocalVaultStore
 
-private val panelColor = androidx.compose.ui.graphics.Color(0xFF20232B)
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)\n@Composable\nprivate fun _FlowRowOptInMarker() {}\n\nprivate val panelColor = androidx.compose.ui.graphics.Color(0xFF20232B)
 private val mutedColor = androidx.compose.ui.graphics.Color(0xFFA9AAB4)
 
 @Composable
@@ -193,6 +193,41 @@ fun SmsComposerScreen(modifier: Modifier = Modifier) {
                 .onFailure { Toast.makeText(context, it.localizedMessage ?: "Could not open SMS app", Toast.LENGTH_LONG).show() }
         }, enabled = recipient.isNotBlank() && body.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Rounded.Send, null); Text(" Continue in SMS app")
+        }
+    }
+}
+
+
+@Composable
+fun ToolsHubScreen(
+    modifier: Modifier = Modifier,
+    page: String,
+    onKeyboard: () -> Unit,
+    onVault: () -> Unit,
+    onSms: () -> Unit,
+    onBack: () -> Unit
+) {
+    when (page) {
+        "Keyboard" -> KeyboardStudioScreen(modifier)
+        "Vault" -> VaultScreen(modifier)
+        "SMS" -> SmsComposerScreen(modifier)
+        else -> Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Personalisation tools", style = MaterialTheme.typography.headlineMedium)
+            Text("Native tools connected to Android's supported workflows.", color = mutedColor)
+            Button(onClick = onKeyboard, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Rounded.Keyboard, null); Text(" Keyboard studio")
+            }
+            Button(onClick = onVault, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Rounded.Lock, null); Text(" Private Vault")
+            }
+            Button(onClick = onSms, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Rounded.Send, null); Text(" SMS composer")
+            }
+        }
+    }
+    if (page != "Home") {
+        androidx.compose.material3.TextButton(onClick = onBack, modifier = Modifier.padding(start = 12.dp)) {
+            Text("Back to tools")
         }
     }
 }
