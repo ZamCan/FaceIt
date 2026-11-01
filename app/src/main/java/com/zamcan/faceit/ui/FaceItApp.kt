@@ -168,9 +168,19 @@ private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, 
         }
         LazyColumn(Modifier.weight(1f), contentPadding=PaddingValues(horizontal=20.dp, vertical=4.dp),
             verticalArrangement=Arrangement.spacedBy(14.dp)) {
-            item { ChoiceGroup("Background", listOf("Football","Islamic architecture","Nature","Geometry","Cityscape","Automotive"), value.background) { value=value.copy(background=it) } }
-            item { ChoiceGroup("Main object", listOf("Lion sculpture","Geometric crystal","Stethoscope","Mechanical sculpture","None"), value.mainObject) { value=value.copy(mainObject=it) } }
-            item { ChoiceGroup("Material", listOf("Natural stone","Ceramic","Frosted glass","Brushed metal","Marble"), value.material) { value=value.copy(material=it) } }
+            if (value.selectedArtworkFile == null) {
+                item { ChoiceGroup("Background", listOf("Football","Islamic architecture","Nature","Geometry","Cityscape","Automotive"), value.background) { value=value.copy(background=it) } }
+            } else {
+                item { Text("Imported background artwork is active. Change or clear it in Library.", color=Color(0xFFA9AAB4), fontSize=12.sp) }
+            }
+            if (value.selectedObjectFile == null) {
+                item { ChoiceGroup("Main object", listOf("Lion sculpture","Geometric crystal","Stethoscope","Mechanical sculpture","None"), value.mainObject) { value=value.copy(mainObject=it) } }
+                if (value.mainObject != "None") {
+                    item { ChoiceGroup("Material", listOf("Natural stone","Ceramic","Frosted glass","Brushed metal","Marble"), value.material) { value=value.copy(material=it) } }
+                }
+            } else {
+                item { Text("Imported main-object artwork is active. Change or clear it in Library.", color=Color(0xFFA9AAB4), fontSize=12.sp) }
+            }
         }
         Button(onClick={onSave(value)}, modifier=Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=12.dp).height(54.dp),
             shape=RoundedCornerShape(18.dp)) { Icon(Icons.Rounded.Save,null); Spacer(Modifier.width(8.dp)); Text("Save my environment") }
