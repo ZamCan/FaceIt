@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zamcan.faceit.data.ArtworkRepository
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.data.VisualCatalogue
@@ -39,6 +40,7 @@ private enum class Destination(val label: String) { Discover("Discover"), Create
 fun FaceItApp() {
     val context = LocalContext.current
     val store = remember { EnvironmentStore(context) }
+    val artworkRepository = remember { ArtworkRepository(context) }
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
     val scope = rememberCoroutineScope()
@@ -58,12 +60,12 @@ fun FaceItApp() {
         }
     }) { padding ->
         when(destination) {
-            Destination.Discover -> DiscoverScreen(environment, Modifier.padding(padding),
+            Destination.Discover -> DiscoverScreen(environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()), Modifier.padding(padding),
                 onCreate = { destination = Destination.Create },
                 onApply = {
                     scope.launch(Dispatchers.IO) {
                         runCatching {
-                            val bitmap = WallpaperRenderer.render(1080, 2400, environment)
+                            val bitmap = WallpaperRenderer.render(1080, 2400, environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()))
                             WallpaperManager.getInstance(context).setBitmap(bitmap)
                             bitmap.recycle()
                         }.onSuccess { launch(Dispatchers.Main) {
@@ -77,13 +79,16 @@ fun FaceItApp() {
             Destination.Dialer -> DialerScreen(environment.dialerStyle, Modifier.padding(padding)) {
                 update(environment.copy(dialerStyle = it))
             }
-            Destination.Library -> LibraryScreen(Modifier.padding(padding))
+            Destination.Library -> ArtworkStudioScreen(environment.selectedArtworkFile) { selected ->
+                update(environment.copy(selectedArtworkFile = selected.fileName))
+                destination = Destination.Discover
+            }
         }
     }
 }
 
 @Composable
-private fun DiscoverScreen(env: PersonalEnvironment, modifier: Modifier, onCreate: () -> Unit, onApply: () -> Unit) {
+private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?, modifier: Modifier, onCreate: () -> Unit, onApply: () -> Unit) {
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -99,7 +104,8 @@ private fun DiscoverScreen(env: PersonalEnvironment, modifier: Modifier, onCreat
         Text("Your world, composed.", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.SemiBold)
         Text("Independent visual layers. One personal environment.", color = Color(0xFFAAAEB9), fontSize = 13.sp)
         Spacer(Modifier.height(18.dp))
-        FaceItArtwork(Modifier.fillMaxWidth().height(330.dp))
+        if (artworkFile != null) ArtworkHero(artworkFile, Modifier.fillMaxWidth().height(330.dp))
+        else FaceItArtwork(Modifier.fillMaxWidth().height(330.dp))
         Spacer(Modifier.height(14.dp))
         Text(env.name, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
         Text("${env.background} · ${env.mainObject} · ${env.material}", color = Color(0xFFB7B8C1), fontSize = 12.sp)
