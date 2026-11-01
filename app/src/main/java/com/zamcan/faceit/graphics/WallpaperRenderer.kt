@@ -38,7 +38,7 @@ object WallpaperRenderer {
                 }
             )
         } else {
-            drawBackground(canvas, width, height, environment.background, px)
+            drawBackground(canvas, width, height, environment.background, ::px)
         }
 
         val importedObject = objectArtworkFile?.takeIf { it.isFile }?.let { decodeForObject(it, width, height) }
@@ -46,7 +46,7 @@ object WallpaperRenderer {
             drawImportedObject(canvas, importedObject, width, height)
             importedObject.recycle()
         } else {
-            drawMainObject(canvas, width, height, environment.mainObject, environment.material, px)
+            drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
         }
         drawVignette(canvas, width, height)
         return bitmap
