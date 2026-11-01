@@ -32,13 +32,13 @@ The current main branch includes:
 - Adaptive launcher identity with foreground, background and monochrome icon variants.
 - Native offline FaceIt keyboard input-method service, connected keyboard studio, Android enable/select handoff, and persisted key geometry, material, typography, layout, palette and haptic preferences.
 - Private Vault screens for file import, encrypted inventory, authenticated decryption on open, export and deletion; AES-256-GCM storage uses Android Keystore and private no-backup storage.
-- SMS composer with local font/colour previews and explicit SMS-app handoff; the original plain-text body is preserved.
+- SMS composer with local font/colour previews, explicit SMS-app handoff and GSM-7/UCS-2 multipart segment estimation; the original plain-text body is preserved.
 
 The in-app dialer keypad is not yet a replacement for the phone's default dialler. The current wallpaper composition renderer provides a procedural foundation; curated photographic artwork and refined production-grade object assets are still required.
 
 ## Important implementation boundaries
 
-The keyboard studio and IME are connected, but remain an initial release: full language/input-type coverage, accessibility review, privacy-field verification and physical-device testing remain release gates. The Vault has local import/open/export/delete workflows; biometric gating, recovery design and optional encrypted cloud backup are not implemented. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
+The keyboard studio and IME are connected, but remain an initial release: full language/input-type coverage, accessibility review, privacy-field verification and physical-device testing remain release gates. The Vault has local import/open/export/delete workflows and refuses to silently generate a replacement encryption key if encrypted records remain; biometric gating, a user recovery mechanism and optional encrypted cloud backup are not implemented. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
 
 ## Planned capabilities
 
