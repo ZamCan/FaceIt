@@ -44,7 +44,7 @@ fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) ->
             importing = true
             scope.launch {
                 val result = withContext(Dispatchers.IO) {
-                    runCatching { repository.import(context, uri) }
+                    runCatching { repository.importImage(context, uri) }
                 }
                 importing = false
                 result.onSuccess { imported ->
