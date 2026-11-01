@@ -16,7 +16,7 @@ import kotlin.math.sin
 
 /** Offline layer compositor. Imported background artwork remains independent of the selected object layer. */
 object WallpaperRenderer {
-    fun render(width: Int, height: Int, environment: PersonalEnvironment, artworkFile: File? = null): Bitmap {
+    fun render(width: Int, height: Int, environment: PersonalEnvironment, artworkFile: File? = null, objectArtworkFile: File? = null): Bitmap {
         require(width > 0 && height > 0)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -41,7 +41,13 @@ object WallpaperRenderer {
             drawBackground(canvas, width, height, environment.background, px)
         }
 
-        drawMainObject(canvas, width, height, environment.mainObject, environment.material, px)
+        val importedObject = objectArtworkFile?.takeIf { it.isFile }?.let { decodeForObject(it, width, height) }
+        if (importedObject != null) {
+            drawImportedObject(canvas, importedObject, width, height)
+            importedObject.recycle()
+        } else {
+            drawMainObject(canvas, width, height, environment.mainObject, environment.material, px)
+        }
         drawVignette(canvas, width, height)
         return bitmap
     }
@@ -302,6 +308,30 @@ object WallpaperRenderer {
             inSampleSize = sample
             inPreferredConfig = Bitmap.Config.ARGB_8888
         })
+    }
+
+    private fun decodeForObject(file: File, width: Int, height: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) > width && bounds.outHeight / (sample * 2) > height) sample *= 2
+        return BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
+            inSampleSize = sample
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        })
+    }
+
+    private fun drawImportedObject(canvas: Canvas, source: Bitmap, width: Int, height: Int) {
+        val maxWidth = width * .68f
+        val maxHeight = height * .42f
+        val scale = minOf(maxWidth / source.width, maxHeight / source.height)
+        val drawWidth = source.width * scale
+        val drawHeight = source.height * scale
+        val left = (width - drawWidth) / 2f
+        val top = height * .38f - drawHeight / 2f
+        val destination = RectF(left, top, left + drawWidth, top + drawHeight)
+        canvas.drawBitmap(source, null, destination, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
     }
 
     private fun drawCenterCrop(canvas: Canvas, source: Bitmap, width: Int, height: Int) {
