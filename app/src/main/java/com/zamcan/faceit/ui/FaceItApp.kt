@@ -3,7 +3,6 @@ import android.app.WallpaperManager
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,11 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -155,29 +150,6 @@ private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?,
     }
 }
 
-@Composable
-private fun FaceItArtwork(modifier: Modifier = Modifier) {
-    Canvas(modifier.clip(RoundedCornerShape(28.dp))) {
-        drawRect(Brush.linearGradient(listOf(Color(0xFF181B26), Color(0xFF6C6255), Color(0xFF172C2A))))
-        val horizon = size.height * .57f
-        val line = Color(0x55F2EBDD)
-        drawRect(line, androidx.compose.ui.geometry.Offset(size.width*.06f, horizon),
-            androidx.compose.ui.geometry.Size(size.width*.88f, size.height*.36f), style = Stroke(1.dp.toPx()))
-        drawLine(line, androidx.compose.ui.geometry.Offset(size.width/2, horizon),
-            androidx.compose.ui.geometry.Offset(size.width/2, size.height*.93f), 1.dp.toPx())
-        drawCircle(line, size.width*.105f, androidx.compose.ui.geometry.Offset(size.width/2, size.height*.75f), style = Stroke(1.dp.toPx()))
-        val c = androidx.compose.ui.geometry.Offset(size.width/2, size.height*.35f)
-        drawCircle(Brush.linearGradient(listOf(Color(0xFFE9D9B8), Color(0xFF766B59))), size.width*.245f, c)
-        drawCircle(Color(0xFFB6A68B), size.width*.16f, c)
-        drawCircle(Color(0xFF35312B), size.width*.012f, c + androidx.compose.ui.geometry.Offset(-size.width*.055f, -size.height*.012f))
-        drawCircle(Color(0xFF35312B), size.width*.012f, c + androidx.compose.ui.geometry.Offset(size.width*.055f, -size.height*.012f))
-        drawLine(Color(0xFF35312B), c + androidx.compose.ui.geometry.Offset(0f,size.height*.025f),
-            c + androidx.compose.ui.geometry.Offset(0f,size.height*.075f), 2.dp.toPx())
-        drawArc(Color(0x55FFFFFF), 205f, 130f, false,
-            topLeft = androidx.compose.ui.geometry.Offset(size.width*.24f,size.height*.12f),
-            size = androidx.compose.ui.geometry.Size(size.width*.52f,size.height*.42f), style = Stroke(2.dp.toPx()))
-    }
-}
 
 @Composable
 private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, onSave: (PersonalEnvironment) -> Unit) {
@@ -217,8 +189,6 @@ private fun DialerScreen(style: String, modifier: Modifier, onStyle: (String)->U
     var number by remember { mutableStateOf("") }
     val digits=listOf("1" to "","2" to "ABC","3" to "DEF","4" to "GHI","5" to "JKL","6" to "MNO",
         "7" to "PQRS","8" to "TUV","9" to "WXYZ","*" to "","0" to "+","#" to "")
-    val surface=when(style) { "Frosted Glass"->Color(0xFF3A414A); "Natural Stone"->Color(0xFF756B5C); "Brushed Metal"->Color(0xFF565D66); else->Color(0xFFE7E0D3) }
-    val ink=if(style=="Ceramic Sculpt") Color(0xFF292A2D) else Color.White
     Column(modifier.fillMaxSize().padding(horizontal=22.dp)) {
         Spacer(Modifier.height(20.dp))
         Text("Dialer keypad studio",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.SemiBold)
