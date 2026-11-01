@@ -23,9 +23,9 @@ class SmsSegmentEstimatorTest {
         assertEquals(SmsSegmentEstimator.Encoding.GSM_7, result.encoding)
     }
 
-    @Test fun concatenatedGsmUses153SeptetsPerSegment() {
-        assertEquals(1, SmsSegmentEstimator.estimate("a".repeat(153)).segments)
-        assertEquals(2, SmsSegmentEstimator.estimate("a".repeat(154)).segments)
+    @Test fun concatenatedGsmUses153SeptetsPerSegmentAfterSinglePartLimit() {
+        assertEquals(2, SmsSegmentEstimator.estimate("a".repeat(306)).segments)
+        assertEquals(3, SmsSegmentEstimator.estimate("a".repeat(307)).segments)
     }
 
     @Test fun unicodeSwitchesWholeMessageToUcs2() {
