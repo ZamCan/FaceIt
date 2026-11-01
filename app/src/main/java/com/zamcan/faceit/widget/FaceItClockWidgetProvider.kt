@@ -8,9 +8,6 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.zamcan.faceit.MainActivity
 import com.zamcan.faceit.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /** A genuine Android-hosted clock widget with per-widget saved appearance. */
 class FaceItClockWidgetProvider : AppWidgetProvider() {
@@ -26,10 +23,6 @@ class FaceItClockWidgetProvider : AppWidgetProvider() {
             views.setInt(R.id.faceit_widget_root, "setBackgroundColor", style.background)
             views.setTextColor(R.id.faceit_widget_time, style.time)
             views.setTextColor(R.id.faceit_widget_date, style.date)
-            views.setTextViewText(
-                R.id.faceit_widget_date,
-                SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
-            )
             val intent = Intent(context, MainActivity::class.java)
             val pending = PendingIntent.getActivity(
                 context,
