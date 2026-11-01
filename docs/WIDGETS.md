@@ -16,7 +16,7 @@ The first native home-screen widget is a configurable time and date surface host
 - Warm Ceramic.
 - Pearl Mint.
 
-Each widget instance stores its own selected style. The time is rendered by Android's TextClock view, so it does not depend on a FaceIt background timer. The date is refreshed by the AppWidgetProvider on its scheduled update.
+Each widget instance stores its own selected style. Both time and date are rendered by Android TextClock views, so the widget stays current without a FaceIt timer, wake lock or periodic app-side refresh.
 
 ## Resource and platform rules
 
