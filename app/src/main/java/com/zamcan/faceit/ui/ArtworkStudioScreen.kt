@@ -117,7 +117,7 @@ fun ArtworkStudioScreen(selectedFileName: String?, selectedObjectFileName: Strin
                     val file = repository.fileFor(item.fileName)
                     val isSelected = if (targetLayer == "Object") item.fileName == selectedObjectFileName else item.fileName == selectedFileName
                     Card(
-                        modifier = Modifier.fillMaxWidth().clickable { onSelected(item) },
+                        modifier = Modifier.fillMaxWidth().clickable { onSelected(item, targetLayer) },
                         shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer
