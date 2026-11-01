@@ -15,11 +15,12 @@
         android:textColor="#FFF4F0FA"
         android:textSize="34sp"
         android:fontFamily="sans" />
-    <TextView
+    <TextClock
         android:id="@+id/faceit_widget_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sun, 1 Nov"
+        android:format12Hour="EEE, d MMM"
+        android:format24Hour="EEE, d MMM"
         android:textColor="#FFA78BFA"
         android:textSize="12sp"
         android:letterSpacing="0.04" />
