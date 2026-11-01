@@ -122,8 +122,11 @@ private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?,
             }
         }
         Spacer(Modifier.height(18.dp))
-        Text("Widgets ${if(env.widgetsEnabled) "on" else "off"}  ·  Icons ${if(env.iconsEnabled) "on" else "off"}  ·  ${env.resourceProfile}",
-            color = Color(0xFF9FA2AD), fontSize = 12.sp)
+        Text(
+            if (artworkFile == null) "Add your own background or object artwork in Library."
+            else "Your imported artwork is stored locally and works offline.",
+            color = Color(0xFF9FA2AD), fontSize = 12.sp
+        )
     }
     if (showApplyDialog) {
         AlertDialog(
@@ -189,10 +192,6 @@ private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, 
             item { ChoiceGroup("Background", listOf("Football","Islamic architecture","Nature","Geometry","Cityscape","Automotive"), value.background) { value=value.copy(background=it) } }
             item { ChoiceGroup("Main object", listOf("Lion sculpture","Geometric crystal","Stethoscope","Mechanical sculpture","None"), value.mainObject) { value=value.copy(mainObject=it) } }
             item { ChoiceGroup("Material", listOf("Natural stone","Ceramic","Frosted glass","Brushed metal","Marble"), value.material) { value=value.copy(material=it) } }
-            item { ChoiceGroup("Motion", listOf("Static","Subtle","Immersive"), value.motion) { value=value.copy(motion=it) } }
-            item { ChoiceGroup("Resource profile", listOf("Essential","Balanced","Immersive"), value.resourceProfile) { value=value.copy(resourceProfile=it) } }
-            item { SettingSwitch("Widgets","Native home-screen widgets",value.widgetsEnabled) { value=value.copy(widgetsEnabled=it) } }
-            item { SettingSwitch("Icons","Compatible launcher icon styling",value.iconsEnabled) { value=value.copy(iconsEnabled=it) } }
         }
         Button(onClick={onSave(value)}, modifier=Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=12.dp).height(54.dp),
             shape=RoundedCornerShape(18.dp)) { Icon(Icons.Rounded.Save,null); Spacer(Modifier.width(8.dp)); Text("Save my environment") }
@@ -210,15 +209,6 @@ private fun ChoiceGroup(title: String, options: List<String>, selected: String, 
     }
 }
 
-@Composable
-private fun SettingSwitch(title: String, description: String, checked: Boolean, onChecked: (Boolean)->Unit) {
-    Surface(color=Color(0xFF20232B),shape=RoundedCornerShape(18.dp)) {
-        Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) { Text(title,color=Color.White,fontWeight=FontWeight.Medium); Text(description,color=Color(0xFF9FA2AD),fontSize=12.sp) }
-            Switch(checked=checked,onCheckedChange=onChecked)
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
