@@ -13,7 +13,8 @@ data class PersonalEnvironment(
     val iconsEnabled: Boolean = true,
     val dialerStyle: String = "Ceramic Sculpt",
     val resourceProfile: String = "Balanced",
-    val selectedArtworkFile: String? = null
+    val selectedArtworkFile: String? = null,
+    val selectedObjectFile: String? = null
 ) {
     fun toJson() = JSONObject().apply {
         put("name", name)
@@ -26,6 +27,7 @@ data class PersonalEnvironment(
         put("dialerStyle", dialerStyle)
         put("resourceProfile", resourceProfile)
         put("selectedArtworkFile", selectedArtworkFile)
+        put("selectedObjectFile", selectedObjectFile)
     }.toString()
 
     companion object {
@@ -44,6 +46,8 @@ data class PersonalEnvironment(
                     dialerStyle = json.optString("dialerStyle", "Ceramic Sculpt"),
                     resourceProfile = json.optString("resourceProfile", "Balanced"),
                     selectedArtworkFile = json.optString("selectedArtworkFile", "")
+                        .takeIf { it.isNotBlank() && it != "null" },
+                    selectedObjectFile = json.optString("selectedObjectFile", "")
                         .takeIf { it.isNotBlank() && it != "null" }
                 )
             }.getOrDefault(PersonalEnvironment())
