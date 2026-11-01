@@ -167,8 +167,7 @@ private fun decodeThumbnail(file: File): Bitmap? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.absolutePath, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-    var sample = 1
-    while (bounds.outWidth / (sample * 2) > 240 && bounds.outHeight / (sample * 2) > 320) sample *= 2
+    val sample = previewSampleSize(bounds.outWidth, bounds.outHeight, 240, 320)
     return BitmapFactory.decodeFile(
         file.absolutePath,
         BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.RGB_565 }
@@ -181,8 +180,7 @@ fun ArtworkHero(file: File, modifier: Modifier = Modifier) {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) null else {
-            var sample = 1
-            while (bounds.outWidth / (sample * 2) > 1200 && bounds.outHeight / (sample * 2) > 1800) sample *= 2
+            val sample = previewSampleSize(bounds.outWidth, bounds.outHeight, 1200, 1800)
             BitmapFactory.decodeFile(
                 file.absolutePath,
                 BitmapFactory.Options().apply {
@@ -201,6 +199,15 @@ fun ArtworkHero(file: File, modifier: Modifier = Modifier) {
         )
         DisposableEffect(bitmap) { onDispose { bitmap.recycle() } }
     }
+}
+
+private fun previewSampleSize(sourceWidth: Int, sourceHeight: Int, targetWidth: Int, targetHeight: Int): Int {
+    val pixelBudget = targetWidth.toLong() * targetHeight.toLong() * 4L
+    var sample = 1
+    while ((sourceWidth.toLong() / (sample * 2L)) *
+        (sourceHeight.toLong() / (sample * 2L)) > pixelBudget
+    ) sample *= 2
+    return sample
 }
 
 @Composable
