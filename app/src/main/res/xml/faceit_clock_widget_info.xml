@@ -1,4 +1,5 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.zamcan.faceit.widget.FaceItClockWidgetConfigActivity"
     android:minWidth="150dp"
     android:minHeight="90dp"
     android:updatePeriodMillis="1800000"
