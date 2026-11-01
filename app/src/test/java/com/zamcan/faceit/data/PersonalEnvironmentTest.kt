@@ -35,4 +35,17 @@ class PersonalEnvironmentTest {
     @Test fun invalidSavedDataFallsBackSafely() {
         assertEquals(PersonalEnvironment(), PersonalEnvironment.fromJson("{not-json"))
     }
+    @Test fun sampleCompositionsPreserveTheirDistinctVisualDirections() {
+        val stone = CompositionPresets.find("The Stone Guardian")!!
+        val madinah = CompositionPresets.find("Madinah Serenity")!!
+        val geometry = CompositionPresets.find("Islamic Geometry")!!
+
+        assertEquals("Football", stone.background)
+        assertEquals("Lion sculpture", stone.mainObject)
+        assertEquals("Natural stone", stone.material)
+        assertEquals("Islamic architecture", madinah.background)
+        assertEquals("Marble", madinah.material)
+        assertEquals("Geometry", geometry.background)
+    }
+
 }
