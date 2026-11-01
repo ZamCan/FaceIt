@@ -159,3 +159,31 @@ private fun decodeThumbnail(file: File): Bitmap? {
         BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.RGB_565 }
     )
 }
+
+@Composable
+fun ArtworkHero(file: File, modifier: Modifier = Modifier) {
+    val bitmap = remember(file.absolutePath, file.lastModified()) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) null else {
+            var sample = 1
+            while (bounds.outWidth / (sample * 2) > 1200 && bounds.outHeight / (sample * 2) > 1800) sample *= 2
+            BitmapFactory.decodeFile(
+                file.absolutePath,
+                BitmapFactory.Options().apply {
+                    inSampleSize = sample
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                }
+            )
+        }
+    }
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "Selected FaceIt wallpaper artwork",
+            modifier = modifier,
+            contentScale = ContentScale.Crop
+        )
+        DisposableEffect(bitmap) { onDispose { bitmap.recycle() } }
+    }
+}
