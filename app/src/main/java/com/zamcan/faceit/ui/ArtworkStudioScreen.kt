@@ -34,7 +34,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
-fun ArtworkStudioScreen(selectedFileName: String?, selectedObjectFileName: String?, onSelected: (LocalArtwork, String) -> Unit) {
+fun ArtworkStudioScreen(selectedFileName: String?, selectedObjectFileName: String?, onSelected: (LocalArtwork, String) -> Unit, onClearLayer: (String) -> Unit) {
     val context = LocalContext.current
     val repository = remember { ArtworkRepository(context) }
     val scope = rememberCoroutineScope()
@@ -92,7 +92,16 @@ fun ArtworkStudioScreen(selectedFileName: String?, selectedObjectFileName: Strin
             Spacer(Modifier.size(8.dp))
             Text(if (importing) "Importing image…" else "Import artwork from device")
         }
-        Spacer(Modifier.height(16.dp))
+        val currentLayerSelection = if (targetLayer == "Object") selectedObjectFileName else selectedFileName
+        if (!currentLayerSelection.isNullOrBlank()) {
+            OutlinedButton(
+                onClick = { onClearLayer(targetLayer) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (targetLayer == "Object") "Use built-in object instead" else "Use built-in background instead")
+            }
+        }
+        Spacer(Modifier.height(8.dp))
         Text("Imported on this device · " + artwork.size, style = MaterialTheme.typography.titleSmall)
         Spacer(Modifier.height(8.dp))
         if (artwork.isEmpty()) {
