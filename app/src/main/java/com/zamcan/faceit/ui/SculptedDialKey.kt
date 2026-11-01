@@ -3,6 +3,9 @@ package com.zamcan.faceit.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +36,10 @@ fun SculptedDialKey(
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(23.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val elevation by animateDpAsState(if (pressed) 3.dp else 9.dp, label = "dialKeyElevation")
+    val pressOffset by animateDpAsState(if (pressed) 2.dp else 0.dp, label = "dialKeyPress")
     val ceramic = style == "Ceramic Sculpt"
     val stone = style == "Natural Stone"
     val metal = style == "Brushed Metal"
@@ -41,7 +52,8 @@ fun SculptedDialKey(
     val ink = if (ceramic) Color(0xFF292A2D) else Color(0xFFF7F5F0)
     Box(
         modifier
-            .shadow(9.dp, shape, clip = false)
+            .shadow(elevation, shape, clip = false)
+            .offset(y = pressOffset)
             .clip(shape)
             .background(Brush.verticalGradient(colors))
             .border(
@@ -51,7 +63,7 @@ fun SculptedDialKey(
                 ),
                 shape = shape
             )
-            .clickable(onClick = onClick),
+            .clickable(interactionSource = interactionSource, indication = LocalIndication.current, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
