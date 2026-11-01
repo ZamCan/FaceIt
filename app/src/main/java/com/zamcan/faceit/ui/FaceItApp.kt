@@ -77,10 +77,17 @@ fun FaceItApp() {
             Destination.Dialer -> DialerScreen(environment.dialerStyle, Modifier.padding(padding)) {
                 update(environment.copy(dialerStyle = it))
             }
-            Destination.Library -> ArtworkStudioScreen(environment.selectedArtworkFile, environment.selectedObjectFile) { selected, layer ->
-                update(if (layer == "Object") environment.copy(selectedObjectFile = selected.fileName) else environment.copy(selectedArtworkFile = selected.fileName))
-                destination = Destination.Discover
-            }
+            Destination.Library -> ArtworkStudioScreen(
+                environment.selectedArtworkFile,
+                environment.selectedObjectFile,
+                onSelected = { selected, layer ->
+                    update(if (layer == "Object") environment.copy(selectedObjectFile = selected.fileName) else environment.copy(selectedArtworkFile = selected.fileName))
+                    destination = Destination.Discover
+                },
+                onClearLayer = { layer ->
+                    update(if (layer == "Object") environment.copy(selectedObjectFile = null) else environment.copy(selectedArtworkFile = null))
+                }
+            )
         }
     }
 }
