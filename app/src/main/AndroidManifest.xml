@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
-    <application android:allowBackup="false" android:label="FaceIt" android:icon="@drawable/faceit_launcher"
+    <application android:allowBackup="false" android:label="FaceIt" android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true" android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
