@@ -29,8 +29,16 @@ The current main branch includes:
 - Native clock widget provider.
 - Deterministic adaptive rendering policy with unit tests.
 - Artwork manifest and rights/provenance validation tooling.
+- Adaptive launcher identity with foreground, background and monochrome icon variants.
+- Keyboard personalisation domain model for independent key geometry, material, typography, layouts and palettes.
+- AES-256-GCM local vault storage backed by Android Keystore and private no-backup storage.
+- Explicit SMS composer handoff that preserves plain-text message bodies.
 
 The in-app dialer keypad is not yet a replacement for the phone's default dialler. The current wallpaper composition renderer provides a procedural foundation; curated photographic artwork and refined production-grade object assets are still required.
+
+## Important implementation boundaries
+
+The keyboard profile and vault storage are engine foundations; they are not yet a complete user-facing keyboard settings/IME or vault-management experience. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
 
 ## Planned capabilities
 
