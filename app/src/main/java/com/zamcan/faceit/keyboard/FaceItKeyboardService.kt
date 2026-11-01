@@ -19,7 +19,7 @@ import android.widget.TextView
 class FaceItKeyboardService : InputMethodService() {
     private var numericMode = false
     private var shift = false
-    private var root: LinearLayout? = null
+    private var root: LinearLayout? = null\n    private var keySurface = Color.rgb(49, 52, 62)\n    private var specialSurface = Color.rgb(62, 58, 76)\n    private var keyText = Color.rgb(244, 242, 248)\n    private var keyRadius = 13\n    private var keyTypeface = "sans-serif-medium"\n    private var hapticsEnabled = true
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
@@ -54,7 +54,7 @@ class FaceItKeyboardService : InputMethodService() {
             addRow(container, listOf("ABC", "空白", "↵"))
             return
         }
-        listOf("qwertyuiop", "asdfghjkl", "zxcvbnm").forEachIndexed { index, row ->
+        val rows = when (getSharedPreferences("faceit_keyboard", MODE_PRIVATE).getString("layout", "QWERTY")) {\n            "QWERTZ" -> listOf("qwertzuiop", "asdfghjkl", "yxcvbnm")\n            "AZERTY" -> listOf("azertyuiop", "qsdfghjklm", "wxcvbn")\n            else -> listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")\n        }\n        rows.forEachIndexed { index, row ->
             val keys = row.map { if (shift) it.uppercase() else it.toString() }
             if (index == 2) addRow(container, listOf("⇧") + keys + listOf("⌫")) else addRow(container, keys)
         }
@@ -99,7 +99,7 @@ class FaceItKeyboardService : InputMethodService() {
     }
 
     private fun handleKey(label: String, view: View) {
-        view.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        if (hapticsEnabled) view.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
         val connection = currentInputConnection ?: return
         when (label) {
             "⌫" -> connection.deleteSurroundingText(1, 0)
