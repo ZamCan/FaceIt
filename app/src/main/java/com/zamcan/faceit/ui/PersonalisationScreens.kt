@@ -207,27 +207,29 @@ fun ToolsHubScreen(
     onSms: () -> Unit,
     onBack: () -> Unit
 ) {
-    when (page) {
-        "Keyboard" -> KeyboardStudioScreen(modifier)
-        "Vault" -> VaultScreen(modifier)
-        "SMS" -> SmsComposerScreen(modifier)
-        else -> Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Personalisation tools", style = MaterialTheme.typography.headlineMedium)
-            Text("Native tools connected to Android's supported workflows.", color = mutedColor)
-            Button(onClick = onKeyboard, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Rounded.Keyboard, null); Text(" Keyboard studio")
-            }
-            Button(onClick = onVault, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Rounded.Lock, null); Text(" Private Vault")
-            }
-            Button(onClick = onSms, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Rounded.Send, null); Text(" SMS composer")
+    Column(modifier.fillMaxSize()) {
+        when (page) {
+            "Keyboard" -> KeyboardStudioScreen(Modifier.weight(1f))
+            "Vault" -> VaultScreen(Modifier.weight(1f))
+            "SMS" -> SmsComposerScreen(Modifier.weight(1f))
+            else -> Column(Modifier.weight(1f).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Personalisation tools", style = MaterialTheme.typography.headlineMedium)
+                Text("Native tools connected to Android's supported workflows.", color = mutedColor)
+                Button(onClick = onKeyboard, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Keyboard, null); Text(" Keyboard studio")
+                }
+                Button(onClick = onVault, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Lock, null); Text(" Private Vault")
+                }
+                Button(onClick = onSms, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Send, null); Text(" SMS composer")
+                }
             }
         }
-    }
-    if (page != "Home") {
-        androidx.compose.material3.TextButton(onClick = onBack, modifier = Modifier.padding(start = 12.dp)) {
-            Text("Back to tools")
+        if (page != "Home") {
+            androidx.compose.material3.TextButton(onClick = onBack, modifier = Modifier.padding(start = 12.dp)) {
+                Text("Back to tools")
+            }
         }
     }
 }
