@@ -30,7 +30,7 @@ import com.zamcan.faceit.graphics.WallpaperRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private enum class Destination(val label: String) { Discover("Discover"), Create("Create"), Dialer("Dialer"), Library("Library") }
+private enum class Destination(val label: String) { Discover("Discover"), Create("Create"), Dialer("Dialer"), Library("Library"), Tools("Tools") }
 
 @Composable
 fun FaceItApp() {
@@ -38,7 +38,7 @@ fun FaceItApp() {
     val store = remember { EnvironmentStore(context) }
     val artworkRepository = remember { ArtworkRepository(context) }
     var environment by remember { mutableStateOf(store.load()) }
-    var destination by remember { mutableStateOf(Destination.Discover) }
+    var destination by remember { mutableStateOf(Destination.Discover) }\n    var toolsPage by remember { mutableStateOf("Home") }
     val scope = rememberCoroutineScope()
     fun update(next: PersonalEnvironment) { environment = next; store.save(next) }
     Scaffold(containerColor = Color(0xFF111318), bottomBar = {
@@ -49,6 +49,7 @@ fun FaceItApp() {
                     Destination.Create -> Icons.Rounded.Tune
                     Destination.Dialer -> Icons.Rounded.Dialpad
                     Destination.Library -> Icons.Rounded.Collections
+                    Destination.Tools -> Icons.Rounded.Settings
                 }
                 NavigationBarItem(selected = destination == item, onClick = { destination = item },
                     icon = { Icon(icon, item.label) }, label = { Text(item.label) })
@@ -78,7 +79,7 @@ fun FaceItApp() {
             Destination.Dialer -> DialerScreen(environment.dialerStyle, Modifier.padding(padding)) {
                 update(environment.copy(dialerStyle = it))
             }
-            Destination.Library -> ArtworkStudioScreen(
+            Destination.Tools -> ToolsHubScreen(Modifier.padding(padding),\n                onKeyboard = { destination = Destination.Tools; toolsPage = "Keyboard" },\n                onVault = { destination = Destination.Tools; toolsPage = "Vault" },\n                onSms = { destination = Destination.Tools; toolsPage = "SMS" },\n                page = toolsPage, onBack = { toolsPage = "Home" }\n            )\n            Destination.Library -> ArtworkStudioScreen(
                 environment.selectedArtworkFile,
                 environment.selectedObjectFile,
                 onSelected = { selected, layer ->
