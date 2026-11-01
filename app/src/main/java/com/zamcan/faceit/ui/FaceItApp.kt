@@ -1,36 +1,111 @@
 package com.zamcan.faceit.ui
+
 import android.app.WallpaperManager
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Backspace
+import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Collections
+import androidx.compose.material.icons.rounded.Dialpad
+import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zamcan.faceit.data.ArtworkRepository
 import com.zamcan.faceit.data.CompositionPresets
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
-import com.zamcan.faceit.data.VisualCatalogue
 import com.zamcan.faceit.graphics.WallpaperRenderer
+import com.zamcan.faceit.ui.theme.FaceItSpacing
+import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-private enum class Destination(val label: String) { Discover("Discover"), Create("Create"), Dialer("Dialer"), Library("Library"), Tools("Tools") }
+private enum class Destination(val label: String) {
+    Discover("Discover"),
+    Create("Create"),
+    Dialer("Dialer"),
+    Library("Library"),
+    Tools("Tools")
+}
+
+internal enum class ToolsPage(val label: String) {
+    Home("Tools"),
+    Keyboard("Keyboard studio"),
+    Vault("Private Vault"),
+    Sms("SMS composer")
+}
 
 @Composable
 fun FaceItApp() {
@@ -39,253 +114,853 @@ fun FaceItApp() {
     val artworkRepository = remember { ArtworkRepository(context) }
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
-    var toolsPage by remember { mutableStateOf("Home") }
+    var toolsPage by remember { mutableStateOf(ToolsPage.Home) }
     val scope = rememberCoroutineScope()
-    fun update(next: PersonalEnvironment) { environment = next; store.save(next) }
-    Scaffold(containerColor = Color(0xFF111318), bottomBar = {
-        NavigationBar(containerColor = Color(0xFF191C23)) {
-            Destination.entries.forEach { item ->
-                val icon = when(item) {
-                    Destination.Discover -> Icons.Rounded.Explore
-                    Destination.Create -> Icons.Rounded.Tune
-                    Destination.Dialer -> Icons.Rounded.Dialpad
-                    Destination.Library -> Icons.Rounded.Collections
-                    Destination.Tools -> Icons.Rounded.Settings
-                }
-                NavigationBarItem(selected = destination == item, onClick = { destination = item },
-                    icon = { Icon(icon, item.label) }, label = { Text(item.label) })
-            }
-        }
-    }) { padding ->
-        when(destination) {
-            Destination.Discover -> DiscoverScreen(environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()), artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()), Modifier.padding(padding),
-                onCreate = { destination = Destination.Create },
-                onApply = { targetFlags ->
-                    scope.launch(Dispatchers.IO) {
-                        runCatching {
-                            val bitmap = WallpaperRenderer.render(1080, 2400, environment, artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()), artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()))
-                            try {
-                                WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
-                            } finally {
-                                bitmap.recycle()
-                            }
-                        }.onSuccess { launch(Dispatchers.Main) {
-                            Toast.makeText(context, "Wallpaper applied", Toast.LENGTH_SHORT).show()
-                        } }.onFailure { error -> launch(Dispatchers.Main) {
-                            Toast.makeText(context, "Wallpaper error: ${error.localizedMessage}", Toast.LENGTH_LONG).show()
-                        } }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    fun update(next: PersonalEnvironment) {
+        environment = next
+        store.save(next)
+    }
+
+    fun applyWallpaper(targetFlags: Int) {
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val bitmap = WallpaperRenderer.render(
+                        width = 1080,
+                        height = 2400,
+                        environment = environment,
+                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
+                        objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty())
+                    )
+                    try {
+                        WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
+                    } finally {
+                        bitmap.recycle()
                     }
-                })
-            Destination.Create -> CompositionScreen(environment, Modifier.padding(padding), ::update)
-            Destination.Dialer -> DialerScreen(environment.dialerStyle, Modifier.padding(padding)) {
-                update(environment.copy(dialerStyle = it))
-            }
-            Destination.Tools -> ToolsHubScreen(Modifier.padding(padding),
-                onKeyboard = { destination = Destination.Tools; toolsPage = "Keyboard" },
-                onVault = { destination = Destination.Tools; toolsPage = "Vault" },
-                onSms = { destination = Destination.Tools; toolsPage = "SMS" },
-                page = toolsPage, onBack = { toolsPage = "Home" }
-            )
-            Destination.Library -> ArtworkStudioScreen(
-                environment.selectedArtworkFile,
-                environment.selectedObjectFile,
-                onSelected = { selected, layer ->
-                    update(if (layer == "Object") environment.copy(selectedObjectFile = selected.fileName) else environment.copy(selectedArtworkFile = selected.fileName))
-                    destination = Destination.Discover
-                },
-                onClearLayer = { layer ->
-                    update(if (layer == "Object") environment.copy(selectedObjectFile = null) else environment.copy(selectedArtworkFile = null))
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?, artworkObjectFile: java.io.File?, modifier: Modifier, onCreate: () -> Unit, onApply: (Int) -> Unit) {
-    var showApplyDialog by remember { mutableStateOf(false) }
-    Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-        Spacer(Modifier.height(18.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("FACEIT", color = Color(0xFFE9E8EF), fontSize = 13.sp, letterSpacing = 4.sp, fontWeight = FontWeight.Bold)
-                Text("Personalise Your World.", color = Color(0xFFA9AAB4), fontSize = 13.sp)
-            }
-            Surface(shape = CircleShape, color = Color(0xFF292C35)) {
-                Icon(Icons.Rounded.AutoAwesome, null, tint = Color(0xFFA78BFA), modifier = Modifier.padding(11.dp))
-            }
-        }
-        Spacer(Modifier.height(24.dp))
-        Text("Your world, composed.", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.SemiBold)
-        Text("Independent visual layers. One personal environment.", color = Color(0xFFAAAEB9), fontSize = 13.sp)
-        Spacer(Modifier.height(18.dp))
-        CompositionPreview(env, artworkFile, artworkObjectFile, Modifier.fillMaxWidth().height(330.dp))
-        Spacer(Modifier.height(14.dp))
-        Text(env.name, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
-        Text("${env.background} · ${env.mainObject} · ${env.material}", color = Color(0xFFB7B8C1), fontSize = 12.sp)
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = { showApplyDialog = true }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp)) {
-                Icon(Icons.Rounded.Wallpaper, null); Spacer(Modifier.width(8.dp)); Text("Apply wallpaper")
-            }
-            OutlinedButton(onClick = onCreate, shape = RoundedCornerShape(16.dp)) {
-                Icon(Icons.Rounded.Tune, null); Spacer(Modifier.width(6.dp)); Text("Edit")
-            }
-        }
-        Spacer(Modifier.height(18.dp))
-        Text(
-            if (artworkFile == null && artworkObjectFile == null) "Add your own background or object artwork in Library."
-            else "Your imported artwork is stored locally and works offline.",
-            color = Color(0xFF9FA2AD), fontSize = 12.sp
-        )
-    }
-    if (showApplyDialog) {
-        AlertDialog(
-            onDismissRequest = { showApplyDialog = false },
-            title = { Text("Apply wallpaper") },
-            text = { Text("Choose where FaceIt should apply this composition.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showApplyDialog = false
-                    onApply(WallpaperManager.FLAG_SYSTEM)
-                }) { Text("Home screen") }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = {
-                        showApplyDialog = false
-                        onApply(WallpaperManager.FLAG_LOCK)
-                    }) { Text("Lock screen") }
-                    TextButton(onClick = {
-                        showApplyDialog = false
-                        onApply(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
-                    }) { Text("Both") }
                 }
             }
-        )
-    }
-}
-
-
-@Composable
-private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, onSave: (PersonalEnvironment) -> Unit) {
-    var value by remember(initial) { mutableStateOf(initial) }
-    Column(modifier.fillMaxSize()) {
-        Column(Modifier.padding(horizontal=20.dp, vertical=18.dp)) {
-            Text("Composition studio", color=Color.White, fontSize=26.sp, fontWeight=FontWeight.SemiBold)
-            Text("Build with independent layers. Your choices stay editable.", color=Color(0xFFA9AAB4), fontSize=13.sp)
-        }
-        LazyColumn(Modifier.weight(1f), contentPadding=PaddingValues(horizontal=20.dp, vertical=4.dp),
-            verticalArrangement=Arrangement.spacedBy(14.dp)) {
-            item {
-                ChoiceGroup(
-                    "Sample compositions",
-                    CompositionPresets.all.map { it.name },
-                    value.name
-                ) { selected -> value = CompositionPresets.find(selected) ?: value }
+            result.onSuccess {
+                snackbarHostState.showSnackbar("Wallpaper applied")
+            }.onFailure { error ->
+                snackbarHostState.showSnackbar(
+                    error.localizedMessage?.let { "Wallpaper error: $it" } ?: "Unable to apply wallpaper"
+                )
             }
-            if (value.selectedArtworkFile == null) {
-                item { ChoiceGroup("Background", listOf("Football","Islamic architecture","Nature","Geometry","Cityscape","Automotive"), value.background) { value=value.copy(background=it) } }
-            } else {
-                item { Text("Imported background artwork is active. Change or clear it in Library.", color=Color(0xFFA9AAB4), fontSize=12.sp) }
-            }
-            if (value.selectedObjectFile == null) {
-                item { ChoiceGroup("Main object", listOf("Lion sculpture","Geometric crystal","Stethoscope","Mechanical sculpture","None"), value.mainObject) { value=value.copy(mainObject=it) } }
-                if (value.mainObject != "None") {
-                    item { ChoiceGroup("Material", listOf("Natural stone","Ceramic","Frosted glass","Brushed metal","Marble"), value.material) { value=value.copy(material=it) } }
-                }
-            } else {
-                item { Text("Imported main-object artwork is active. Change or clear it in Library.", color=Color(0xFFA9AAB4), fontSize=12.sp) }
-            }
-        }
-        Button(onClick={onSave(value)}, modifier=Modifier.fillMaxWidth().padding(horizontal=20.dp, vertical=12.dp).height(54.dp),
-            shape=RoundedCornerShape(18.dp)) { Icon(Icons.Rounded.Save,null); Spacer(Modifier.width(8.dp)); Text("Save my environment") }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ChoiceGroup(title: String, options: List<String>, selected: String, onSelect: (String)->Unit) {
-    Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Text(title, color=Color(0xFFE7E5EB), fontWeight=FontWeight.SemiBold, fontSize=14.sp)
-        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp), verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            options.forEach { option -> FilterChip(selected=option==selected,onClick={onSelect(option)},label={Text(option)}) }
         }
     }
-}
 
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun DialerScreen(style: String, modifier: Modifier, onStyle: (String)->Unit) {
-    val context=LocalContext.current
-    var number by remember { mutableStateOf("") }
-    val digits=listOf("1" to "","2" to "ABC","3" to "DEF","4" to "GHI","5" to "JKL","6" to "MNO",
-        "7" to "PQRS","8" to "TUV","9" to "WXYZ","*" to "","0" to "+","#" to "")
-    Column(modifier.fillMaxSize().padding(horizontal=22.dp)) {
-        Spacer(Modifier.height(20.dp))
-        Text("Dialer keypad studio",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.SemiBold)
-        Text("Raised, individually sculpted number keys.",color=Color(0xFFA9AAB4),fontSize=13.sp)
-        Spacer(Modifier.height(18.dp))
-        OutlinedTextField(value=number,onValueChange={number=it.filter { c->c.isDigit()||c=='+'||c=='*'||c=='#' }},
-            modifier=Modifier.fillMaxWidth(),singleLine=true,label={Text("Phone number")},
-            trailingIcon={IconButton(onClick={number=number.dropLast(1)}){Icon(Icons.Rounded.Backspace,"Delete last digit")}})
-        Spacer(Modifier.height(12.dp))
-        FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            listOf("Ceramic Sculpt","Frosted Glass","Natural Stone","Brushed Metal").forEach {
-                FilterChip(selected=style==it,onClick={onStyle(it)},label={Text(it,fontSize=10.sp)})
-            }
+    BackHandler(enabled = destination != Destination.Discover || toolsPage != ToolsPage.Home) {
+        if (destination == Destination.Tools && toolsPage != ToolsPage.Home) {
+            toolsPage = ToolsPage.Home
+        } else {
+            destination = Destination.Discover
         }
-        Spacer(Modifier.height(14.dp))
-        for(row in 0..3) {
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(14.dp)) {
-                for(col in 0..2) {
-                    val (digit,letters)=digits[row*3+col]
-                    SculptedDialKey(
-                        digit = digit,
-                        letters = letters,
-                        style = style,
-                        onClick = { number += digit },
-                        modifier = Modifier.weight(1f).height(72.dp)
+    }
+
+    FaceItBackdrop(Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            bottomBar = {
+                FaceItNavigation(
+                    destination = destination,
+                    onSelect = { selected ->
+                        if (selected == Destination.Tools) toolsPage = ToolsPage.Home
+                        destination = selected
+                    }
+                )
+            }
+        ) { padding ->
+            Crossfade(
+                targetState = destination,
+                modifier = Modifier.fillMaxSize(),
+                label = "destination"
+            ) { current ->
+                when (current) {
+                    Destination.Discover -> DiscoverScreen(
+                        environment = environment,
+                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
+                        artworkObjectFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
+                        modifier = Modifier.padding(padding),
+                        onCreate = { destination = Destination.Create },
+                        onPreset = { preset ->
+                            update(preset)
+                            scope.launch { snackbarHostState.showSnackbar("Loaded ${preset.name}") }
+                        },
+                        onApply = { flags -> applyWallpaper(flags) }
+                    )
+
+                    Destination.Create -> CompositionScreen(
+                        initial = environment,
+                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
+                        objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
+                        modifier = Modifier.padding(padding),
+                        onSave = {
+                            update(it)
+                            scope.launch { snackbarHostState.showSnackbar("Environment saved on this device") }
+                        },
+                        onOpenLibrary = { destination = Destination.Library }
+                    )
+
+                    Destination.Dialer -> DialerScreen(
+                        style = environment.dialerStyle,
+                        modifier = Modifier.padding(padding),
+                        onStyle = { update(environment.copy(dialerStyle = it)) }
+                    )
+
+                    Destination.Library -> ArtworkStudioScreen(
+                        selectedFileName = environment.selectedArtworkFile,
+                        selectedObjectFileName = environment.selectedObjectFile,
+                        modifier = Modifier.padding(padding),
+                        onSelected = { selected, layer ->
+                            update(
+                                if (layer == "Object") {
+                                    environment.copy(selectedObjectFile = selected.fileName)
+                                } else {
+                                    environment.copy(selectedArtworkFile = selected.fileName)
+                                }
+                            )
+                            destination = Destination.Discover
+                            scope.launch { snackbarHostState.showSnackbar("${selected.title} set as ${layer.lowercase()}") }
+                        },
+                        onClearLayer = { layer ->
+                            update(
+                                if (layer == "Object") {
+                                    environment.copy(selectedObjectFile = null)
+                                } else {
+                                    environment.copy(selectedArtworkFile = null)
+                                }
+                            )
+                        }
+                    )
+
+                    Destination.Tools -> ToolsHubScreen(
+                        page = toolsPage,
+                        modifier = Modifier.padding(padding),
+                        onOpen = { toolsPage = it },
+                        onBack = { toolsPage = ToolsPage.Home }
                     )
                 }
             }
-            Spacer(Modifier.height(10.dp))
         }
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically) {
-            OutlinedButton(onClick={number=""},modifier=Modifier.weight(1f)){Text("Clear")}
-            Button(onClick={
-                if(number.isNotBlank()) runCatching {
-                    context.startActivity(Intent(Intent.ACTION_DIAL,Uri.fromParts("tel",number,null)))
-                }.onFailure { Toast.makeText(context,"Unable to open dialler",Toast.LENGTH_SHORT).show() }
-            },modifier=Modifier.weight(2f).height(54.dp),colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF76DCCB))) {
-                Icon(Icons.Rounded.Call,null,tint=Color(0xFF111318)); Spacer(Modifier.width(7.dp)); Text("Open phone dialler",color=Color(0xFF111318))
-            }
-        }
-        Spacer(Modifier.height(10.dp))
-        Text("This in-app keypad hands the number to Android's system dialler. It does not place calls or replace the default Phone app.",
-            color=Color(0xFF8F939F),fontSize=11.sp)
     }
 }
 
 @Composable
-private fun LibraryScreen(modifier: Modifier) {
-    LazyColumn(modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        item { Text("Visual universes",color=Color.White,fontSize=26.sp,fontWeight=FontWeight.SemiBold)
-            Text("Explore independent collections and combine them freely.",color=Color(0xFFA9AAB4),fontSize=13.sp) }
-        items(VisualCatalogue.categories) { category ->
-            Surface(color=Color(0xFF20232B),shape=RoundedCornerShape(18.dp)) {
-                Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(category.title,color=Color.White,fontWeight=FontWeight.SemiBold)
-                        Spacer(Modifier.height(4.dp))
-                        Text(category.description,color=Color(0xFFA9AAB4),fontSize=12.sp)
+private fun FaceItNavigation(
+    destination: Destination,
+    onSelect: (Destination) -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    Column(Modifier.fillMaxWidth().background(colors.card)) {
+        HorizontalDivider(color = colors.border)
+        NavigationBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp
+        ) {
+            Destination.entries.forEach { item ->
+                NavigationBarItem(
+                    selected = destination == item,
+                    onClick = { onSelect(item) },
+                    icon = {
+                        Icon(
+                            imageVector = when (item) {
+                                Destination.Discover -> Icons.Rounded.Explore
+                                Destination.Create -> Icons.Rounded.Tune
+                                Destination.Dialer -> Icons.Rounded.Dialpad
+                                Destination.Library -> Icons.Rounded.Collections
+                                Destination.Tools -> Icons.Rounded.Settings
+                            },
+                            contentDescription = item.label,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    },
+                    label = {
+                        Text(item.label, style = MaterialTheme.typography.labelSmall)
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = colors.violet,
+                        selectedTextColor = colors.violet,
+                        indicatorColor = colors.violet.copy(alpha = .13f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoverScreen(
+    environment: PersonalEnvironment,
+    artworkFile: java.io.File?,
+    artworkObjectFile: java.io.File?,
+    modifier: Modifier,
+    onCreate: () -> Unit,
+    onPreset: (PersonalEnvironment) -> Unit,
+    onApply: (Int) -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    var showApplyDialog by remember { mutableStateOf(false) }
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                FaceItWordmark(Modifier.weight(1f))
+                StatusPill(text = "On-device", icon = Icons.Rounded.Lock, tint = colors.mint)
+            }
+        }
+
+        item {
+            Column {
+                Text(
+                    text = "Your world,\ncomposed.",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Independent visual layers. One personal environment, built offline.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .border(1.dp, colors.border, MaterialTheme.shapes.extraLarge)
+            ) {
+                CompositionPreview(
+                    environment = environment,
+                    artworkFile = artworkFile,
+                    objectArtworkFile = artworkObjectFile,
+                    modifier = Modifier.fillMaxSize()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color.Transparent, Color.Transparent, Color.Black.copy(alpha = .72f))
+                            )
+                        )
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StatusPill(text = "Live preview", tint = colors.mint)
+                    if (artworkFile != null || artworkObjectFile != null) {
+                        StatusPill(text = "Your artwork", tint = colors.ice)
                     }
-                    Text(category.collection,color=Color(0xFFA78BFA),fontSize=9.sp,fontWeight=FontWeight.Bold)
+                }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(18.dp)
+                ) {
+                    Text(
+                        text = environment.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "${environment.background} · ${environment.mainObject} · ${environment.material}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = .78f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
-        item { Text("Catalogue metadata is offline. Curated photographic wallpaper packs are added through the verified artwork pipeline.",
-            color=Color(0xFF8F939F),fontSize=11.sp) }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    onClick = { showApplyDialog = true },
+                    modifier = Modifier.weight(1f).height(54.dp),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Icon(Icons.Rounded.Wallpaper, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Apply wallpaper", maxLines = 1)
+                }
+                OutlinedButton(
+                    onClick = onCreate,
+                    modifier = Modifier.height(54.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(1.dp, colors.border),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ) {
+                    Icon(Icons.Rounded.Tune, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(7.dp))
+                    Text("Edit")
+                }
+            }
+        }
+
+        item {
+            SectionHeader(
+                title = "Layer stack",
+                supporting = "Each layer stays independently editable.",
+                actionLabel = "Edit",
+                onAction = onCreate
+            )
+        }
+
+        item {
+            FaceItCard {
+                LayerRow("BACKGROUND", environment.background, Icons.Rounded.Image)
+                HorizontalDivider(color = colors.border.copy(alpha = .7f))
+                LayerRow("MAIN OBJECT", environment.mainObject, Icons.Rounded.Layers)
+                HorizontalDivider(color = colors.border.copy(alpha = .7f))
+                LayerRow("MATERIAL", environment.material, Icons.Rounded.Wallpaper)
+            }
+        }
+
+        item {
+            SectionHeader(
+                title = "Start from a preset",
+                supporting = "A composed starting point, still fully editable."
+            )
+        }
+
+        item {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(CompositionPresets.all, key = { it.name }) { preset ->
+                    PresetCard(
+                        preset = preset,
+                        active = preset.name == environment.name,
+                        onClick = { onPreset(preset) }
+                    )
+                }
+            }
+        }
+
+        item {
+            FaceItCard(contentPadding = 0.dp) {
+                InfoNote(
+                    text = if (artworkFile == null && artworkObjectFile == null) {
+                        "Add your own background or object artwork in Library. Imports are copied into private, offline storage."
+                    } else {
+                        "Your imported artwork stays on this device and continues to work without a connection."
+                    },
+                    tint = colors.mint
+                )
+            }
+        }
+    }
+
+    if (showApplyDialog) {
+        ApplyWallpaperDialog(
+            onDismiss = { showApplyDialog = false },
+            onApply = { flags ->
+                showApplyDialog = false
+                onApply(flags)
+            }
+        )
+    }
+}
+
+@Composable
+private fun PresetCard(
+    preset: PersonalEnvironment,
+    active: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.width(196.dp),
+        shape = MaterialTheme.shapes.large,
+        color = colors.card,
+        border = BorderStroke(
+            width = if (active) 1.5.dp else 1.dp,
+            color = if (active) colors.violet.copy(alpha = .65f) else colors.border
+        )
+    ) {
+        Column {
+            Box(Modifier.fillMaxWidth().height(112.dp)) {
+                GradientTile(category = preset.background, modifier = Modifier.fillMaxSize())
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color.Transparent, Color.Black.copy(alpha = .55f))
+                            )
+                        )
+                )
+                if (active) {
+                    StatusPill(
+                        text = "ACTIVE",
+                        modifier = Modifier.align(Alignment.TopStart).padding(10.dp),
+                        tint = colors.mint
+                    )
+                }
+                Text(
+                    text = preset.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
+                )
+            }
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                Text(
+                    text = "${preset.mainObject} · ${preset.material}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApplyWallpaperDialog(
+    onDismiss: () -> Unit,
+    onApply: (Int) -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.card,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = {
+            Column {
+                Text("Apply wallpaper", style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Choose where FaceIt should apply this composition.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ApplyTargetRow(
+                    icon = Icons.Rounded.Home,
+                    title = "Home screen",
+                    description = "Keep the lock screen unchanged.",
+                    onClick = { onApply(WallpaperManager.FLAG_SYSTEM) }
+                )
+                ApplyTargetRow(
+                    icon = Icons.Rounded.Lock,
+                    title = "Lock screen",
+                    description = "Keep the home screen unchanged.",
+                    onClick = { onApply(WallpaperManager.FLAG_LOCK) }
+                )
+                ApplyTargetRow(
+                    icon = Icons.Rounded.Smartphone,
+                    title = "Home and lock",
+                    description = "Apply the same composition to both.",
+                    onClick = {
+                        onApply(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
+                    }
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+private fun ApplyTargetRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = colors.cardRaised,
+        border = BorderStroke(1.dp, colors.border)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, tint = colors.violet, modifier = Modifier.size(21.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompositionScreen(
+    initial: PersonalEnvironment,
+    artworkFile: java.io.File?,
+    objectArtworkFile: java.io.File?,
+    modifier: Modifier,
+    onSave: (PersonalEnvironment) -> Unit,
+    onOpenLibrary: () -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    var value by remember(initial) { mutableStateOf(initial) }
+    val activePreset = CompositionPresets.all.firstOrNull {
+        it.name == value.name &&
+            it.background == value.background &&
+            it.mainObject == value.mainObject &&
+            it.material == value.material
+    }
+    val dirty = value != initial
+
+    Column(modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            item {
+                ScreenHeader(
+                    eyebrow = "Composition studio",
+                    title = "Build your environment",
+                    description = "Change one layer without resetting the others."
+                )
+            }
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 180.dp, max = 240.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .border(1.dp, colors.border, MaterialTheme.shapes.extraLarge)
+                ) {
+                    CompositionPreview(
+                        environment = value,
+                        artworkFile = artworkFile,
+                        objectArtworkFile = objectArtworkFile,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    StatusPill(
+                        text = "Live preview",
+                        modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+                        tint = colors.mint
+                    )
+                }
+            }
+
+            item {
+                FaceItCard {
+                    ChoiceChips(
+                        title = "Preset",
+                        supporting = "Start from a composed baseline. Your saved artwork stays in Library.",
+                        options = CompositionPresets.all.map { it.name },
+                        selected = activePreset?.name ?: "",
+                        onSelected = { name ->
+                            CompositionPresets.find(name)?.let { value = it }
+                        }
+                    )
+                }
+            }
+
+            item {
+                FaceItCard {
+                    if (value.selectedArtworkFile == null) {
+                        ChoiceChips(
+                            title = "Background",
+                            options = listOf(
+                                "Football",
+                                "Islamic architecture",
+                                "Nature",
+                                "Geometry",
+                                "Cityscape",
+                                "Automotive"
+                            ),
+                            selected = value.background,
+                            onSelected = { value = value.copy(background = it) }
+                        )
+                    } else {
+                        LayerRow("IMPORTED BACKGROUND", "Using your artwork", Icons.Rounded.Image)
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onOpenLibrary,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) { Text("Manage imported artwork") }
+                    }
+                }
+            }
+
+            item {
+                FaceItCard {
+                    if (value.selectedObjectFile == null) {
+                        ChoiceChips(
+                            title = "Main object",
+                            options = listOf(
+                                "Lion sculpture",
+                                "Geometric crystal",
+                                "Stethoscope",
+                                "Mechanical sculpture",
+                                "None"
+                            ),
+                            selected = value.mainObject,
+                            onSelected = { value = value.copy(mainObject = it) }
+                        )
+                        if (value.mainObject != "None") {
+                            Spacer(Modifier.height(18.dp))
+                            HorizontalDivider(color = colors.border.copy(alpha = .7f))
+                            Spacer(Modifier.height(16.dp))
+                            ChoiceChips(
+                                title = "Material",
+                                options = listOf(
+                                    "Natural stone",
+                                    "Ceramic",
+                                    "Frosted glass",
+                                    "Brushed metal",
+                                    "Marble"
+                                ),
+                                selected = value.material,
+                                onSelected = { value = value.copy(material = it) }
+                            )
+                        }
+                    } else {
+                        LayerRow("IMPORTED OBJECT", "Using your artwork", Icons.Rounded.Layers)
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onOpenLibrary,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) { Text("Manage imported artwork") }
+                    }
+                }
+            }
+
+            item {
+                InfoNote(
+                    text = "Saving writes this environment to FaceIt's private storage on this device. Applying a wallpaper renders a new image and never replaces your stored artwork.",
+                    tint = colors.ice
+                )
+            }
+        }
+
+        Surface(
+            color = colors.card,
+            border = BorderStroke(1.dp, colors.border.copy(alpha = .7f))
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (dirty) "Unsaved changes" else "All changes saved",
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+                        color = if (dirty) colors.warning else colors.success
+                    )
+                    Text(
+                        "Saved to this device only",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Button(
+                    onClick = { onSave(value) },
+                    enabled = dirty,
+                    modifier = Modifier.height(50.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Tune, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Save")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialerScreen(
+    style: String,
+    modifier: Modifier,
+    onStyle: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val colors = LocalFaceItColors.current
+    var number by remember { mutableStateOf("") }
+    val digits = listOf(
+        "1" to "",
+        "2" to "ABC",
+        "3" to "DEF",
+        "4" to "GHI",
+        "5" to "JKL",
+        "6" to "MNO",
+        "7" to "PQRS",
+        "8" to "TUV",
+        "9" to "WXYZ",
+        "*" to "",
+        "0" to "+",
+        "#" to ""
+    )
+    val materials = listOf(
+        Triple("Ceramic Sculpt", "CERAMIC", "Ceramic"),
+        Triple("Frosted Glass", "GLASS", "Glass"),
+        Triple("Natural Stone", "STONE", "Stone"),
+        Triple("Brushed Metal", "METAL", "Metal")
+    )
+
+    Box(modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .widthIn(max = 480.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            ScreenHeader(
+                eyebrow = "Dialer keypad",
+                title = "Sculpted keys",
+                description = "An in-app number pad that hands the number to Android's system dialler."
+            )
+
+            OutlinedTextField(
+                value = number,
+                onValueChange = { entered ->
+                    number = entered.filter { it.isDigit() || it == '+' || it == '*' || it == '#' }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.headlineSmall,
+                label = { Text("Phone number") },
+                placeholder = { Text("Enter a number", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                shape = MaterialTheme.shapes.large,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = colors.card,
+                    unfocusedContainerColor = colors.card,
+                    focusedBorderColor = colors.violet,
+                    unfocusedBorderColor = colors.border
+                ),
+                trailingIcon = {
+                    if (number.isNotEmpty()) {
+                        IconButton(onClick = { number = number.dropLast(1) }) {
+                            Icon(
+                                Icons.Rounded.Backspace,
+                                contentDescription = "Delete last digit"
+                            )
+                        }
+                    }
+                }
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "KEY MATERIAL",
+                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.4.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    materials.forEach { (styleName, materialName, label) ->
+                        MaterialSwatch(
+                            materialName = materialName,
+                            label = label,
+                            selected = style == styleName,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onStyle(styleName) }
+                        )
+                    }
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                digits.chunked(3).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        row.forEach { (digit, letters) ->
+                            SculptedDialKey(
+                                digit = digit,
+                                letters = letters,
+                                style = style,
+                                onClick = { number += digit },
+                                modifier = Modifier.weight(1f).height(68.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { number = "" },
+                    modifier = Modifier.weight(1f).height(54.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    enabled = number.isNotEmpty(),
+                    border = BorderStroke(1.dp, colors.border)
+                ) {
+                    Text("Clear")
+                }
+                Button(
+                    onClick = {
+                        if (number.isNotBlank()) {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null))
+                                )
+                            }.onFailure {
+                                Toast.makeText(context, "Unable to open dialler", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(2f).height(54.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.mint,
+                        contentColor = Color(0xFF071411)
+                    )
+                ) {
+                    Icon(Icons.Rounded.Call, contentDescription = null, modifier = Modifier.size(19.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Open dialler")
+                }
+            }
+
+            InfoNote(
+                text = "This keypad does not place calls or replace your default Phone app. FaceIt hands the number to Android with ACTION_DIAL, using the system dialler you already trust.",
+                tint = colors.ice
+            )
+        }
     }
 }

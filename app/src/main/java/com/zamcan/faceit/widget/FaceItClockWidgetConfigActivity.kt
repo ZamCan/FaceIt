@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,8 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -26,10 +32,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.zamcan.faceit.ui.ScreenHeader
+import com.zamcan.faceit.ui.theme.FaceItTheme
+import com.zamcan.faceit.ui.theme.LocalFaceItColors
 
 class FaceItClockWidgetConfigActivity : ComponentActivity() {
     private var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -48,7 +59,7 @@ class FaceItClockWidgetConfigActivity : ComponentActivity() {
         val preferences = getSharedPreferences("faceit_clock_widget_$widgetId", MODE_PRIVATE)
         val initialStyle = FaceItClockWidgetStyles.find(preferences.getString("style", "Obsidian")).id
         setContent {
-            MaterialTheme {
+            FaceItTheme {
                 WidgetStyleConfig(
                     initialStyle = initialStyle,
                     onCancel = { finish() },
@@ -75,30 +86,86 @@ private fun WidgetStyleConfig(
     onCancel: () -> Unit,
     onSave: (FaceItClockStyle) -> Unit
 ) {
+    val colors = LocalFaceItColors.current
     var selected by remember { mutableStateOf(FaceItClockWidgetStyles.find(initialStyle)) }
     Column(
-        Modifier.fillMaxSize().padding(22.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Text("FaceIt clock", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-        Text("Choose a material finish for this home-screen widget.")
+        ScreenHeader(
+            eyebrow = "Home screen",
+            title = "FaceIt clock",
+            description = "Choose a material finish for this widget. Each widget keeps its own saved style."
+        )
+
         FaceItClockWidgetStyles.all.forEach { style ->
+            val active = selected.id == style.id
             Surface(
-                modifier = Modifier.fillMaxWidth().clickable { selected = style },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
                 color = Color(style.background),
-                shape = RoundedCornerShape(20.dp),
-                border = if (selected.id == style.id) androidx.compose.foundation.BorderStroke(2.dp, Color(style.date)) else null
+                border = BorderStroke(
+                    width = if (active) 2.dp else 1.dp,
+                    color = if (active) Color(style.date) else colors.border
+                ),
+                onClick = { selected = style }
             ) {
-                Column(Modifier.padding(18.dp)) {
-                    Text("09:41", color = Color(style.time), style = MaterialTheme.typography.headlineLarge)
-                    Text(style.label, color = Color(style.date), fontWeight = FontWeight.SemiBold)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "09:41",
+                            color = Color(style.time),
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Fri, 1 Nov",
+                            color = Color(style.date),
+                            fontSize = 12.sp,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = style.label,
+                            color = Color(style.time).copy(alpha = .72f),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                    if (active) {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = "Selected",
+                            tint = Color(style.date)
+                        )
+                    }
                 }
             }
         }
-        Spacer(Modifier.height(4.dp))
+
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Cancel") }
-            Button(onClick = { onSave(selected) }, modifier = Modifier.weight(1f)) { Text("Add widget") }
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, colors.border)
+            ) { Text("Cancel") }
+            Button(
+                onClick = { onSave(selected) },
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = MaterialTheme.shapes.medium
+            ) { Text("Add widget") }
         }
+
+        Text(
+            text = "The widget uses Android's live clock and date rendering, so it stays current without periodic background updates.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
