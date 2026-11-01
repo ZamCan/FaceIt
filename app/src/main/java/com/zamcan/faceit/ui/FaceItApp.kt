@@ -118,7 +118,7 @@ private fun DiscoverScreen(env: PersonalEnvironment, artworkFile: java.io.File?,
         }
         Spacer(Modifier.height(18.dp))
         Text(
-            if (artworkFile == null) "Add your own background or object artwork in Library."
+            if (artworkFile == null && artworkObjectFile == null) "Add your own background or object artwork in Library."
             else "Your imported artwork is stored locally and works offline.",
             color = Color(0xFF9FA2AD), fontSize = 12.sp
         )
