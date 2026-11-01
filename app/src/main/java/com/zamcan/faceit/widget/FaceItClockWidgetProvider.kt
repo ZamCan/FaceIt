@@ -17,7 +17,6 @@ class FaceItClockWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         val views = RemoteViews(context.packageName, R.layout.faceit_clock_widget)
         val now = Date()
-        views.setTextViewText(R.id.faceit_widget_time, SimpleDateFormat("HH:mm", Locale.getDefault()).format(now))
         views.setTextViewText(R.id.faceit_widget_date, SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(now))
         val intent = Intent(context, MainActivity::class.java)
         val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
