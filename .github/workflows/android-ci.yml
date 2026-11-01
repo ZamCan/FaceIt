@@ -19,6 +19,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Validate artwork manifest and bundled assets
+        run: python3 tools/validate_artwork_pack.py
       - name: Unit tests and debug APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug
       - uses: actions/upload-artifact@v4
