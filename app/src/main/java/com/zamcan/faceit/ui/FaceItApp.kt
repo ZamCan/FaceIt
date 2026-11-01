@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zamcan.faceit.data.ArtworkRepository
+import com.zamcan.faceit.data.CompositionPresets
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.data.VisualCatalogue
@@ -168,6 +169,13 @@ private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, 
         }
         LazyColumn(Modifier.weight(1f), contentPadding=PaddingValues(horizontal=20.dp, vertical=4.dp),
             verticalArrangement=Arrangement.spacedBy(14.dp)) {
+            item {
+                ChoiceGroup(
+                    "Sample compositions",
+                    CompositionPresets.all.map { it.name },
+                    value.name
+                ) { selected -> value = CompositionPresets.find(selected) ?: value }
+            }
             if (value.selectedArtworkFile == null) {
                 item { ChoiceGroup("Background", listOf("Football","Islamic architecture","Nature","Geometry","Cityscape","Automotive"), value.background) { value=value.copy(background=it) } }
             } else {
