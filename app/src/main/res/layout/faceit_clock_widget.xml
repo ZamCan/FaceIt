@@ -1,0 +1,25 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/faceit_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:padding="18dp"
+    android:background="#E622252D">
+    <TextView
+        android:id="@+id/faceit_widget_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="09:41"
+        android:textColor="#FFF4F0FA"
+        android:textSize="34sp"
+        android:fontFamily="sans" />
+    <TextView
+        android:id="@+id/faceit_widget_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sun, 1 Nov"
+        android:textColor="#FFA78BFA"
+        android:textSize="12sp"
+        android:letterSpacing="0.04" />
+</LinearLayout>
