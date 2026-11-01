@@ -34,12 +34,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
-fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) -> Unit) {
+fun ArtworkStudioScreen(selectedFileName: String?, selectedObjectFileName: String?, onSelected: (LocalArtwork, String) -> Unit) {
     val context = LocalContext.current
     val repository = remember { ArtworkRepository(context) }
     val scope = rememberCoroutineScope()
     var artwork by remember { mutableStateOf(repository.list()) }
     var importing by remember { mutableStateOf(false) }
+    var targetLayer by remember { mutableStateOf("Background") }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -51,7 +52,7 @@ fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) ->
                 importing = false
                 result.onSuccess { imported ->
                     artwork = repository.list()
-                    onSelected(imported)
+                    onSelected(imported, targetLayer)
                     Toast.makeText(context, "Artwork imported into FaceIt", Toast.LENGTH_SHORT).show()
                 }.onFailure { error ->
                     Toast.makeText(context, error.message ?: "Unable to import this image", Toast.LENGTH_LONG).show()
@@ -69,6 +70,18 @@ fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) ->
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(16.dp))
+        Text("Import this image as", style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = targetLayer == "Background", onClick = { targetLayer = "Background" }, label = { Text("Background") })
+            FilterChip(selected = targetLayer == "Object", onClick = { targetLayer = "Object" }, label = { Text("Main object") })
+        }
+        if (targetLayer == "Object") {
+            Text(
+                "Transparent PNG artwork works best for a clean sculptural layer.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Button(
             onClick = { picker.launch(arrayOf("image/png", "image/jpeg", "image/webp")) },
             enabled = !importing,
@@ -102,7 +115,7 @@ fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) ->
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(artwork, key = { it.id }) { item ->
                     val file = repository.fileFor(item.fileName)
-                    val isSelected = item.fileName == selectedFileName
+                    val isSelected = if (targetLayer == "Object") item.fileName == selectedObjectFileName else item.fileName == selectedFileName
                     Card(
                         modifier = Modifier.fillMaxWidth().clickable { onSelected(item) },
                         shape = RoundedCornerShape(18.dp),
@@ -122,7 +135,7 @@ fun ArtworkStudioScreen(selectedFileName: String?, onSelected: (LocalArtwork) ->
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    if (isSelected) "Selected for your environment" else "Tap to use in your environment",
+                                    if (isSelected) "Selected as " + targetLayer.lowercase() else "Tap to use as " + targetLayer.lowercase(),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
