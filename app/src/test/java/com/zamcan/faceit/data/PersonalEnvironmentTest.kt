@@ -16,7 +16,8 @@ class PersonalEnvironmentTest {
             iconsEnabled = true,
             dialerStyle = "Ceramic Sculpt",
             resourceProfile = "Balanced",
-            selectedArtworkFile = "wallpaper-01.png"
+            selectedArtworkFile = "wallpaper-01.png",
+            selectedObjectFile = "stone-lion.png"
         )
         assertEquals(original, PersonalEnvironment.fromJson(original.toJson()))
     }
