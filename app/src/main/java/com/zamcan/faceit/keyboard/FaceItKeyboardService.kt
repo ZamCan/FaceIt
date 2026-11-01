@@ -23,6 +23,7 @@ class FaceItKeyboardService : InputMethodService() {
     private var keySurface = Color.rgb(49, 52, 62)
     private var specialSurface = Color.rgb(62, 58, 76)
     private var keyText = Color.rgb(244, 242, 248)
+    private var keyStrokeColor = Color.argb(34, 255, 255, 255)
     private var keyRadiusDp = 13
     private var keyTypeface = "sans-serif-medium"
     private var hapticsEnabled = true
@@ -62,6 +63,13 @@ class FaceItKeyboardService : InputMethodService() {
         keySurface = colors[0]
         specialSurface = colors[1]
         keyText = colors[2]
+        keyStrokeColor = when (prefs.getString("material", "MATTE_CERAMIC")) {
+            "FROSTED_GLASS" -> Color.argb(115, 225, 239, 255)
+            "NATURAL_STONE" -> Color.rgb(145, 125, 108)
+            "BRUSHED_METAL" -> Color.rgb(137, 149, 164)
+            "SOFT_MATTE" -> Color.argb(22, 255, 255, 255)
+            else -> Color.argb(34, 255, 255, 255)
+        }
         keyRadiusDp = when (prefs.getString("shape", "ROUNDED_RECTANGLE")) {
             "PILL" -> 28
             "SOFT_SQUARE" -> 7
@@ -133,7 +141,7 @@ class FaceItKeyboardService : InputMethodService() {
                 background = GradientDrawable().apply {
                     setColor(if (special) specialSurface else keySurface)
                     cornerRadius = dp(keyRadiusDp).toFloat()
-                    setStroke(dp(1), Color.argb(34, 255, 255, 255))
+                    setStroke(dp(1), keyStrokeColor)
                 }
                 setPadding(dp(3), 0, dp(3), 0)
                 isFocusable = true
