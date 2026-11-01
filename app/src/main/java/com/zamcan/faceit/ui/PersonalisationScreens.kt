@@ -51,7 +51,7 @@ import com.zamcan.faceit.keyboard.KeyboardLayout
 import com.zamcan.faceit.messaging.SmsTransportHandoff
 import com.zamcan.faceit.vault.LocalVaultStore
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)\n@Composable\nprivate fun _FlowRowOptInMarker() {}\n\nprivate val panelColor = androidx.compose.ui.graphics.Color(0xFF20232B)
+private val panelColor = androidx.compose.ui.graphics.Color(0xFF20232B)
 private val mutedColor = androidx.compose.ui.graphics.Color(0xFFA9AAB4)
 
 @Composable
