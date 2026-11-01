@@ -43,6 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
@@ -162,7 +166,7 @@ fun VaultScreen(modifier: Modifier = Modifier) {
             Icon(Icons.Rounded.FileOpen, null); Text(" Import file into Vault")
         }
         Text("Encrypted items · ${ids.size}", style = MaterialTheme.typography.titleMedium)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(ids, key = { it }) { id ->
                 Card(colors = CardDefaults.cardColors(containerColor = panelColor), shape = RoundedCornerShape(14.dp)) {
                     Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -203,12 +207,27 @@ fun SmsComposerScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var recipient by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
+    var fontChoice by remember { mutableStateOf("Sans") }
+    var colourChoice by remember { mutableStateOf("Pearl") }
+    val messageColour = when (colourChoice) {
+        "Mint" -> Color(0xFF76DCCB)
+        "Violet" -> Color(0xFFB9A2F5)
+        "Warm" -> Color(0xFFE0B58C)
+        else -> Color(0xFFE9E8EF)
+    }
+    val messageFont = when (fontChoice) {
+        "Serif" -> FontFamily.Serif
+        "Mono" -> FontFamily.Monospace
+        else -> FontFamily.SansSerif
+    }
     Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("SMS composer", style = MaterialTheme.typography.headlineMedium)
         Text("Write and preview your message here, then hand it to your chosen SMS app. Carrier SMS sends plain text, not font or colour styling.", color = mutedColor)
         OutlinedTextField(value = recipient, onValueChange = { recipient = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Recipient phone number") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), singleLine = true)
-        OutlinedTextField(value = body, onValueChange = { body = it }, modifier = Modifier.fillMaxWidth().weight(1f), label = { Text("Message") }, minLines = 5)
-        Text("${body.length} characters · final SMS body is passed through unchanged", color = mutedColor, style = MaterialTheme.typography.bodySmall)
+        PreferenceChips("Preview font", listOf("Sans", "Serif", "Mono"), fontChoice) { fontChoice = it }
+        PreferenceChips("Preview colour", listOf("Pearl", "Mint", "Violet", "Warm"), colourChoice) { colourChoice = it }
+        OutlinedTextField(value = body, onValueChange = { body = it }, modifier = Modifier.fillMaxWidth().weight(1f), label = { Text("Message") }, minLines = 5, textStyle = TextStyle(color = messageColour, fontFamily = messageFont, fontSize = 16.sp))
+        Text("${body.length} characters · styling is preview-only; SMS body remains unchanged", color = mutedColor, style = MaterialTheme.typography.bodySmall)
         Button(onClick = {
             runCatching { SmsTransportHandoff.openComposer(context, recipient.trim(), body) }
                 .onFailure { Toast.makeText(context, it.localizedMessage ?: "Could not open SMS app", Toast.LENGTH_LONG).show() }
