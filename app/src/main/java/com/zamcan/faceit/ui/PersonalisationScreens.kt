@@ -86,7 +86,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 @Composable
-fun ToolsHubScreen(
+internal fun ToolsHubScreen(
     page: ToolsPage,
     modifier: Modifier = Modifier,
     onOpen: (ToolsPage) -> Unit,
