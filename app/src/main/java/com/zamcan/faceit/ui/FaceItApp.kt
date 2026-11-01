@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -164,6 +165,7 @@ private fun CompositionScreen(initial: PersonalEnvironment, modifier: Modifier, 
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChoiceGroup(title: String, options: List<String>, selected: String, onSelect: (String)->Unit) {
     Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -184,6 +186,7 @@ private fun SettingSwitch(title: String, description: String, checked: Boolean, 
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DialerScreen(style: String, modifier: Modifier, onStyle: (String)->Unit) {
     val context=LocalContext.current
