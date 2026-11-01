@@ -26,7 +26,7 @@ class LocalVaultStore(context: Context) {
 
     fun store(displayName: String, clearBytes: ByteArray): String {
         require(displayName.isNotBlank())
-        require(clearBytes.isNotEmpty())
+        require(clearBytes.isNotEmpty() && clearBytes.size <= MAX_ITEM_BYTES) { "Vault item exceeds the 25 MiB limit" }
         val id = UUID.randomUUID().toString()
         val payload = ByteArrayOutputStream().use { bytes ->
             DataOutputStream(bytes).use { out ->
