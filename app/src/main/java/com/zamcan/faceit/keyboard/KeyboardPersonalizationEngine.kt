@@ -35,11 +35,6 @@ data class KeyboardProfile(
     val soundEnabled: Boolean = false,
     val palette: KeyboardPalette = KeyboardPalettes.OBSIDIAN_CERAMIC
 ) {
-    init {
-        require(keyHeightDp in 40..72)
-        require(keyGapDp in 2..12)
-        require(cornerRadiusDp in 0..28)
-    }
 }
 
 object KeyboardPalettes {
