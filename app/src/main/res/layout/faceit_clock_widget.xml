@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:padding="18dp"
-    android:background="#E622252D">
+    android:background="@android:color/transparent">
     <TextClock
         android:id="@+id/faceit_widget_time"
         android:layout_width="wrap_content"

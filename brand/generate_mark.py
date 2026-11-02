@@ -331,6 +331,10 @@ def write_adaptive_vectors() -> None:
     (RES / "drawable" / "faceit_launcher_monochrome.xml").write_text(monochrome, encoding="utf-8")
     (RES / "drawable" / "faceit_launcher_background.xml").write_text(background, encoding="utf-8")
 
+    # Legacy single-layer drawable. Nothing references it: the manifest points at
+    # @mipmap/ic_launcher and the adaptive icon is anydpi-v26, which minSdk 26
+    # always resolves. Kept behind a flag so the artefact list stays honest.
+    _write_legacy_drawable = False
     # Legacy single-layer drawable, still referenced by older launchers.
     legacy_paths = paths.replace('android:fillColor="#', 'android:fillColor="#FF')
     legacy = f"""<?xml version="1.0" encoding="utf-8"?>
@@ -342,10 +346,25 @@ def write_adaptive_vectors() -> None:
 {legacy_paths}
 </vector>
 """
-    (RES / "drawable" / "faceit_launcher.xml").write_text(legacy, encoding="utf-8")
+    if _write_legacy_drawable:
+        (RES / "drawable" / "faceit_launcher.xml").write_text(legacy, encoding="utf-8")
 
 
 LEGACY_DENSITIES = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
+
+
+def _glyph_mark(px: int) -> Image.Image:
+    """The mark alone on transparency, with no square ground behind it.
+
+    Lint rejects launcher icons that fill every pixel of their square, and it is
+    right: a filled square has no silhouette. Legacy icons therefore carry the
+    composition on transparent pixels, and launchers that still mask it keep the
+    padded safe area.
+    """
+    mark = render_mark(px, padded=True)
+    glyph = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+    glyph.paste(mark, (0, 0), mark)
+    return glyph
 
 
 def write_legacy_icons() -> None:
@@ -354,15 +373,9 @@ def write_legacy_icons() -> None:
         folder = RES / f"mipmap-{density}"
         folder.mkdir(parents=True, exist_ok=True)
 
-        square = Image.new("RGBA", (px, px), rgba(IDENTITY["obsidian"]))
-        ImageDraw.Draw(square).rounded_rectangle = None  # keep square; launchers mask it
-        square.paste(render_mark(px, padded=True), (0, 0), render_mark(px, padded=True))
-        square.save(folder / "ic_launcher.png")
+        _glyph_mark(px).save(folder / "ic_launcher.png")
 
-        round_icon = Image.new("RGBA", (px, px), (0, 0, 0, 0))
-        ImageDraw.Draw(round_icon).ellipse((0, 0, px - 1, px - 1), fill=rgba(IDENTITY["obsidian"]))
-        mark = render_mark(px, padded=True)
-        round_icon.paste(mark, (0, 0), mark)
+        round_icon = _glyph_mark(px)
         round_icon.putalpha(ImageChops.multiply(round_icon.getchannel("A"), _mask("circle", px)))
         round_icon.save(folder / "ic_launcher_round.png")
 

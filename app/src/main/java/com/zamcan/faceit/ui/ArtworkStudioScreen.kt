@@ -59,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import com.zamcan.faceit.data.ArtworkRepository
 import com.zamcan.faceit.data.LocalArtwork
 import com.zamcan.faceit.ui.theme.FaceItSpacing
@@ -461,8 +462,8 @@ private fun previewSampleSize(sourceWidth: Int, sourceHeight: Int, targetWidth: 
 }
 
 private fun formatBytes(bytes: Long): String = when {
-    bytes >= 1024L * 1024L -> String.format("%.1f MB", bytes / (1024f * 1024f))
-    bytes >= 1024L -> String.format("%.0f KB", bytes / 1024f)
+    bytes >= 1024L * 1024L -> String.format(Locale.US, "%.1f MB", bytes / (1024f * 1024f))
+    bytes >= 1024L -> String.format(Locale.US, "%.0f KB", bytes / 1024f)
     else -> "$bytes B"
 }
 

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import com.zamcan.faceit.messaging.SmsSegmentEstimator
 import com.zamcan.faceit.messaging.SmsTransportHandoff
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
@@ -181,8 +182,8 @@ private fun readLimited(input: InputStream, maximum: Int): ByteArray {
 }
 
 private fun formatBytes(bytes: Int): String = when {
-    bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024f * 1024f))
-    bytes >= 1024 -> String.format("%.0f KB", bytes / 1024f)
+    bytes >= 1024 * 1024 -> String.format(Locale.US, "%.1f MB", bytes / (1024f * 1024f))
+    bytes >= 1024 -> String.format(Locale.US, "%.0f KB", bytes / 1024f)
     else -> "$bytes B"
 }
 
