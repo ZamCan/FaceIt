@@ -37,6 +37,7 @@ Design rules baked into the renderer
 from __future__ import annotations
 
 import argparse
+import collections
 import hashlib
 import json
 import math
@@ -122,7 +123,24 @@ PALETTES = {
     "chrome": Palette("chrome", hexc("0B0E12"), hexc("2C3440"), hexc("C3CCD6"), hexc("91B9F4")),
     "silk_rose": Palette("silk_rose", hexc("150D10"), hexc("41242C"), hexc("D8A6AC"), hexc("E8C0A0")),
     "jewel_emerald": Palette("jewel_emerald", hexc("08120E"), hexc("123C2E"), hexc("9BD0B8"), hexc("E0C27A")),
+
+    # second-wave palettes, added so no two wallpapers share a recipe/palette pair
+    "rift_indigo": Palette("rift_indigo", hexc("0A0E1A"), hexc("22305A"), hexc("8FA0D0"), hexc("E8C27A")),
+    "rose_quartz": Palette("rose_quartz", hexc("150E14"), hexc("4A2E42"), hexc("E3B7C6"), hexc("F2D0A8")),
+    "verdant_ash": Palette("verdant_ash", hexc("0E110D"), hexc("2C3A2A"), hexc("AFC0A2"), hexc("DFE8B4")),
+    "graphite_sea": Palette("graphite_sea", hexc("0B1014"), hexc("22323B"), hexc("9FB7C0"), hexc("F2D9A0")),
+    "clay_rose": Palette("clay_rose", hexc("170F0D"), hexc("573431"), hexc("D3A697"), hexc("EDD7A8")),
+    "cinnamon_fold": Palette("cinnamon_fold", hexc("140F0A"), hexc("503422"), hexc("CFA982"), hexc("E8D3A6")),
+    "midnight_lacquer": Palette("midnight_lacquer", hexc("07090E"), hexc("1B2333"), hexc("8496AE"), hexc("F0C98A")),
+    "jade_glass": Palette("jade_glass", hexc("08120F"), hexc("173F35"), hexc("8ED2BC"), hexc("F4E6BE")),
+    "amber_noir": Palette("amber_noir", hexc("100B06"), hexc("3F2C14"), hexc("D8AE72"), hexc("F6D9A0")),
+    "porcelain_blue": Palette("porcelain_blue", hexc("0C1220"), hexc("2A3E63"), hexc("B6C6DE"), hexc("D9C48A")),
+    "ceramic_green": Palette("ceramic_green", hexc("0B1210"), hexc("2E463F"), hexc("BCD2C4"), hexc("E4CF9E")),
+    "ink_wash": Palette("ink_wash", hexc("0A0B0D"), hexc("2A2D33"), hexc("B9BDC4"), hexc("D8B88A")),
+    "workshop_steel": Palette("workshop_steel", hexc("0B0D10"), hexc("29323A"), hexc("A7B2BA"), hexc("E9C88E")),
+    "gilded_stone": Palette("gilded_stone", hexc("14110C"), hexc("42392A"), hexc("C9B58F"), hexc("E0BE7A")),
 }
+
 
 
 # ------------------------------------------------------------------------ rendering
@@ -243,6 +261,18 @@ class Canvas:
 # than a phone can resolve. Soft multi-layer glows were tried first and rejected
 # — they read as fog, hide the structure, and (being noise) they also destroy PNG
 # compression. Flat art is both sharper on screen and roughly a tenth the size.
+
+def tiled(c: Canvas, draw_fn, columns: int, rows: int, dx: float, dy: float) -> None:
+    """Draw a motif once, then stamp it across a grid.
+
+    Used for fabric and lattice grounds. Repeating the actual motif instead of
+    roughly similar strokes is what makes a tiled surface read as woven rather
+    than hand-waved.
+    """
+    for row in range(rows):
+        for column in range(columns):
+            draw_fn(column * dx, row * dy)
+
 
 def band(c: Canvas, y0: float, y1: float, colour, alpha: int = 255) -> None:
     c.poly([(0.0, y0), (1.0, y0), (1.0, y1), (0.0, y1)], colour, alpha)
@@ -505,12 +535,13 @@ def r_isometric(c: Canvas, p: Palette, seed: int) -> None:
     band(c, 0.845, 0.86, p.accent, alpha=70)
 
 
-def r_bands(c: Canvas, p: Palette, seed: int) -> None:
+def r_bands(c: Canvas, p: Palette, seed: int, shift: int = 0) -> None:
     """Poster gradient bands: colour study built from hard-edged diagonal steps."""
     c.vertical_gradient(p.base, shade(p.base, -0.20))
     tones = [p.base, mix(p.mid, p.base, 0.6), p.mid, mix(p.mid, p.light, 0.45), p.light, p.accent]
+    tones = tones[shift:] + tones[:shift]
     for i, tone in enumerate(tones):
-        skew = 0.10
+        skew = 0.10 if shift == 0 else -0.07
         y0 = 0.10 + i * 0.135
         c.poly([(0.0, y0 + skew), (1.0, y0 - skew), (1.0, y0 - skew + 0.10),
                 (0.0, y0 + skew + 0.10)], tone, alpha=235)
@@ -613,7 +644,7 @@ def r_forest(c: Canvas, p: Palette, seed: int) -> None:
     band(c, 0.965, 1.0, shade(p.base, -0.35))
 
 
-def r_marble(c: Canvas, p: Palette, seed: int) -> None:
+def r_marble_slabs(c: Canvas, p: Palette, seed: int) -> None:
     """Cut stone slabs: solid ground, sweeping veins that cross the whole frame."""
     c.vertical_gradient(mix(p.mid, p.light, 0.40), mix(p.mid, p.light, 0.20))
     slabs = [(0.08, 0.40, 0.00), (0.42, 0.74, 0.55), (0.76, 1.02, 1.15)]
@@ -878,7 +909,7 @@ def r_weave(c: Canvas, p: Palette, seed: int) -> None:
     band(c, 0.94, 1.0, shade(p.base, -0.20))
 
 
-def r_marble(c: Canvas, p: Palette, seed: int) -> None:
+def r_marble_blocks(c: Canvas, p: Palette, seed: int) -> None:
     """Stone slabs with solid veins and joint lines."""
     c.vertical_gradient(mix(p.mid, p.light, 0.35), mix(p.mid, p.light, 0.15))
     for block in range(3):
@@ -955,6 +986,166 @@ def r_terminal(c: Canvas, p: Palette, seed: int) -> None:
     band(c, 0.92, 1.0, shade(p.base, -0.30))
 
 
+def r_mesh(c: Canvas, p: Palette, seed: int) -> None:
+    """Tensioned fabric: a woven grid over a ground, folding toward one corner.
+
+    `mesh` used to be registered as an alias of `bands`, which meant two entries
+    sharing a palette produced byte-identical files. It is now its own study: a
+    lattice of solids and voids with a tonal fold.
+    """
+    c.vertical_gradient(mix(p.base, p.mid, 0.22), mix(p.base, p.mid, 0.50))
+    columns, rows = 9, 15
+    for row in range(rows):
+        for column in range(columns):
+            x = column / (columns - 1)
+            y = 0.10 + row / (rows - 1) * 0.80
+            fold = 0.5 + 0.5 * math.sin((x * 2.4) + (y * 1.7) + seed * 0.01)
+            size = 0.010 + 0.012 * fold
+            tone = mix(p.base, p.light, 0.30 + 0.55 * fold)
+            c.poly([(x, y - size), (x + size, y), (x, y + size), (x - size, y)], tone, alpha=232)
+    for row in range(rows):
+        y = 0.10 + row / (rows - 1) * 0.80
+        c.line((0.0, y), (1.0, y), mix(p.light, p.base, 0.55), width=1.0, alpha=90)
+    for column in range(columns):
+        x = column / (columns - 1)
+        c.line((x, 0.10), (x, 0.90), mix(p.light, p.base, 0.55), width=1.0, alpha=90)
+    band(c, 0.90, 0.94, p.accent, alpha=140)
+    band(c, 0.94, 1.0, shade(p.base, -0.35))
+
+
+def r_seigaiha(c: Canvas, p: Palette, seed: int) -> None:
+    """Seigaiha: the Japanese wave scale, drawn as overlapping nested arcs.
+
+    Motifs are large enough to read at thumbnail size, and every row is offset by
+    half a step so the scales interlock instead of sitting in separate bands.
+    """
+    c.vertical_gradient(mix(p.base, p.mid, 0.32), p.base)
+    columns, rows = 5, 9
+    step_x = 1.0 / columns
+    step_y = 1.0 / rows
+    radius = step_x * 1.12
+    for row in range(-1, rows + 1):
+        offset = step_x / 2 if row % 2 else 0.0
+        for column in range(columns + 1):
+            cx = column * step_x + offset
+            cy = row * step_y
+            for ring in range(4, 0, -1):
+                r = radius * ring / 4
+                c.circle((cx, cy), r, ring=3.2, fill=shade(p.base, 0.12), alpha=150)
+                c.circle((cx, cy), r * 0.80, ring=1.6,
+                         fill=mix(p.mid, p.accent, 0.40), alpha=90)
+            c.circle((cx, cy), radius * 0.12, mix(p.light, p.accent, 0.30), alpha=200)
+    band(c, 0.0, 0.09, shade(p.base, -0.28), alpha=220)
+    band(c, 0.94, 1.0, shade(p.base, -0.32))
+
+
+def r_gyroid(c: Canvas, p: Palette, seed: int) -> None:
+    """Concentric arches: solid slabs in alternating tones, receding into a lamp.
+
+    The first version of this study was a faint contour field that read as nothing
+    at thumbnail size. Nested solid arches are the strongest silhouette in the
+    geometry collection and echo the arcade pieces without repeating them.
+    """
+    c.vertical_gradient(mix(p.base, p.mid, 0.30), shade(p.base, -0.18))
+    cx, base_y = 0.5, 0.88
+    slab = 0.058
+    half = 0.44
+    spring = 0.60
+    for index in range(6):
+        tone = mix(p.mid, p.light, 0.46 - index * 0.05) if index % 2 == 0 \
+            else mix(p.base, p.mid, 0.34)
+        c.ellipse((cx, spring - half), half, half * c.yscale, tone)
+        c.poly([(cx - half, spring - half), (cx + half, spring - half),
+                (cx + half, base_y), (cx - half, base_y)], tone)
+        inner = max(0.05, half - slab)
+        c.ellipse((cx, spring - inner), inner, inner * c.yscale, shade(p.base, -0.34))
+        c.poly([(cx - inner, spring - inner), (cx + inner, spring - inner),
+                (cx + inner, base_y), (cx - inner, base_y)], shade(p.base, -0.34))
+        half = inner
+    c.circle((cx, spring), 0.048, p.accent)
+    band(c, base_y, base_y + 0.03, shade(p.base, -0.45))
+    band(c, base_y + 0.03, 1.0, shade(p.base, -0.28))
+    c.line((0.0, base_y + 0.03), (1.0, base_y + 0.03), p.accent, width=1.8, alpha=110)
+
+
+def r_goal_net(c: Canvas, p: Palette, seed: int) -> None:
+    """Goal frame seen from behind: net lattice, crossbar shadow, grass plane."""
+    c.vertical_gradient(mix(p.base, p.mid, 0.35), p.base)
+    band(c, 0.62, 1.0, mix(p.mid, p.base, 0.45))
+    top, bottom = 0.30, 0.72
+    for i in range(-6, 14):
+        a = ((0.5 + i * 0.085), top)
+        b = ((0.5 + i * 0.085 + 0.22), bottom)
+        c.line(a, b, mix(p.light, p.base, 0.35), width=1.1, alpha=120)
+        c.line((a[0], bottom), (b[0], top), mix(p.light, p.base, 0.35), width=1.1, alpha=120)
+    c.poly([(0.16, top), (0.20, top), (0.20, bottom), (0.16, bottom)], p.light)
+    c.poly([(0.80, top), (0.84, top), (0.84, bottom), (0.80, bottom)], p.light)
+    c.poly([(0.16, top), (0.84, top), (0.84, top + 0.022), (0.16, top + 0.022)], p.light)
+    c.poly([(0.16, bottom - 0.01), (0.84, bottom - 0.01),
+            (0.86, bottom + 0.03), (0.14, bottom + 0.03)], shade(p.base, -0.45))
+    band(c, 0.86, 1.0, shade(p.base, -0.35))
+    c.line((0.0, 0.86), (1.0, 0.86), p.accent, width=2.2, alpha=170)
+
+
+def r_ball_panels(c: Canvas, p: Palette, seed: int) -> None:
+    """Ball construction as abstraction: a hexagon field with a few accent panels.
+
+    Hexagons sit on a true pointy-top grid (1.5R across, sqrt(3)R down) with the
+    y radius corrected for the portrait aspect, so they stay regular.
+    """
+    c.vertical_gradient(mix(p.base, p.mid, 0.30), p.base)
+    radius = 0.15
+    step_x = radius * 1.5
+    step_y = radius * math.sqrt(3) * c.yscale
+    accents = {(1, 1), (4, 2), (2, 4), (6, 3), (7, 0), (3, 5)}
+    row = 0
+    y = -step_y
+    while y < 1.0 + step_y:
+        offset = step_x if row % 2 else 0.0
+        column = 0
+        x = -step_x + offset
+        while x < 1.0 + step_x:
+            points = []
+            for k in range(6):
+                angle = math.pi / 2 + k * math.pi / 3
+                points.append((x + radius * math.cos(angle),
+                               y + radius * c.yscale * math.sin(angle)))
+            tone = p.accent if (row, column) in accents else mix(p.mid, p.base, 0.45)
+            c.poly(points, tone, alpha=240)
+            inset = [(x + (px - x) * 0.86, y + (py - y) * 0.86) for px, py in points]
+            c.poly(inset, mix(p.base, p.mid, 0.18), alpha=210)
+            x += step_x
+            column += 1
+        y += step_y
+        row += 1
+    band(c, 0.0, 0.07, shade(p.base, -0.30))
+    band(c, 0.93, 1.0, shade(p.base, -0.30))
+
+
+def r_terrace_grid(c: Canvas, p: Palette, seed: int) -> None:
+    """Terracing as an abstract grid: stepped rows, seat blocks, one aisle."""
+    c.vertical_gradient(mix(p.base, p.mid, 0.25), p.base)
+    rows = 14
+    for row in range(rows):
+        t = row / (rows - 1)
+        y = 0.20 + t * 0.62
+        height = 0.012 + t * 0.028
+        tone = mix(p.mid, p.base, 0.55 - t * 0.35)
+        c.poly([(0.0, y), (1.0, y), (1.0, y + height), (0.0, y + height)], tone)
+        for seat in range(11):
+            x = 0.04 + seat * 0.088
+            if 0.46 <= x <= 0.54:
+                continue
+            w = 0.030 + t * 0.014
+            c.poly([(x, y + height * 0.25), (x + w, y + height * 0.25),
+                    (x + w, y + height * 0.80), (x, y + height * 0.80)],
+                   mix(p.light, p.base, 0.35), alpha=170)
+    c.poly([(0.46, 0.18), (0.54, 0.18), (0.57, 0.86), (0.43, 0.86)],
+           shade(p.base, -0.30), alpha=220)
+    band(c, 0.86, 1.0, shade(p.base, -0.40))
+    c.line((0.0, 0.86), (1.0, 0.86), p.accent, width=2.4, alpha=190)
+
+
 RECIPES = {
     "girih": r_girih,
     "arcade": r_arcade,
@@ -964,7 +1155,7 @@ RECIPES = {
     "stadium": r_stadium,
     "pitch": r_pitch,
     "isometric": r_isometric,
-    "mesh": r_bands,
+    "mesh": r_mesh,
     "sphere": r_sphere,
     "mountains": r_mountains,
     "dunes": r_dunes,
@@ -981,7 +1172,14 @@ RECIPES = {
     "portico": r_portico,
     "wheel": r_wheel,
     "weave": r_weave,
-    "marble": r_marble,
+    "goal_net": r_goal_net,
+    "ball_panels": r_ball_panels,
+    "terrace_grid": r_terrace_grid,
+    "seigaiha": r_seigaiha,
+    "gyroid": r_gyroid,
+    "marble_slabs": r_marble_slabs,
+    "marble_blocks": r_marble_blocks,
+    "bands": r_bands,
     "silk": r_silk,
     "speed": r_speed,
     "terminal": r_terminal,
@@ -1030,11 +1228,11 @@ def build_catalogue() -> list[Spec]:
         ("Latticed Aperture", "lattice", "makkah_dusk"),
         ("Star Tessellation", "tessellation", "quds_stone"),
         ("Minaret Skyline", "dome_skyline", "makkah_dusk"),
-        ("Rosette in Teal", "girih", "andalus_teal"),
+        ("Rosette in Rose Quartz", "girih", "rose_quartz"),
         ("Courtyard Shadow", "arcade", "cairo_night"),
-        ("Sandstone Lattice", "lattice", "madinah_sand"),
-        ("Geometric Heritage I", "tessellation", "cairo_night"),
-        ("Geometric Heritage II", "girih", "quds_stone"),
+        ("Sandstone Lattice Study", "lattice", "amber_noir"),
+        ("Geometric Heritage", "tessellation", "rift_indigo"),
+        ("Pointed Arch Study", "arcade", "gilded_stone"),
         ("Domed Horizon", "dome_skyline", "andalus_teal"),
         ("Screened Light", "lattice", "cairo_night"),
         ("Eight-Fold Study", "girih", "madinah_sand"),
@@ -1047,13 +1245,13 @@ def build_catalogue() -> list[Spec]:
         ("Pitch Geometry", "pitch", "night_match"),
         ("Night Match", "stadium", "night_match"),
         ("Centre Circle", "pitch", "stadium_emerald"),
-        ("Terrace Rhythm", "stadium", "floodlight"),
-        ("Deep Goal Line", "pitch", "stadium_emerald"),
-        ("Away End", "stadium", "night_match"),
+        ("Terrace Rhythm", "terrace_grid", "graphite_sea"),
+        ("Deep Goal Line", "pitch", "jade_glass"),
+        ("Away End", "terrace_grid", "midnight_lacquer"),
         ("Chalk Line Study", "pitch", "floodlight"),
-        ("Stadium at Rest", "stadium", "stadium_emerald"),
-        ("Under the Lights", "stadium", "floodlight"),
-        ("Full Time", "pitch", "night_match"),
+        ("Stadium at Rest", "stadium", "ceramic_green"),
+        ("Net Shadows", "goal_net", "workshop_steel"),
+        ("Panel Geometry", "ball_panels", "verdant_ash"),
     ])
 
     # 15 — geometry, 3D and abstract
@@ -1061,18 +1259,18 @@ def build_catalogue() -> list[Spec]:
         ("Composition Slabs", "isometric", "obsidian_violet"),
         ("Iridescent Mesh", "mesh", "iridescent"),
         ("Material Sphere", "sphere", "monochrome_studio"),
-        ("Violet Strata", "isometric", "obsidian_violet"),
-        ("Soft Fields", "mesh", "iridescent"),
-        ("Ceramic Form", "sphere", "monochrome_studio"),
+        ("Violet Strata", "isometric", "rift_indigo"),
+        ("Soft Fields", "mesh", "porcelain_blue"),
+        ("Ceramic Form", "sphere", "clay_rose"),
         ("Stacked Planes", "isometric", "iridescent"),
         ("Spectral Mesh", "mesh", "obsidian_violet"),
         ("Obsidian Sphere", "sphere", "obsidian_violet"),
         ("Lifted Layer", "isometric", "monochrome_studio"),
+        ("Colour Steps", "bands", "iridescent"),
         ("Cool Field", "mesh", "chrome"),
         ("Chrome Study", "sphere", "chrome"),
         ("Six Fold Mesh", "hexmesh", "iridescent"),
-        ("Structural Hex", "hexmesh", "obsidian_violet"),
-        ("Monochrome Stack", "isometric", "monochrome_studio"),
+        ("Minimal Surface", "gyroid", "porcelain_blue"),
     ])
 
     # 15 — nature, wildlife and landscape
@@ -1084,11 +1282,11 @@ def build_catalogue() -> list[Spec]:
         ("Aurora Skye", "aurora", "aurora_skye"),
         ("Desert Stars", "starfield", "desert_stars"),
         ("Blue Ridge", "mountains", "forest_deep"),
-        ("Sunset Dunes", "dunes", "dune_warm"),
-        ("Long Horizon", "ocean", "ocean_horizon"),
-        ("Deep Canopy", "forest", "forest_deep"),
-        ("Northern Light", "aurora", "aurora_skye"),
-        ("Quiet Desert", "starfield", "desert_stars"),
+        ("Sunset Dunes", "dunes", "cinnamon_fold"),
+        ("Long Horizon", "ocean", "graphite_sea"),
+        ("Deep Canopy", "forest", "verdant_ash"),
+        ("Northern Light", "aurora", "jade_glass"),
+        ("Quiet Desert", "starfield", "amber_noir"),
         ("High Country", "mountains", "aurora_skye"),
         ("Wind Lines", "dunes", "ocean_horizon"),
         ("Still Water", "ocean", "aurora_skye"),
@@ -1102,10 +1300,10 @@ def build_catalogue() -> list[Spec]:
         ("Clinical Grid", "blueprint", "clinical_ice"),
         ("Bond Network", "molecule", "clinical_ice"),
         ("Helix Study", "helix", "lab_mint"),
-        ("Engineering Plan", "blueprint", "blueprint"),
-        ("Lab Mint Lattice", "molecule", "lab_mint"),
+        ("Engineering Plan", "blueprint", "workshop_steel"),
+        ("Nucleotide Field", "molecule", "ceramic_green"),
         ("Precision Circles", "wheel", "clinical_ice"),
-        ("Structural Blueprint", "blueprint", "blueprint"),
+        ("Structural Study", "blueprint", "ink_wash"),
     ])
 
     # 10 — programming and technology
@@ -1116,10 +1314,10 @@ def build_catalogue() -> list[Spec]:
         ("Routing Layer", "circuit", "terminal"),
         ("Stacked Glyphs", "terminal", "circuit_ice"),
         ("Data Mesh", "hexmesh", "terminal"),
-        ("Circuit Depth", "circuit", "circuit_ice"),
-        ("Cold Terminal", "terminal", "terminal"),
+        ("Circuit Depth", "circuit", "workshop_steel"),
+        ("Cold Terminal", "terminal", "midnight_lacquer"),
         ("Throughput", "circuit", "chrome"),
-        ("Mesh Control", "hexmesh", "circuit_ice"),
+        ("Mesh Control", "hexmesh", "midnight_lacquer"),
     ])
 
     # 5 — finance, law and business
@@ -1128,7 +1326,7 @@ def build_catalogue() -> list[Spec]:
         ("Portico", "portico", "law_marble"),
         ("Market Curve", "chart", "law_marble"),
         ("Column Rhythm", "portico", "ledger_gold"),
-        ("Accepted Risk", "chart", "ledger_gold"),
+        ("Accepted Risk", "chart", "gilded_stone"),
     ])
 
     # 13 — automotive, fashion and luxury
@@ -1137,26 +1335,52 @@ def build_catalogue() -> list[Spec]:
         ("Night Run", "speed", "motor_night"),
         ("Satin Fold", "silk", "silk_rose"),
         ("Chrome Alloy", "wheel", "chrome"),
-        ("Tail Light", "speed", "motor_night"),
-        ("Draped Silk", "silk", "silk_rose"),
-        ("Stone Flow", "marble", "law_marble"),
+        ("Tail Light", "speed", "cinnamon_fold"),
+        ("Draped Silk", "silk", "clay_rose"),
+        ("Stone Flow", "marble_slabs", "law_marble"),
         ("Textile Weave", "weave", "silk_rose"),
-        ("Wheel Study", "wheel", "chrome"),
+        ("Wheel Study", "wheel", "ink_wash"),
         ("Velvet Ground", "silk", "jewel_emerald"),
         ("Jewel Weave", "weave", "jewel_emerald"),
-        ("Emerald Stone", "marble", "jewel_emerald"),
-        ("Quiet Luxury", "weave", "law_marble"),
+        ("Emerald Stone", "marble_blocks", "jewel_emerald"),
+        ("Wave Scale", "seigaiha", "ink_wash"),
     ])
 
     assert len(specs) == 100, f"expected 100 wallpapers, built {len(specs)}"
+
+    # Two entries with the same recipe *and* palette render identical pixels, which
+    # is filler and forbidden. Two entries with the same recipe but different
+    # palettes is allowed only if the rotation in render_wallpaper separates them.
+    pairs = [(spec.recipe, spec.palette) for spec in specs]
+    assert len(set(pairs)) == len(pairs), (
+        "duplicate recipe/palette pairs: "
+        + ", ".join(sorted(f"{r}/{p}" for r, p in set(pairs) if pairs.count((r, p)) > 1))
+    )
+
+    unused = set(RECIPES) - {spec.recipe for spec in specs}
+    assert not unused, f"recipes registered but never used: {sorted(unused)}"
+
+    # A shared recipe with different palettes can still collide if the palette is
+    # close and the geometry is parameter-free, so rotation is applied at render
+    # time (see render_wallpaper) and the count of repeats is capped.
+    repeats = collections.Counter(spec.recipe for spec in specs)
+    assert max(repeats.values()) <= 4, f"a recipe is over-used: {repeats.most_common(3)}"
     return specs
 
 
-def render_wallpaper(spec: Spec) -> Image.Image:
+# Rotation applied to non-first uses of the same recipe. Two entries sharing a
+# recipe would otherwise be near-identical studies, so the second one is turned a
+# quarter turn, the third is mirrored, and the fourth is turned and mirrored.
+_ROTATIONS = [None, Image.ROTATE_90, Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM]
+
+
+def render_wallpaper(spec: Spec, variant: int = 0) -> Image.Image:
     palette = PALETTES[spec.palette]
     canvas = Canvas(seed=spec.seed)
     RECIPES[spec.recipe](canvas, palette, spec.seed)
-    return canvas.finish(palette)
+    image = canvas.finish(palette)
+    transform = _ROTATIONS[variant % len(_ROTATIONS)]
+    return image if transform is None else image.transpose(transform)
 
 
 # ---------------------------------------------------------------------- object art
@@ -1405,11 +1629,15 @@ def main() -> int:
     index_entries = []
     total_bytes = 0
 
+    seen_recipes: collections.Counter = collections.Counter()
+    rendered_hashes: dict[str, str] = {}
     for spec in specs:
         master = WALLPAPERS / f"{spec.id}.png"
         thumb = THUMBS / f"{spec.id}.png"
+        variant = seen_recipes[spec.recipe]
+        seen_recipes[spec.recipe] += 1
         if args.only == "all" or not master.exists():
-            image = render_wallpaper(spec)
+            image = render_wallpaper(spec, variant)
             save_png(image, master)
             save_png(image.resize(THUMB, Image.LANCZOS), thumb)
         elif not thumb.exists():
@@ -1417,6 +1645,12 @@ def main() -> int:
 
         size = master.stat().st_size
         total_bytes += size
+        digest = hashlib.sha256(master.read_bytes()).hexdigest()
+        assert digest not in rendered_hashes, (
+            f"{spec.id} is byte-identical to {rendered_hashes[digest]}; "
+            "duplicated artwork is filler and must not ship"
+        )
+        rendered_hashes[digest] = spec.id
         with Image.open(master) as opened:
             width, height = opened.size
         manifest_entries.append({

@@ -79,8 +79,8 @@
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-006.png",
       "thumbnail": "wallpapers/thumbs/heritage-006.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         216,
         166,
@@ -93,8 +93,8 @@
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-007.png",
       "thumbnail": "wallpapers/thumbs/heritage-007.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         228,
         178,
@@ -107,8 +107,8 @@
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-008.png",
       "thumbnail": "wallpapers/thumbs/heritage-008.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         216,
         166,
@@ -121,8 +121,8 @@
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-009.png",
       "thumbnail": "wallpapers/thumbs/heritage-009.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         135,
         199,
@@ -135,8 +135,8 @@
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-010.png",
       "thumbnail": "wallpapers/thumbs/heritage-010.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         217,
         179,
@@ -173,16 +173,16 @@
     },
     {
       "id": "heritage-013",
-      "title": "Rosette in Teal",
+      "title": "Rosette in Rose Quartz",
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-013.png",
       "thumbnail": "wallpapers/thumbs/heritage-013.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        216,
-        166,
-        87
+        242,
+        208,
+        168
       ]
     },
     {
@@ -201,44 +201,44 @@
     },
     {
       "id": "heritage-015",
-      "title": "Sandstone Lattice",
+      "title": "Sandstone Lattice Study",
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-015.png",
       "thumbnail": "wallpapers/thumbs/heritage-015.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        135,
-        199,
-        183
+        246,
+        217,
+        160
       ]
     },
     {
       "id": "heritage-016",
-      "title": "Geometric Heritage I",
+      "title": "Geometric Heritage",
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-016.png",
       "thumbnail": "wallpapers/thumbs/heritage-016.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        228,
-        178,
-        104
+        232,
+        194,
+        122
       ]
     },
     {
       "id": "heritage-017",
-      "title": "Geometric Heritage II",
+      "title": "Pointed Arch Study",
       "category": "Islamic architecture & geometry",
       "asset": "wallpapers/heritage-017.png",
       "thumbnail": "wallpapers/thumbs/heritage-017.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        198,
-        138,
-        106
+        224,
+        190,
+        122
       ]
     },
     {
@@ -303,8 +303,8 @@
       "category": "Football & sport",
       "asset": "wallpapers/sport-002.png",
       "thumbnail": "wallpapers/thumbs/sport-002.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         246,
         231,
@@ -345,8 +345,8 @@
       "category": "Football & sport",
       "asset": "wallpapers/sport-005.png",
       "thumbnail": "wallpapers/thumbs/sport-005.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         240,
         230,
@@ -362,9 +362,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        246,
-        231,
-        180
+        242,
+        217,
+        160
       ]
     },
     {
@@ -376,9 +376,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        240,
+        244,
         230,
-        200
+        190
       ]
     },
     {
@@ -387,12 +387,12 @@
       "category": "Football & sport",
       "asset": "wallpapers/sport-008.png",
       "thumbnail": "wallpapers/thumbs/sport-008.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        126,
-        208,
-        180
+        240,
+        201,
+        138
       ]
     },
     {
@@ -418,36 +418,36 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        240,
-        230,
-        200
+        228,
+        207,
+        158
       ]
     },
     {
       "id": "sport-011",
-      "title": "Under the Lights",
+      "title": "Net Shadows",
       "category": "Football & sport",
       "asset": "wallpapers/sport-011.png",
       "thumbnail": "wallpapers/thumbs/sport-011.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        246,
-        231,
-        180
+        233,
+        200,
+        142
       ]
     },
     {
       "id": "sport-012",
-      "title": "Full Time",
+      "title": "Panel Geometry",
       "category": "Football & sport",
       "asset": "wallpapers/sport-012.png",
       "thumbnail": "wallpapers/thumbs/sport-012.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        126,
-        208,
+        223,
+        232,
         180
       ]
     },
@@ -499,12 +499,12 @@
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-004.png",
       "thumbnail": "wallpapers/thumbs/form-004.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        188,
-        165,
-        255
+        232,
+        194,
+        122
       ]
     },
     {
@@ -513,12 +513,12 @@
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-005.png",
       "thumbnail": "wallpapers/thumbs/form-005.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        118,
-        220,
-        203
+        217,
+        196,
+        138
       ]
     },
     {
@@ -527,12 +527,12 @@
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-006.png",
       "thumbnail": "wallpapers/thumbs/form-006.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        240,
-        196,
-        162
+        237,
+        215,
+        168
       ]
     },
     {
@@ -593,21 +593,21 @@
     },
     {
       "id": "form-011",
-      "title": "Cool Field",
+      "title": "Colour Steps",
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-011.png",
       "thumbnail": "wallpapers/thumbs/form-011.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        145,
-        185,
-        244
+        118,
+        220,
+        203
       ]
     },
     {
       "id": "form-012",
-      "title": "Chrome Study",
+      "title": "Cool Field",
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-012.png",
       "thumbnail": "wallpapers/thumbs/form-012.png",
@@ -621,10 +621,24 @@
     },
     {
       "id": "form-013",
-      "title": "Six Fold Mesh",
+      "title": "Chrome Study",
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-013.png",
       "thumbnail": "wallpapers/thumbs/form-013.png",
+      "width": 1080,
+      "height": 2400,
+      "accent": [
+        145,
+        185,
+        244
+      ]
+    },
+    {
+      "id": "form-014",
+      "title": "Six Fold Mesh",
+      "category": "Geometry & abstract",
+      "asset": "wallpapers/form-014.png",
+      "thumbnail": "wallpapers/thumbs/form-014.png",
       "width": 1080,
       "height": 2400,
       "accent": [
@@ -634,31 +648,17 @@
       ]
     },
     {
-      "id": "form-014",
-      "title": "Structural Hex",
-      "category": "Geometry & abstract",
-      "asset": "wallpapers/form-014.png",
-      "thumbnail": "wallpapers/thumbs/form-014.png",
-      "width": 1080,
-      "height": 2400,
-      "accent": [
-        188,
-        165,
-        255
-      ]
-    },
-    {
       "id": "form-015",
-      "title": "Monochrome Stack",
+      "title": "Minimal Surface",
       "category": "Geometry & abstract",
       "asset": "wallpapers/form-015.png",
       "thumbnail": "wallpapers/thumbs/form-015.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        240,
+        217,
         196,
-        162
+        138
       ]
     },
     {
@@ -751,8 +751,8 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-007.png",
       "thumbnail": "wallpapers/thumbs/nature-007.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         168,
         219,
@@ -765,12 +765,12 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-008.png",
       "thumbnail": "wallpapers/thumbs/nature-008.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        240,
-        196,
-        162
+        232,
+        211,
+        166
       ]
     },
     {
@@ -779,12 +779,12 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-009.png",
       "thumbnail": "wallpapers/thumbs/nature-009.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        143,
-        216,
-        220
+        242,
+        217,
+        160
       ]
     },
     {
@@ -793,12 +793,12 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-010.png",
       "thumbnail": "wallpapers/thumbs/nature-010.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        168,
-        219,
-        192
+        223,
+        232,
+        180
       ]
     },
     {
@@ -807,12 +807,12 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-011.png",
       "thumbnail": "wallpapers/thumbs/nature-011.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        118,
-        220,
-        203
+        244,
+        230,
+        190
       ]
     },
     {
@@ -821,12 +821,12 @@
       "category": "Nature & landscape",
       "asset": "wallpapers/nature-012.png",
       "thumbnail": "wallpapers/thumbs/nature-012.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        240,
-        196,
-        162
+        246,
+        217,
+        160
       ]
     },
     {
@@ -919,8 +919,8 @@
       "category": "Health, engineering & science",
       "asset": "wallpapers/science-004.png",
       "thumbnail": "wallpapers/thumbs/science-004.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         145,
         185,
@@ -933,8 +933,8 @@
       "category": "Health, engineering & science",
       "asset": "wallpapers/science-005.png",
       "thumbnail": "wallpapers/thumbs/science-005.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         145,
         185,
@@ -947,8 +947,8 @@
       "category": "Health, engineering & science",
       "asset": "wallpapers/science-006.png",
       "thumbnail": "wallpapers/thumbs/science-006.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         118,
         220,
@@ -964,23 +964,23 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        232,
-        242,
-        255
+        233,
+        200,
+        142
       ]
     },
     {
       "id": "science-008",
-      "title": "Lab Mint Lattice",
+      "title": "Nucleotide Field",
       "category": "Health, engineering & science",
       "asset": "wallpapers/science-008.png",
       "thumbnail": "wallpapers/thumbs/science-008.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        118,
-        220,
-        203
+        228,
+        207,
+        158
       ]
     },
     {
@@ -999,16 +999,16 @@
     },
     {
       "id": "science-010",
-      "title": "Structural Blueprint",
+      "title": "Structural Study",
       "category": "Health, engineering & science",
       "asset": "wallpapers/science-010.png",
       "thumbnail": "wallpapers/thumbs/science-010.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        232,
-        242,
-        255
+        216,
+        184,
+        138
       ]
     },
     {
@@ -1045,8 +1045,8 @@
       "category": "Programming & technology",
       "asset": "wallpapers/tech-003.png",
       "thumbnail": "wallpapers/thumbs/tech-003.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         145,
         185,
@@ -1059,8 +1059,8 @@
       "category": "Programming & technology",
       "asset": "wallpapers/tech-004.png",
       "thumbnail": "wallpapers/thumbs/tech-004.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         118,
         220,
@@ -1073,8 +1073,8 @@
       "category": "Programming & technology",
       "asset": "wallpapers/tech-005.png",
       "thumbnail": "wallpapers/thumbs/tech-005.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         145,
         185,
@@ -1104,9 +1104,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        145,
-        185,
-        244
+        233,
+        200,
+        142
       ]
     },
     {
@@ -1118,9 +1118,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        118,
-        220,
-        203
+        240,
+        201,
+        138
       ]
     },
     {
@@ -1146,9 +1146,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        145,
-        185,
-        244
+        240,
+        201,
+        138
       ]
     },
     {
@@ -1185,8 +1185,8 @@
       "category": "Finance, law & business",
       "asset": "wallpapers/civic-003.png",
       "thumbnail": "wallpapers/thumbs/civic-003.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         201,
         164,
@@ -1199,8 +1199,8 @@
       "category": "Finance, law & business",
       "asset": "wallpapers/civic-004.png",
       "thumbnail": "wallpapers/thumbs/civic-004.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         224,
         194,
@@ -1217,7 +1217,7 @@
       "height": 2400,
       "accent": [
         224,
-        194,
+        190,
         122
       ]
     },
@@ -1227,8 +1227,8 @@
       "category": "Automotive, fashion & luxury",
       "asset": "wallpapers/design-001.png",
       "thumbnail": "wallpapers/thumbs/design-001.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         217,
         96,
@@ -1283,12 +1283,12 @@
       "category": "Automotive, fashion & luxury",
       "asset": "wallpapers/design-005.png",
       "thumbnail": "wallpapers/thumbs/design-005.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        217,
-        96,
-        60
+        232,
+        211,
+        166
       ]
     },
     {
@@ -1297,12 +1297,12 @@
       "category": "Automotive, fashion & luxury",
       "asset": "wallpapers/design-006.png",
       "thumbnail": "wallpapers/thumbs/design-006.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
-        232,
-        192,
-        160
+        237,
+        215,
+        168
       ]
     },
     {
@@ -1342,9 +1342,9 @@
       "width": 1080,
       "height": 2400,
       "accent": [
-        145,
-        185,
-        244
+        216,
+        184,
+        138
       ]
     },
     {
@@ -1367,8 +1367,8 @@
       "category": "Automotive, fashion & luxury",
       "asset": "wallpapers/design-011.png",
       "thumbnail": "wallpapers/thumbs/design-011.png",
-      "width": 1080,
-      "height": 2400,
+      "width": 2400,
+      "height": 1080,
       "accent": [
         224,
         194,
@@ -1391,16 +1391,16 @@
     },
     {
       "id": "design-013",
-      "title": "Quiet Luxury",
+      "title": "Wave Scale",
       "category": "Automotive, fashion & luxury",
       "asset": "wallpapers/design-013.png",
       "thumbnail": "wallpapers/thumbs/design-013.png",
       "width": 1080,
       "height": 2400,
       "accent": [
-        201,
-        164,
-        106
+        216,
+        184,
+        138
       ]
     }
   ]

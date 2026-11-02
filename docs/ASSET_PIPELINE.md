@@ -61,9 +61,20 @@ player, club, brand mark or sacred text is reproduced.
 | `content/artwork/contact_sheet.png` | 1 | Human review sheet; not shipped |
 
 Collections: heritage 20, sport 12, form 15, nature 15, science 10, technology 10,
-civic 5, design 13. Total bundled asset volume is 12.8 MB: wallpapers 7.8 MB,
-thumbnails 2.0 MB, material textures 2.6 MB, objects 260 KB, widget previews
+civic 5, design 13. Total bundled asset volume is 14.5 MB: wallpapers 9.2 MB,
+thumbnails 2.1 MB, material textures 2.6 MB, objects 260 KB, widget previews
 16 KB, runtime index 32 KB.
+
+The pack is built from 36 distinct drawing recipes across 41 palettes, and no two
+wallpapers share a recipe-and-palette pair. Three guards in the generator enforce
+that, because a duplicated image is filler:
+
+- `build_catalogue()` asserts that every `(recipe, palette)` pair is unique and
+  that every registered recipe is actually used.
+- `main()` hashes each rendered master and asserts that no two files are
+  byte-identical.
+- A recipe may be reused at most four times; the second, third and fourth uses are
+  rotated or mirrored at render time so they compose differently.
 
 ## Runtime wiring
 

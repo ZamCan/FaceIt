@@ -12,7 +12,8 @@ that evidence lives.
 |---|---|---|
 | Artwork pack generation | **Ran, passed** | `python3 tools/generate_artwork.py` → 100 wallpapers, 10 objects, 8 material textures, 3 widget previews |
 | Artwork manifest validation (release gate) | **Ran, passed** | `python3 tools/validate_artwork_pack.py --release` → 118 manifest entries, 100 wallpapers, hashes and rights metadata valid |
-| Artwork visual review | **Inspected** | Contact sheet (`content/artwork/contact_sheet.png`) reviewed collection by collection; filler frames were removed rather than counted |
+| Artwork visual review | **Inspected** | Contact sheet (`content/artwork/contact_sheet.png`) reviewed collection by collection. The first accepted build turned out to contain 23 duplicate images (26 entries shared a recipe *and* palette); the cause was fixed, not hidden, and the pack now hashes 100/100 unique files |
+| Artwork duplicate gate | **Ran, passed** | `tools/generate_artwork.py` asserts unique recipe/palette pairs, full recipe coverage, a reuse cap of four, and no byte-identical masters: 100 files, 0 duplicates |
 | Source structure check | **Ran, passed** | `python3 tools/verify_sources.py` → 30 Kotlin files, 90 declared types; delimiters balanced, brace nesting sound, project-internal imports resolve, `R.*` references all exist |
 | Identity generation | **Ran, passed** | `python3 brand/generate_mark.py` → master, Play Store, monochrome, preview sheet, adaptive vectors and 5 legacy densities written |
 | Icon visual review | **Inspected** | Preview sheet reviewed at 24/32/48/72/96 px and on light, dark, neutral, circle-mask and squircle-mask surfaces |
