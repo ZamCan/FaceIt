@@ -289,13 +289,13 @@ def write_adaptive_vectors() -> None:
 
     mono_top, mono_left, mono_right = slab_polygons((CX, CY - LAYER_GAP - OPTICAL_LIFT))
     mono_paths = "\n".join(
-        f'    <path android:fillColor="#FF{alpha:02X}FFFFFF" android:pathData="{_vector_path(_to_adaptive(geom))}"/>'
+        f'    <path android:fillColor="#{alpha:02X}FFFFFF" android:pathData="{_vector_path(_to_adaptive(geom))}"/>'
         for geom, alpha in [(mono_left, 150), (mono_right, 110), (mono_top, 255)]
     )
     for layer in LAYERS[1:]:
         top, left_wall, right_wall = slab_polygons((CX, CY + layer["offset"] - OPTICAL_LIFT))
         mono_paths = "\n".join(
-            f'    <path android:fillColor="#FF{alpha:02X}FFFFFF" android:pathData="{_vector_path(_to_adaptive(geom))}"/>'
+            f'    <path android:fillColor="#{alpha:02X}FFFFFF" android:pathData="{_vector_path(_to_adaptive(geom))}"/>'
             for geom, alpha in [(left_wall, 150), (right_wall, 110), (top, 255)]
         ) + "\n" + mono_paths
 

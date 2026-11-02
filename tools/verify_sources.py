@@ -74,6 +74,23 @@ def check_nesting(path: Path) -> None:
         errors.append(f"{path.relative_to(ROOT)}: {depth} unclosed block(s) at end of file")
 
 
+COLOUR_RE = re.compile(r'#[0-9A-Fa-f]{9,}\b')
+
+
+def check_colour_literals(path: Path) -> None:
+    """Android colour literals are #RGB, #ARGB, #RRGGBB or #AARRGGBB.
+
+    AAPT rejects anything longer, and the failure only appears in a real build, so
+    every resource XML is checked here. This exact bug shipped once already: the
+    mark generator emitted #FF96FFFFFF (alpha prefixed twice).
+    """
+    for match in COLOUR_RE.finditer(path.read_text(encoding="utf-8")):
+        errors.append(
+            f"{path.relative_to(ROOT)}: '{match.group(0)}' is not a valid colour literal "
+            "(use #AARRGGBB, not #FFAARRGGBB)"
+        )
+
+
 def check_balance(path: Path) -> None:
     code = strip_comments_and_strings(path.read_text(encoding="utf-8"))
     for opening, closing in (("{", "}"), ("(", ")"), ("[", "]")):
@@ -249,6 +266,8 @@ def main() -> int:
     if not kotlin:
         print("no Kotlin sources found")
         return 1
+    for resource in sorted(RES.rglob("*.xml")):
+        check_colour_literals(resource)
     for path in kotlin:
         check_balance(path)
         check_nesting(path)
