@@ -420,204 +420,127 @@ private fun DiscoverScreen(
     val colors = LocalFaceItColors.current
     var showApplyDialog by remember { mutableStateOf(false) }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+    Column(
+        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(11.dp)
     ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FaceItWordmark(Modifier.weight(1f))
-                StatusPill(text = "On-device", icon = Icons.Rounded.Lock, tint = colors.mint)
-            }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FaceItWordmark(Modifier.weight(1f))
+            StatusPill(text = "OFFLINE", icon = Icons.Rounded.Lock, tint = colors.mint)
         }
 
-        item {
-            Column {
-                Text(
-                    text = "Your world,\ncomposed.",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = "Independent visual layers. One personal environment, built offline.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        item {
+        // Artwork is the home surface: no marketing hero or stacked dashboard cards.
+        Box(
+            modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 210.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .border(1.dp, colors.border, MaterialTheme.shapes.extraLarge)
+        ) {
+            CompositionPreview(
+                environment = environment,
+                artworkFile = artworkFile,
+                objectArtworkFile = artworkObjectFile,
+                curatedBackground = curatedBackground,
+                curatedObject = curatedObject,
+                materialTexture = materialTexture,
+                modifier = Modifier.fillMaxSize()
+            )
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .border(1.dp, colors.border, MaterialTheme.shapes.extraLarge)
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        listOf(Color.Black.copy(alpha = .18f), Color.Transparent, Color.Transparent, Color.Black.copy(alpha = .74f))
+                    )
+                )
+            )
+            StatusPill(
+                text = "LIVE COMPOSITION",
+                modifier = Modifier.align(Alignment.TopStart).padding(13.dp),
+                tint = colors.mint
+            )
+            Column(Modifier.align(Alignment.BottomStart).padding(18.dp)) {
+                Text(environment.name, style = MaterialTheme.typography.headlineSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "${environment.background}  ·  ${environment.mainObject}  ·  ${environment.material}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = .82f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            Button(onClick = { showApplyDialog = true }, modifier = Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(17.dp)) {
+                Icon(Icons.Rounded.Wallpaper, contentDescription = null, modifier = Modifier.size(19.dp))
+                Spacer(Modifier.width(7.dp))
+                Text("Apply")
+            }
+            OutlinedButton(
+                onClick = onCreate,
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(17.dp),
+                border = BorderStroke(1.dp, colors.border),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
             ) {
-                CompositionPreview(
-                    environment = environment,
-                    artworkFile = artworkFile,
-                    objectArtworkFile = artworkObjectFile,
-                    curatedBackground = curatedBackground,
-                    curatedObject = curatedObject,
-                    materialTexture = materialTexture,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.Transparent, Color.Transparent, Color.Black.copy(alpha = .72f))
-                            )
-                        )
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatusPill(text = "Live preview", tint = colors.mint)
-                    if (artworkFile != null || artworkObjectFile != null) {
-                        StatusPill(text = "Your artwork", tint = colors.ice)
-                    }
-                }
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(18.dp)
-                ) {
-                    Text(
-                        text = environment.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "${environment.background} · ${environment.mainObject} · ${environment.material}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = .78f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Icon(Icons.Rounded.Tune, contentDescription = null, modifier = Modifier.size(19.dp))
+                Spacer(Modifier.width(7.dp))
+                Text("Edit layers")
             }
         }
 
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { showApplyDialog = true },
-                    modifier = Modifier.weight(1f).height(54.dp),
-                    shape = RoundedCornerShape(18.dp)
-                ) {
-                    Icon(Icons.Rounded.Wallpaper, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Apply wallpaper", maxLines = 1)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LayerChip(Modifier.weight(1f), "SCENE", environment.background, Icons.Rounded.Image, onCreate)
+            LayerChip(Modifier.weight(1f), "OBJECT", environment.mainObject, Icons.Rounded.Layers, onCreate)
+            LayerChip(Modifier.weight(1f), "FINISH", environment.material, Icons.Rounded.Wallpaper, onCreate)
+        }
+
+        FaceItGlass(modifier = Modifier.fillMaxWidth(), onClick = onOpenGallery, tone = GlassTone.Accent, contentPadding = 12.dp) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Collections, contentDescription = null, tint = colors.violet, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Artwork library", style = MaterialTheme.typography.titleSmall)
+                    Text("$curatedCount offline wallpapers", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                OutlinedButton(
-                    onClick = onCreate,
-                    modifier = Modifier.height(54.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(1.dp, colors.border),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    )
-                ) {
-                    Icon(Icons.Rounded.Tune, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(7.dp))
-                    Text("Edit")
-                }
+                Text("EXPLORE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.1.sp), color = colors.violet)
             }
         }
 
-        item {
-            SectionHeader(
-                title = "Layer stack",
-                supporting = "Each layer stays independently editable.",
-                actionLabel = "Edit",
-                onAction = onCreate
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Your scenes", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.weight(1f))
+            Text("EDITABLE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.1.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-
-        item {
-            FaceItCard {
-                LayerRow("BACKGROUND", environment.background, Icons.Rounded.Image)
-                HorizontalDivider(color = colors.border.copy(alpha = .7f))
-                LayerRow("MAIN OBJECT", environment.mainObject, Icons.Rounded.Layers)
-                HorizontalDivider(color = colors.border.copy(alpha = .7f))
-                LayerRow("MATERIAL", environment.material, Icons.Rounded.Wallpaper)
-            }
-        }
-
-        item {
-            FaceItGlass(onClick = onOpenGallery, tone = GlassTone.Accent) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(text = "Curated artwork", style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(3.dp))
-                        Text(
-                            text = "$curatedCount bundled wallpapers across heritage, sport, " +
-                                "nature, science, technology, civic and design collections. All offline.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Icon(
-                        imageVector = Icons.Rounded.Collections,
-                        contentDescription = "Open curated artwork",
-                        tint = colors.violet,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
-        }
-
-        item {
-            SectionHeader(
-                title = "Start from a preset",
-                supporting = "A composed starting point, still fully editable."
-            )
-        }
-
-        item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(CompositionPresets.all, key = { it.name }) { preset ->
-                    PresetCard(
-                        preset = preset,
-                        active = preset.name == environment.name,
-                        onClick = { onPreset(preset) }
-                    )
-                }
-            }
-        }
-
-        item {
-            FaceItCard(contentPadding = 0.dp) {
-                InfoNote(
-                    text = if (artworkFile == null && artworkObjectFile == null) {
-                        "Add your own background or object artwork in Library. Imports are copied into private, offline storage."
-                    } else {
-                        "Your imported artwork stays on this device and continues to work without a connection."
-                    },
-                    tint = colors.mint
-                )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(CompositionPresets.all, key = { it.name }) { preset ->
+                PresetCard(preset = preset, active = preset.name == environment.name, onClick = { onPreset(preset) })
             }
         }
     }
 
     if (showApplyDialog) {
-        ApplyWallpaperDialog(
-            onDismiss = { showApplyDialog = false },
-            onApply = { flags ->
-                showApplyDialog = false
-                onApply(flags)
+        ApplyWallpaperDialog(onDismiss = { showApplyDialog = false }, onApply = { flags -> showApplyDialog = false; onApply(flags) })
+    }
+}
+
+@Composable
+private fun LayerChip(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    val colors = LocalFaceItColors.current
+    Surface(onClick = onClick, modifier = modifier.height(64.dp), shape = RoundedCornerShape(17.dp), color = colors.card, border = BorderStroke(1.dp, colors.border)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 9.dp, vertical = 8.dp), verticalArrangement = Arrangement.SpaceBetween) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = colors.violet, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(5.dp))
+                Text(label, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = .8.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        )
+            Text(value, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -868,7 +791,7 @@ private fun CompositionScreen(
                             title = "Background",
                             options = listOf(
                                 "Football",
-                                "Islamic architecture",
+                                "Heritage architecture",
                                 "Nature",
                                 "Geometry",
                                 "Cityscape",

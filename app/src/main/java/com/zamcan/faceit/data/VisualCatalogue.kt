@@ -2,7 +2,7 @@ package com.zamcan.faceit.data
 data class VisualCategory(val title: String, val description: String, val collection: String)
 object VisualCatalogue {
     val categories = listOf(
-        VisualCategory("Islamic cities & heritage", "Makkah, Madinah, Al-Quds, mosques and Islamic art", "FIRST PRIORITY"),
+        VisualCategory("Cities & heritage", "Makkah, Madinah, Al-Quds, historic architecture, geometry and ornament", "FIRST PRIORITY"),
         VisualCategory("Football & sport", "Stadiums, football culture, teams and sporting objects", "SPORT"),
         VisualCategory("Health & medicine", "Stethoscopes, medical instruments and anatomy-inspired art", "DISCIPLINE"),
         VisualCategory("Engineering & architecture", "Blueprints, structures, mechanisms and industrial design", "DISCIPLINE"),

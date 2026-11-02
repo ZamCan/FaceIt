@@ -30,7 +30,7 @@ The product is not merely a wallpaper downloader, a sports application, a launch
 ## 3. Visual universes and content taxonomy
 
 ### First-priority cultural collection
-Islamic cities, sacred architecture and Islamic visual heritage are the first priority. Initial editorial coverage should include Makkah, Madinah, Al-Quds/Jerusalem, historic mosques, Islamic geometric art, architectural ornament, verified calligraphy, historic Islamic cities and seasonal collections such as Ramadan and Eid.
+Historic cities, sacred architecture and cultural heritage are a first-priority collection. Initial editorial coverage should include Makkah, Madinah, Al-Quds/Jerusalem, historic mosques, geometric art, architectural ornament, verified calligraphy and seasonal cultural collections such as Ramadan and Eid.
 
 Content rules:
 - Verify names, locations, descriptions and historical claims.
@@ -89,7 +89,7 @@ The lion should feel integrated into the football environment through lighting, 
 ### Reference composition: Madinah Serenity
 
 - Background: Madinah architectural scene.
-- Main object: Islamic geometric sculpture.
+- Main object: heritage geometric sculpture.
 - Material: ivory marble.
 - Lighting: warm natural light.
 - Motion: subtle or static.
@@ -142,8 +142,8 @@ Visual styles may include raised separated tablet-like keys, sculpted ceramic, f
 
 A custom dialer experience may be delivered through FaceIt's own dialer and/or supported default-phone integration. Reskinning arbitrary manufacturer Phone apps is not assumed. Becoming a default dialer requires user consent and compliance with Android role and permission policies. Emergency calling and core telephony behaviour must never be obstructed.
 
-### Text-entry Keyboard Studio (separate feature)
-Optional custom input method with local layouts, themes, keycaps, privacy-first processing, language support and accessibility. It is distinct from Dialer Keypad Studio. Typed content must not be collected or transmitted by FaceIt.
+### Keyboard appearance gallery
+A gallery of selectable keyboard visual designs, with previews, favourites and isolated pressable demonstrations inside FaceIt. This is not a system keyboard or an input method: it must not register an `InputMethodService`, intercept typing, request keyboard activation or claim to change Gboard, Samsung Keyboard or other apps. The phone dialer keypad remains a separate feature.
 
 ### Interactive 3D Studio
 On-demand interactive objects, 360-degree rotation, material and lighting controls, and optional burst/reassembly interactions. App shortcuts on object surfaces are a future supported-experience concept, not an assumed Android system capability.
