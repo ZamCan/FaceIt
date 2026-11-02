@@ -375,7 +375,13 @@ def write_legacy_icons() -> None:
 
         _glyph_mark(px).save(folder / "ic_launcher.png")
 
-        round_icon = _glyph_mark(px)
+        # A round icon must actually be a filled disc: launchers draw it as-is and
+        # Lint rejects a glyph-shaped blob here, just as it rejects a filled square
+        # for ic_launcher. The mark sits on the disc, inset inside its edge.
+        round_icon = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+        ImageDraw.Draw(round_icon).ellipse((0, 0, px - 1, px - 1),
+                                           fill=rgba(IDENTITY["obsidian"]))
+        round_icon.paste(render_mark(px, padded=True), (0, 0), render_mark(px, padded=True))
         round_icon.putalpha(ImageChops.multiply(round_icon.getchannel("A"), _mask("circle", px)))
         round_icon.save(folder / "ic_launcher_round.png")
 
