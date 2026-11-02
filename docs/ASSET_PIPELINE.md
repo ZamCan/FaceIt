@@ -52,6 +52,7 @@ player, club, brand mark or sacred text is reproduced.
 | Location | Count | Purpose |
 |---|---|---|
 | `app/src/main/assets/wallpapers/` | 100 | 1080×2400 wallpapers, one per catalogue entry |
+| `app/src/main/assets/wallpapers/thumbs/` | 100 | Grid thumbnails, decoded instead of the full file when browsing |
 | `app/src/main/assets/objects/` | 10 | Object renders usable as a composition layer |
 | `app/src/main/assets/textures/` | 8 | Material tiles for the finish picker (marble, travertine, ceramic, natural stone, brushed metal, frosted glass, basalt, sandstone) |
 | `app/src/main/res/drawable-nodpi/` | 3 | Widget picker previews, one per clock style |
@@ -60,8 +61,9 @@ player, club, brand mark or sacred text is reproduced.
 | `content/artwork/contact_sheet.png` | 1 | Human review sheet; not shipped |
 
 Collections: heritage 20, sport 12, form 15, nature 15, science 10, technology 10,
-civic 5, design 13. Total bundled asset volume is 13.0 MB, of which wallpapers are
-9.9 MB and material textures 2.6 MB.
+civic 5, design 13. Total bundled asset volume is 12.8 MB: wallpapers 7.8 MB,
+thumbnails 2.0 MB, material textures 2.6 MB, objects 260 KB, widget previews
+16 KB, runtime index 32 KB.
 
 ## Runtime wiring
 
