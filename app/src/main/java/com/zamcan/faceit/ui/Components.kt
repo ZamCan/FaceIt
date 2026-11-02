@@ -206,9 +206,9 @@ fun FaceItWordmark(
 @Composable
 fun ScreenHeader(
     title: String,
+    modifier: Modifier = Modifier,
     eyebrow: String? = null,
     description: String? = null,
-    modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null
 ) {

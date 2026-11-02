@@ -20,7 +20,13 @@ Job: *Content gate, build, unit tests and Lint* (ubuntu-latest, Temurin JDK 17, 
 | 7 | `d12a110` | **PASS** | 35 / 35 | 0 errors, 22 warnings | CI now records test counts, Lint and artifact sizes. Lint findings listed below. |
 | 8 | `b66acdf` | **PASS** | 35 / 35 | 0 errors, 15 warnings | Launcher silhouette, widget overdraw, locale formatting, unused drawable fixed. |
 | 9 | `46de583` | **PASS** | 35 / 35 | 0 errors, 8 warnings | Round icon disc, `mipmap-anydpi`, data extraction rules, `targetSdk 36`. |
-| 10 | `50e3bff` | **PASS** | 35 / 35 | **0 errors, 4 warnings** | Dead launcher rasters removed, round adaptive icon added. Current head. |
+| 10 | `50e3bff` | **PASS** | 35 / 35 | 0 errors, **7** warnings | Dead launcher rasters removed, round adaptive icon added. 4 dependency notices plus 3 Compose API warnings that only appear once the earlier ones are gone. |
+| 11 | `599023a` | **PASS** | 35 / 35 | 0 errors, 7 warnings | Documentation commit. Confirms run 10's result; the three Compose warnings are still open at this point. |
+
+**Correction.** I first wrote that run 10 produced 4 warnings. It produced 7: the
+three Compose findings were listed as `7 warnings` in the report I had already
+downloaded, and I summarised the dependency ones only. Recording the mistake rather
+than quietly editing the table.
 
 Run 10: `https://github.com/ZamCan/FaceIt/actions/runs/41461101080`, job 14:21:04Z → 14:22:23Z.
 Artifacts: `FaceIt-debug-apk` (30.2 MB), `FaceIt-reports` (JUnit XML, HTML test report,
@@ -41,7 +47,16 @@ Lint HTML + TXT).
 
 ## Lint
 
-`lintDebug` on run 10: **0 errors, 4 warnings**, all `GradleDependency`:
+`lintDebug` on run 10 and 11: **0 errors, 7 warnings** — 4 `GradleDependency`
+notices and 3 Compose API findings:
+
+- `ArtworkStudioScreen.kt:478` `ModifierParameter`: modifier should be the first
+  optional parameter in `CompositionPreview`.
+- `Components.kt:211` `ModifierParameter`: same in `ScreenHeader`.
+- `SculptedDialKey.kt:84` `UseOfNonLambdaOffsetOverload`: read the animated press
+  offset in the layout phase.
+
+The `GradleDependency` notices are:
 
 - `androidx.compose:compose-bom` 2024.09.00 → 2026.09.00 available
 - `androidx.activity:activity-compose` 1.9.2 → 1.13.0 available

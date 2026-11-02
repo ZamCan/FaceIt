@@ -472,10 +472,10 @@ fun CompositionPreview(
     environment: com.zamcan.faceit.data.PersonalEnvironment,
     artworkFile: File?,
     objectArtworkFile: File?,
+    modifier: Modifier = Modifier,
     curatedBackground: Bitmap? = null,
     curatedObject: Bitmap? = null,
-    materialTexture: Bitmap? = null,
-    modifier: Modifier = Modifier
+    materialTexture: Bitmap? = null
 ) {
     val colors = LocalFaceItColors.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
