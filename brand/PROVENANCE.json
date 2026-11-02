@@ -1,0 +1,26 @@
+{
+  "asset": "Face It application mark \u2014 stacked composition slabs",
+  "owner": "ZamCan",
+  "type": "original vector geometry authored for Face It; no stock, no third-party or scraped material",
+  "licence": "\u00a9 ZamCan. All rights reserved. Not licensed for redistribution outside Face It releases.",
+  "generator": "brand/generate_mark.py",
+  "master": "brand/faceit_master_1024.png",
+  "derivatives": [
+    "brand/faceit_playstore_512.png",
+    "brand/faceit_mark_monochrome_512.png",
+    "brand/faceit_icon_preview_sheet.png",
+    "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher.png",
+    "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_round.png",
+    "app/src/main/res/drawable/faceit_launcher_foreground.xml",
+    "app/src/main/res/drawable/faceit_launcher_background.xml",
+    "app/src/main/res/drawable/faceit_launcher_monochrome.xml",
+    "app/src/main/res/drawable/faceit_launcher.xml"
+  ],
+  "notes": [
+    "Geometry is authored once in this generator; no bitmap is stretched across densities.",
+    "The mark occupies 70% of the canvas so adaptive-icon masks never clip the silhouette.",
+    "Each density is rendered from geometry at its own resolution, not downsampled from one bitmap.",
+    "Monochrome layer is a single tint with tonal separation for themed icons.",
+    "Not yet verified on physical Samsung One UI / AOSP launchers \u2014 that remains a release gate."
+  ]
+}

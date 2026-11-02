@@ -1,0 +1,22 @@
+# Gradle / Android build output
+.gradle/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local machine configuration
+local.properties
+*.iml
+.idea/
+
+# Signing material must never be committed (AGENTS.md §20)
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Python tooling
+__pycache__/
+*.pyc

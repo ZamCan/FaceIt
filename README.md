@@ -30,15 +30,17 @@ The current main branch includes:
 - Deterministic adaptive rendering policy with unit tests.
 - Artwork manifest and rights/provenance validation tooling.
 - Adaptive launcher identity with foreground, background and monochrome icon variants.
-- Native offline FaceIt keyboard input-method service, connected keyboard studio, Android enable/select handoff, and persisted key geometry, material, typography, layout, palette and haptic preferences.
+- Keyboard Designs gallery: ten selectable visual presets across ceramic, frosted glass, natural stone, brushed metal and soft matte families, with an isolated pressable demonstration. This is a visual personalisation studio only — Face It ships no system keyboard (see AGENTS.md §10).
 - Private Vault screens for file import, encrypted inventory, authenticated decryption on open, export and deletion; AES-256-GCM storage uses Android Keystore and private no-backup storage.
 - SMS composer with local font/colour previews, explicit SMS-app handoff and GSM-7/UCS-2 multipart segment estimation; the original plain-text body is preserved.
+
+The keyboard feature is a design gallery inside Face It. There is no `InputMethodService` in the manifest, no system-keyboard enable step, and selecting a design never changes Gboard, Samsung Keyboard or any third-party keyboard. Design preferences (selected design and favourites) persist on the device, and a returning user's previous appearance choice is migrated rather than reset.
 
 The in-app dialer keypad is not yet a replacement for the phone's default dialler. The current wallpaper composition renderer provides a procedural foundation; curated photographic artwork and refined production-grade object assets are still required.
 
 ## Important implementation boundaries
 
-The keyboard studio and IME are connected, but remain an initial release: full language/input-type coverage, accessibility review, privacy-field verification and physical-device testing remain release gates. The Vault has local import/open/export/delete workflows and refuses to silently generate a replacement encryption key if encrypted records remain; biometric gating, a user recovery mechanism and optional encrypted cloud backup are not implemented. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
+Keyboard Designs are in-app visual presets. A real system text-entry keyboard would require a new product-owner decision plus a separate privacy, platform and accessibility review; nothing in this repository registers one. The Vault has local import/open/export/delete workflows and refuses to silently generate a replacement encryption key if encrypted records remain; biometric gating, a user recovery mechanism and optional encrypted cloud backup are not implemented. SMS transport is plain text: font and colour styling are local editor presentation only and cannot be transmitted as rich text over ordinary SMS. Google Drive backup is not enabled; it requires a separately designed consent, encrypted backup and recovery flow.
 
 ## Planned capabilities
 
@@ -47,12 +49,20 @@ The keyboard studio and IME are connected, but remain an initial release: full l
 - Native widget studio and deeper widget configuration.
 - Supported icon personalisation.
 - Optional default-dialer integration, subject to Android role and telephony requirements.
-- Expanded keyboard language/input-type coverage and accessibility verification.
+- Additional keyboard design families once a curated set is art-directed (the current ten presets are complete for the gallery scope).
 - On-demand interactive 3D studio.
 - Optional encrypted Google Drive backup/restore with explicit consent and a verified recovery design.
 - Platform-specific iOS feasibility and native implementation.
 
 Unimplemented modules are not represented as completed functionality in the app.
+
+## Identity
+
+The Face It mark is three stacked composition slabs: the product's own "compose, don't impose" idea rendered as a silhouette rather than a generic gem or robot head. The mark, its adaptive foreground/background/monochrome layers, the Play Store icon and every legacy density are generated from one geometry in `brand/generate_mark.py`. Provenance and licence are recorded in `brand/PROVENANCE.json`.
+
+```bash
+python3 brand/generate_mark.py     # regenerate every icon asset
+```
 
 ## Build
 
@@ -68,3 +78,4 @@ GitHub Actions runs artwork-manifest validation, unit tests and a debug APK buil
 - [Adaptive Resource Engine](docs/ADAPTIVE_RESOURCE_ENGINE.md)
 - [Artwork pipeline](docs/ASSET_PIPELINE.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Verification](docs/VERIFICATION.md)

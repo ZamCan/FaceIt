@@ -1,10 +1,6 @@
 package com.zamcan.faceit.ui
 
-import android.content.Context
-import android.content.Intent
-import android.provider.Settings
 import android.provider.OpenableColumns
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,12 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,21 +32,15 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.SaveAlt
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material.icons.rounded.Shield
-import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,24 +50,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zamcan.faceit.keyboard.KeyMaterial
-import com.zamcan.faceit.keyboard.KeyShape
-import com.zamcan.faceit.keyboard.KeyboardFont
-import com.zamcan.faceit.keyboard.KeyboardLayout
-import com.zamcan.faceit.keyboard.KeyboardPersonalizationEngine
 import com.zamcan.faceit.messaging.SmsSegmentEstimator
 import com.zamcan.faceit.messaging.SmsTransportHandoff
-import com.zamcan.faceit.ui.theme.FaceItSpacing
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import com.zamcan.faceit.vault.LocalVaultStore
 import java.io.ByteArrayOutputStream
@@ -94,7 +72,7 @@ internal fun ToolsHubScreen(
 ) {
     when (page) {
         ToolsPage.Home -> ToolsHomeScreen(modifier, onOpen)
-        ToolsPage.Keyboard -> KeyboardStudioScreen(modifier, onBack)
+        ToolsPage.KeyboardDesigns -> KeyboardDesignGalleryScreen(modifier, onBack)
         ToolsPage.Vault -> VaultScreen(modifier, onBack)
         ToolsPage.Sms -> SmsComposerScreen(modifier, onBack)
     }
@@ -121,10 +99,10 @@ private fun ToolsHomeScreen(
 
         ToolCard(
             icon = Icons.Rounded.Keyboard,
-            title = "Keyboard studio",
-            description = "Shape key geometry, material, typography and layout for FaceIt's own keyboard.",
-            meta = "On-device IME",
-            onClick = { onOpen(ToolsPage.Keyboard) }
+            title = "Keyboard designs",
+            description = "Browse selectable key styles and try an isolated pressable demo.",
+            meta = "Visual presets",
+            onClick = { onOpen(ToolsPage.KeyboardDesigns) }
         )
         ToolCard(
             icon = Icons.Rounded.Lock,
@@ -180,355 +158,10 @@ private fun ToolsHomeScreen(
         }
 
         InfoNote(
-            text = "FaceIt requests a permission only when you use the feature that needs it. Vault files, imported artwork and keyboard input stay on this device.",
+            text = "FaceIt requests a permission only when you use the feature that needs it. Vault files and imported artwork stay on this device, and keyboard designs are previews inside Face It only.",
             tint = colors.ice,
             icon = Icons.Rounded.Shield
         )
-    }
-}
-
-private fun prettyEnum(value: String): String =
-    value.lowercase().split('_').joinToString(" ") { part ->
-        part.replaceFirstChar { it.uppercase() }
-    }
-
-private data class PaletteOption(val id: String, val label: String)
-
-private val paletteOptions = listOf(
-    PaletteOption("OBSIDIAN_CERAMIC", "Obsidian ceramic"),
-    PaletteOption("WARM_STONE", "Warm stone"),
-    PaletteOption("PEARL_MINT", "Pearl mint"),
-    PaletteOption("GRAPHITE_ICE", "Graphite ice")
-)
-
-private data class PalettePreview(
-    val background: Color,
-    val key: Color,
-    val text: Color
-)
-
-private fun palettePreview(id: String): PalettePreview = when (id) {
-    "WARM_STONE" -> PalettePreview(Color(0xFF28231F), Color(0xFF51463C), Color(0xFFF5EBDD))
-    "PEARL_MINT" -> PalettePreview(Color(0xFFE9ECE9), Color(0xFFFFFFFF), Color(0xFF252B29))
-    "GRAPHITE_ICE" -> PalettePreview(Color(0xFF171B20), Color(0xFF303A43), Color(0xFFF0F4F7))
-    else -> PalettePreview(Color(0xFF17191F), Color(0xFF30333C), Color(0xFFF3F1F7))
-}
-
-private fun fontFamilyFor(font: String): FontFamily = when (font) {
-    "SERIF" -> FontFamily.Serif
-    "MONOSPACE" -> FontFamily.Monospace
-    else -> FontFamily.SansSerif
-}
-
-@Composable
-private fun KeyboardStudioScreen(modifier: Modifier, onBack: () -> Unit) {
-    val context = LocalContext.current
-    val colors = LocalFaceItColors.current
-    val prefs = remember { context.getSharedPreferences("faceit_keyboard", Context.MODE_PRIVATE) }
-    var shape by remember { mutableStateOf(prefs.getString("shape", KeyShape.ROUNDED_RECTANGLE.name)!!) }
-    var material by remember { mutableStateOf(prefs.getString("material", KeyMaterial.MATTE_CERAMIC.name)!!) }
-    var font by remember { mutableStateOf(prefs.getString("font", KeyboardFont.SYSTEM.name)!!) }
-    var layout by remember { mutableStateOf(prefs.getString("layout", KeyboardLayout.QWERTY.name)!!) }
-    var palette by remember { mutableStateOf(prefs.getString("palette", "OBSIDIAN_CERAMIC")!!) }
-    var haptics by remember { mutableStateOf(prefs.getBoolean("haptics", true)) }
-    var saved by remember { mutableStateOf(true) }
-
-    fun markChanged() {
-        saved = false
-    }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        ScreenHeader(
-            eyebrow = "Keyboard studio",
-            title = "Key appearance",
-            description = "Configure FaceIt's own keyboard. Android requires you to enable and select it explicitly.",
-            onBack = onBack
-        )
-
-        FaceItCard(contentPadding = 14.dp) {
-            KeyboardPreview(
-                shape = shape,
-                material = material,
-                font = font,
-                layout = layout,
-                palette = palette
-            )
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Appearance preview",
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.weight(1f))
-                if (saved) {
-                    StatusPill(text = "Saved", tint = colors.mint)
-                } else {
-                    StatusPill(text = "Unsaved", tint = colors.warning)
-                }
-            }
-        }
-
-        FaceItCard {
-            ChoiceChips(
-                title = "Key shape",
-                options = KeyShape.entries.map { prettyEnum(it.name) },
-                selected = prettyEnum(shape),
-                onSelected = { label ->
-                    KeyShape.entries.firstOrNull { prettyEnum(it.name) == label }?.let {
-                        shape = it.name
-                        markChanged()
-                    }
-                }
-            )
-            Spacer(Modifier.height(18.dp))
-            ChoiceChips(
-                title = "Material finish",
-                options = KeyMaterial.entries.map { prettyEnum(it.name) },
-                selected = prettyEnum(material),
-                onSelected = { label ->
-                    KeyMaterial.entries.firstOrNull { prettyEnum(it.name) == label }?.let {
-                        material = it.name
-                        markChanged()
-                    }
-                }
-            )
-            Spacer(Modifier.height(18.dp))
-            ChoiceChips(
-                title = "Typography",
-                options = KeyboardFont.entries.map { prettyEnum(it.name) },
-                selected = prettyEnum(font),
-                onSelected = { label ->
-                    KeyboardFont.entries.firstOrNull { prettyEnum(it.name) == label }?.let {
-                        font = it.name
-                        markChanged()
-                    }
-                }
-            )
-            Spacer(Modifier.height(18.dp))
-            ChoiceChips(
-                title = "Layout",
-                options = KeyboardLayout.entries.map { it.name },
-                selected = layout,
-                onSelected = {
-                    layout = it
-                    markChanged()
-                }
-            )
-            Spacer(Modifier.height(18.dp))
-            ChoiceChips(
-                title = "Colour palette",
-                options = paletteOptions.map { it.label },
-                selected = paletteOptions.firstOrNull { it.id == palette }?.label
-                    ?: paletteOptions.first().label,
-                onSelected = { label ->
-                    paletteOptions.firstOrNull { it.label == label }?.let {
-                        palette = it.id
-                        markChanged()
-                    }
-                }
-            )
-        }
-
-        FaceItCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Haptic feedback", style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "Vibrate briefly on key press when supported.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
-                Switch(
-                    checked = haptics,
-                    onCheckedChange = {
-                        haptics = it
-                        markChanged()
-                    }
-                )
-            }
-        }
-
-        Button(
-            onClick = {
-                prefs.edit()
-                    .putString("shape", shape)
-                    .putString("material", material)
-                    .putString("font", font)
-                    .putString("layout", layout)
-                    .putString("palette", palette)
-                    .putBoolean("haptics", haptics)
-                    .apply()
-                saved = true
-                Toast.makeText(context, "Keyboard appearance saved", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Icon(Icons.Rounded.SaveAlt, contentDescription = null, modifier = Modifier.size(19.dp))
-            Spacer(Modifier.width(8.dp))
-            Text("Save keyboard style")
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(
-                onClick = { context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) },
-                modifier = Modifier.weight(1f).height(50.dp),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, colors.border)
-            ) {
-                Icon(Icons.Rounded.Keyboard, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Enable", maxLines = 1)
-            }
-            OutlinedButton(
-                onClick = {
-                    val manager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    manager.showInputMethodPicker()
-                },
-                modifier = Modifier.weight(1f).height(50.dp),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, colors.border)
-            ) {
-                Text("Select keyboard", maxLines = 1)
-            }
-        }
-
-        InfoNote(
-            text = "This keyboard does not need internet access and does not save typed text. Review its behaviour before using it for passwords or sensitive data.",
-            tint = colors.mint,
-            icon = Icons.Rounded.Shield
-        )
-    }
-}
-
-@Composable
-private fun KeyboardPreview(
-    shape: String,
-    material: String,
-    font: String,
-    layout: String,
-    palette: String
-) {
-    val colors = LocalFaceItColors.current
-    val preview = palettePreview(palette)
-    val radius = when (shape) {
-        "PILL" -> 28.dp
-        "SOFT_SQUARE" -> 7.dp
-        "CIRCULAR" -> 30.dp
-        else -> 14.dp
-    }
-    val keyShape = RoundedCornerShape(radius)
-    val keyStroke = when (material) {
-        "FROSTED_GLASS" -> Color.White.copy(alpha = .45f)
-        "NATURAL_STONE" -> Color(0xFF917D6C)
-        "BRUSHED_METAL" -> Color(0xFF8995A4)
-        "SOFT_MATTE" -> Color.White.copy(alpha = .08f)
-        else -> Color.White.copy(alpha = .14f)
-    }
-    val rows = KeyboardPersonalizationEngine.mapCharacters(
-        when (layout) {
-            "QWERTZ" -> KeyboardLayout.QWERTZ
-            "AZERTY" -> KeyboardLayout.AZERTY
-            else -> KeyboardLayout.QWERTY
-        }
-    )
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = preview.background,
-        border = BorderStroke(1.dp, colors.border)
-    ) {
-        Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            rows.forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    row.forEach { key ->
-                        PreviewKey(
-                            label = key.toString(),
-                            background = preview.key,
-                            textColor = preview.text,
-                            shape = keyShape,
-                            border = keyStroke,
-                            fontFamily = fontFamilyFor(font),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                PreviewKey(
-                    label = "?123",
-                    background = preview.key,
-                    textColor = preview.text,
-                    shape = keyShape,
-                    border = keyStroke,
-                    fontFamily = fontFamilyFor(font),
-                    modifier = Modifier.weight(1f)
-                )
-                PreviewKey(
-                    label = "space",
-                    background = preview.key,
-                    textColor = preview.text,
-                    shape = keyShape,
-                    border = keyStroke,
-                    fontFamily = fontFamilyFor(font),
-                    modifier = Modifier.weight(3f)
-                )
-                PreviewKey(
-                    label = "↵",
-                    background = preview.key,
-                    textColor = preview.text,
-                    shape = keyShape,
-                    border = keyStroke,
-                    fontFamily = fontFamilyFor(font),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PreviewKey(
-    label: String,
-    background: Color,
-    textColor: Color,
-    shape: RoundedCornerShape,
-    border: Color,
-    fontFamily: FontFamily,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(36.dp)
-            .background(background, shape)
-            .then(Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            shape = shape,
-            color = Color.Transparent,
-            border = BorderStroke(0.75.dp, border)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = label,
-                    color = textColor,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 13.sp,
-                    maxLines = 1
-                )
-            }
-        }
     }
 }
 

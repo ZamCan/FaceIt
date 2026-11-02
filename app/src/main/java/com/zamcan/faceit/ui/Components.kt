@@ -27,7 +27,6 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,8 +38,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -104,37 +101,78 @@ fun BrandMark(modifier: Modifier = Modifier, size: Dp = 30.dp) {
     Canvas(
         modifier = modifier
             .size(size)
-            .semantics { contentDescription = "FaceIt" }
+            .semantics { contentDescription = "Face It" }
     ) {
-        val width = this.size.width
-        val height = this.size.height
-        val path = Path().apply {
-            moveTo(width * .5f, height * .03f)
-            lineTo(width * .94f, height * .28f)
-            lineTo(width * .94f, height * .72f)
-            lineTo(width * .5f, height * .97f)
-            lineTo(width * .06f, height * .72f)
-            lineTo(width * .06f, height * .28f)
-            close()
-        }
-        drawPath(
-            path = path,
-            brush = Brush.linearGradient(
-                colors = listOf(colors.violet, colors.ice, colors.mint),
-                start = Offset(0f, 0f),
-                end = Offset(width, height)
+        val w = this.size.width
+        val h = this.size.height
+        val halfWidth = w * 0.40f
+        val halfHeight = halfWidth * 0.507f
+        val wall = h * 0.055f
+        val gap = h * 0.235f
+        val cx = w * 0.5f
+        val cy = h * 0.5f - h * 0.02f
+
+        fun slabPolygons(centreY: Float): Triple<List<Offset>, List<Offset>, List<Offset>> {
+            val top = listOf(
+                Offset(cx, centreY - halfHeight),
+                Offset(cx + halfWidth, centreY),
+                Offset(cx, centreY + halfHeight),
+                Offset(cx - halfWidth, centreY)
             )
+            val leftWall = listOf(
+                top[3], top[2],
+                Offset(top[2].x, top[2].y + wall),
+                Offset(top[3].x, top[3].y + wall)
+            )
+            val rightWall = listOf(
+                top[2], top[1],
+                Offset(top[1].x, top[1].y + wall),
+                Offset(top[2].x, top[2].y + wall)
+            )
+            return Triple(top, leftWall, rightWall)
+        }
+
+        fun drawSlab(centreY: Float, topStart: Color, topEnd: Color, wallColour: Color, wallDeep: Color) {
+            val (top, leftWall, rightWall) = slabPolygons(centreY)
+            drawPath(Path().apply {
+                moveTo(leftWall[0].x, leftWall[0].y)
+                leftWall.drop(1).forEach { lineTo(it.x, it.y) }
+                close()
+            }, wallColour)
+            drawPath(Path().apply {
+                moveTo(rightWall[0].x, rightWall[0].y)
+                rightWall.drop(1).forEach { lineTo(it.x, it.y) }
+                close()
+            }, wallDeep)
+            drawPath(
+                path = Path().apply {
+                    moveTo(top[0].x, top[0].y)
+                    top.drop(1).forEach { lineTo(it.x, it.y) }
+                    close()
+                },
+                brush = Brush.linearGradient(
+                    colors = listOf(topStart, topEnd),
+                    start = Offset(top[0].x, top[0].y),
+                    end = Offset(top[2].x, top[2].y)
+                )
+            )
+        }
+
+        // base slab, accent slab, lit surface slab — back to front
+        drawSlab(cy + gap, colors.cardRaised, colors.cardSunken, colors.cardSunken, colors.cardSunken)
+        drawSlab(
+            cy,
+            colors.violet.copy(alpha = .95f),
+            colors.violet.copy(alpha = .62f),
+            colors.violet.copy(alpha = .55f),
+            colors.violet.copy(alpha = .38f)
         )
-        drawPath(
-            path = path,
-            color = Color.White.copy(alpha = .4f),
-            style = Stroke(width = this.size.minDimension * .045f)
-        )
-        drawLine(
-            color = Color.White.copy(alpha = .2f),
-            start = Offset(width * .5f, height * .06f),
-            end = Offset(width * .5f, height * .94f),
-            strokeWidth = this.size.minDimension * .02f
+        drawSlab(
+            cy - gap,
+            if (colors.isDark) Color(0xFFF7F4FD) else Color(0xFFFFFFFF),
+            if (colors.isDark) Color(0xFFCFC6E4) else Color(0xFFDCD3EC),
+            colors.mint,
+            colors.mint.copy(alpha = .62f)
         )
     }
 }
@@ -280,35 +318,29 @@ fun SectionHeader(
     }
 }
 
+/**
+ * Every product card is a glass surface.
+ *
+ * Kept as a named adapter so call sites stay readable, but the material,
+ * border, highlight and interaction state all come from [FaceItGlass] — one
+ * token set, no per-screen drift (AGENTS.md §4).
+ */
 @Composable
 fun FaceItCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     contentPadding: Dp = FaceItSpacing.md,
+    tone: GlassTone = GlassTone.Standard,
     content: @Composable () -> Unit
 ) {
-    val colors = LocalFaceItColors.current
-    val shape = MaterialTheme.shapes.extraLarge
-    val border = BorderStroke(1.dp, colors.border)
-    if (onClick != null) {
-        Surface(
-            onClick = onClick,
-            modifier = modifier.fillMaxWidth(),
-            shape = shape,
-            color = colors.card,
-            border = border
-        ) {
-            Column(Modifier.padding(contentPadding)) { content() }
-        }
-    } else {
-        Surface(
-            modifier = modifier.fillMaxWidth(),
-            shape = shape,
-            color = colors.card,
-            border = border
-        ) {
-            Column(Modifier.padding(contentPadding)) { content() }
-        }
+    FaceItGlass(
+        modifier = modifier.fillMaxWidth(),
+        tone = tone,
+        shape = MaterialTheme.shapes.extraLarge,
+        onClick = onClick,
+        contentPadding = contentPadding
+    ) {
+        content()
     }
 }
 

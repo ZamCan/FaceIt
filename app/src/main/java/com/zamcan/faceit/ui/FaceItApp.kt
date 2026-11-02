@@ -6,6 +6,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +28,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -65,6 +65,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,7 +77,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -86,7 +86,6 @@ import com.zamcan.faceit.data.CompositionPresets
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.graphics.WallpaperRenderer
-import com.zamcan.faceit.ui.theme.FaceItSpacing
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -102,7 +101,7 @@ private enum class Destination(val label: String) {
 
 internal enum class ToolsPage(val label: String) {
     Home("Tools"),
-    Keyboard("Keyboard studio"),
+    KeyboardDesigns("Keyboard designs"),
     Vault("Private Vault"),
     Sms("SMS composer")
 }
@@ -117,6 +116,8 @@ fun FaceItApp() {
     var toolsPage by remember { mutableStateOf(ToolsPage.Home) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    // AGENTS.md §13/§17: one runtime policy decides whether motion may animate.
+    val motionPolicy = rememberMotionPolicy()
 
     fun update(next: PersonalEnvironment) {
         environment = next
@@ -159,6 +160,7 @@ fun FaceItApp() {
         }
     }
 
+    CompositionLocalProvider(LocalMotionPolicy provides motionPolicy) {
     FaceItBackdrop(Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -176,6 +178,11 @@ fun FaceItApp() {
             Crossfade(
                 targetState = destination,
                 modifier = Modifier.fillMaxSize(),
+                animationSpec = if (motionPolicy.animationsEnabled) {
+                    androidx.compose.animation.core.tween(durationMillis = 220)
+                } else {
+                    snap()
+                },
                 label = "destination"
             ) { current ->
                 when (current) {
@@ -245,6 +252,7 @@ fun FaceItApp() {
                 }
             }
         }
+    }
     }
 }
 

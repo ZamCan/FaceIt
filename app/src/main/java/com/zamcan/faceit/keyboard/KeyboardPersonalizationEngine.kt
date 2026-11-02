@@ -38,10 +38,27 @@ data class KeyboardProfile(
 }
 
 object KeyboardPalettes {
+    const val OBSIDIAN_CERAMIC_ID = "OBSIDIAN_CERAMIC"
+    const val WARM_STONE_ID = "WARM_STONE"
+    const val PEARL_MINT_ID = "PEARL_MINT"
+    const val GRAPHITE_ICE_ID = "GRAPHITE_ICE"
+    const val MIDNIGHT_ONYX_ID = "MIDNIGHT_ONYX"
+
     val OBSIDIAN_CERAMIC = KeyboardPalette(0x17191FL, 0x30333CL, 0xF3F1F7L, 0xB9A2F5L, 0xB8BAC4L)
     val WARM_STONE = KeyboardPalette(0x28231FL, 0x51463CL, 0xF5EBDD, 0xD7A878L, 0xC9B9A8L)
-    val PEARL_MINT = KeyboardPalette(0xE9ECE9L, 0xFFFFFFL, 0x252B29L, 0x4C9B86L, 0x69736FL)
+    val PEARL_MINT = KeyboardPalette(0xE9ECE9L, 0xFFFFFFL, 0x252B29L, 0x357A67L, 0x616B68L)
     val GRAPHITE_ICE = KeyboardPalette(0x171B20L, 0x303A43L, 0xF0F4F7L, 0x91B9F4L, 0xB7C2CBL)
+    val MIDNIGHT_ONYX = KeyboardPalette(0x0F1116L, 0x282C36L, 0xF1EFF6L, 0x8B6DF2L, 0xA9A4B4L)
+
+    val all = listOf(
+        OBSIDIAN_CERAMIC_ID to OBSIDIAN_CERAMIC,
+        WARM_STONE_ID to WARM_STONE,
+        PEARL_MINT_ID to PEARL_MINT,
+        GRAPHITE_ICE_ID to GRAPHITE_ICE,
+        MIDNIGHT_ONYX_ID to MIDNIGHT_ONYX
+    )
+
+    fun byId(id: String?): KeyboardPalette = all.firstOrNull { it.first == id }?.second ?: OBSIDIAN_CERAMIC
 }
 
 /** SMS transports plain text; visual styling is strictly an on-device editor concern. */
