@@ -10,17 +10,20 @@ that evidence lives.
 
 | Area | Status | Evidence |
 |---|---|---|
-| Artwork manifest validation | **Ran, passed** | `python3 tools/validate_artwork_pack.py` → 0 entries, 0 wallpapers, content gate reported as incomplete |
-| Source structure check | **Ran, passed** | `python3 tools/verify_sources.py` → delimiters balanced, project-internal imports resolve, `R.*` references all exist |
+| Artwork pack generation | **Ran, passed** | `python3 tools/generate_artwork.py` → 100 wallpapers, 10 objects, 8 material textures, 3 widget previews |
+| Artwork manifest validation (release gate) | **Ran, passed** | `python3 tools/validate_artwork_pack.py --release` → 118 manifest entries, 100 wallpapers, hashes and rights metadata valid |
+| Artwork visual review | **Inspected** | Contact sheet (`content/artwork/contact_sheet.png`) reviewed collection by collection; filler frames were removed rather than counted |
+| Source structure check | **Ran, passed** | `python3 tools/verify_sources.py` → 30 Kotlin files, 90 declared types; delimiters balanced, brace nesting sound, project-internal imports resolve, `R.*` references all exist |
 | Identity generation | **Ran, passed** | `python3 brand/generate_mark.py` → master, Play Store, monochrome, preview sheet, adaptive vectors and 5 legacy densities written |
 | Icon visual review | **Inspected** | Preview sheet reviewed at 24/32/48/72/96 px and on light, dark, neutral, circle-mask and squircle-mask surfaces |
 | Keyboard palette contrast | **Verified numerically** | WCAG 2.1 ratios computed for all five palettes; Pearl Mint accent was raised from 2.78 to 4.27 after failing the 3.0 threshold |
+| Curated pack runtime wiring | **Unverified until compiled** | `assets/artwork_index.json` is emitted by the same tool as the PNGs, so ids, paths and dimensions cannot drift; the Kotlin that reads it has not been compiled |
 | Gradle unit tests (`testDebugUnitTest`) | **Not run** | No JDK, Android SDK or Gradle in the authoring environment, by instruction |
 | Debug APK build (`assembleDebug`) | **Not run** | Same reason |
 | Android Lint | **Not run** | Same reason |
 | Physical-device testing | **Not run** | No device available in this environment |
 
-The last three rows are release gates. Nothing in this repository should be
+The build, lint and device rows are release gates. Nothing in this repository should be
 described as release-ready until they are executed and recorded here.
 
 ## Commands

@@ -53,6 +53,27 @@ def strip_comments_and_strings(text: str) -> str:
     return "".join(out)
 
 
+def check_nesting(path: Path) -> None:
+    """Balanced totals can still hide a missing close paired with a stray one, so
+    walking the running brace depth catches the case where a function ends but a
+    sibling scope does not."""
+    code = strip_comments_and_strings(path.read_text(encoding="utf-8"))
+    depth = 0
+    for lineno, line in enumerate(code.split("\n"), start=1):
+        for char in line:
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth < 0:
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{lineno}: closing brace with no open scope"
+                    )
+                    return
+    if depth != 0:
+        errors.append(f"{path.relative_to(ROOT)}: {depth} unclosed block(s) at end of file")
+
+
 def check_balance(path: Path) -> None:
     code = strip_comments_and_strings(path.read_text(encoding="utf-8"))
     for opening, closing in (("{", "}"), ("(", ")"), ("[", "]")):
@@ -230,6 +251,7 @@ def main() -> int:
         return 1
     for path in kotlin:
         check_balance(path)
+        check_nesting(path)
         collect_declarations(path)
     for path in kotlin:
         check_imports(path)

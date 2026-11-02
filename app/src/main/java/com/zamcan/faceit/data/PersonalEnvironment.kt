@@ -14,7 +14,13 @@ data class PersonalEnvironment(
     val dialerStyle: String = "Ceramic Sculpt",
     val resourceProfile: String = "Balanced",
     val selectedArtworkFile: String? = null,
-    val selectedObjectFile: String? = null
+    val selectedObjectFile: String? = null,
+    /** Curated bundled wallpaper id from the shipped pack, or null. */
+    val curatedArtworkId: String? = null,
+    /** Curated object artwork id from `assets/objects`, or null. */
+    val curatedObjectId: String? = null,
+    /** Ordered composition layers; the renderer draws these back to front. */
+    val layers: List<CompositionLayer> = CompositionLayer.defaults()
 ) {
     fun toJson() = JSONObject().apply {
         put("name", name)
@@ -28,6 +34,9 @@ data class PersonalEnvironment(
         put("resourceProfile", resourceProfile)
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
+        put("curatedArtworkId", curatedArtworkId)
+        put("curatedObjectId", curatedObjectId)
+        put("layers", org.json.JSONArray().apply { layers.forEach { put(it.toJson()) } })
     }.toString()
 
     companion object {
@@ -48,7 +57,18 @@ data class PersonalEnvironment(
                     selectedArtworkFile = json.optString("selectedArtworkFile", "")
                         .takeIf { it.isNotBlank() && it != "null" },
                     selectedObjectFile = json.optString("selectedObjectFile", "")
-                        .takeIf { it.isNotBlank() && it != "null" }
+                        .takeIf { it.isNotBlank() && it != "null" },
+                    curatedArtworkId = json.optString("curatedArtworkId", "")
+                        .takeIf { it.isNotBlank() && it != "null" },
+                    curatedObjectId = json.optString("curatedObjectId", "")
+                        .takeIf { it.isNotBlank() && it != "null" },
+                    layers = json.optJSONArray("layers")?.let { array ->
+                        buildList {
+                            for (i in 0 until array.length()) {
+                                add(CompositionLayer.fromJson(array.getJSONObject(i)))
+                            }
+                        }
+                    }?.takeIf { it.isNotEmpty() } ?: CompositionLayer.defaults()
                 )
             }.getOrDefault(PersonalEnvironment())
         }

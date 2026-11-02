@@ -24,7 +24,9 @@ Every curated asset must have a manifest record in `content/artwork/manifest.jso
 - SHA-256 checksum.
 - Asset type (wallpaper or object).
 
-The initial content release requires at least 100 high-quality PNG wallpapers. This is a release gate, not a claim that the current repository already contains 100 curated wallpapers.
+The initial content release requires at least 100 high-quality PNG wallpapers. The
+repository now ships exactly that: 100 wallpapers, every one original generated
+artwork, verified by `tools/validate_artwork_pack.py --release`.
 
 ## Validation
 
@@ -39,6 +41,40 @@ This validates manifest structure, file existence, PNG headers, wallpaper dimens
 ```bash
 python3 tools/validate_artwork_pack.py --release
 ```
+
+## What actually ships
+
+The pack is generated, not licensed from third parties, so every file shares one
+provenance: original vector-derived artwork produced by `tools/generate_artwork.py`
+from the palettes recorded in `brand/PROVENANCE.json`. No photograph, crest, kit,
+player, club, brand mark or sacred text is reproduced.
+
+| Location | Count | Purpose |
+|---|---|---|
+| `app/src/main/assets/wallpapers/` | 100 | 1080×2400 wallpapers, one per catalogue entry |
+| `app/src/main/assets/objects/` | 10 | Object renders usable as a composition layer |
+| `app/src/main/assets/textures/` | 8 | Material tiles for the finish picker (marble, travertine, ceramic, natural stone, brushed metal, frosted glass, basalt, sandstone) |
+| `app/src/main/res/drawable-nodpi/` | 3 | Widget picker previews, one per clock style |
+| `app/src/main/assets/artwork_index.json` | 1 | Runtime catalogue read by `CuratedLibrary` |
+| `content/artwork/manifest.json` | 1 | Rights, palette, hash and dimensions per file |
+| `content/artwork/contact_sheet.png` | 1 | Human review sheet; not shipped |
+
+Collections: heritage 20, sport 12, form 15, nature 15, science 10, technology 10,
+civic 5, design 13. Total bundled asset volume is 13.0 MB, of which wallpapers are
+9.9 MB and material textures 2.6 MB.
+
+## Runtime wiring
+
+- `data/CuratedLibrary.kt` reads `artwork_index.json` from assets, decodes
+  thumbnails with a computed `inSampleSize` on `Dispatchers.IO`, and keeps them in
+  a 48-entry LRU cache released through `trimMemory()`.
+- `ui/CuratedGallery.kt` is the browse surface: category chips, adaptive grid, and
+  select or apply per wallpaper.
+- `graphics/WallpaperRenderer.kt` accepts a curated background, a curated object
+  and a material tile, tiling the material with a `BitmapShader` at fixed alpha so
+  cost does not scale with wallpaper size.
+- `widget/FaceItClockWidgetStyles.kt` maps each clock style to its shipped preview
+  drawable, which the app-widget picker and configuration activity use.
 
 ## Content rules
 

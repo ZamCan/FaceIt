@@ -16,17 +16,27 @@ import kotlin.math.sin
 
 /** Offline layer compositor. Imported background artwork remains independent of the selected object layer. */
 object WallpaperRenderer {
-    fun render(width: Int, height: Int, environment: PersonalEnvironment, artworkFile: File? = null, objectArtworkFile: File? = null): Bitmap {
+    fun render(
+        width: Int,
+        height: Int,
+        environment: PersonalEnvironment,
+        artworkFile: File? = null,
+        objectArtworkFile: File? = null,
+        curatedArtwork: Bitmap? = null,
+        curatedObject: Bitmap? = null,
+        materialTexture: Bitmap? = null
+    ): Bitmap {
         require(width > 0 && height > 0)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val scale = width / 1080f
         fun px(value: Float) = value * scale
 
-        val imported = artworkFile?.takeIf { it.isFile }?.let { decodeForTarget(it, width, height) }
+        val curated = curatedArtwork?.takeIf { !it.isRecycled }
+        val imported = curated ?: artworkFile?.takeIf { it.isFile }?.let { decodeForTarget(it, width, height) }
         if (imported != null) {
             drawCenterCrop(canvas, imported, width, height)
-            imported.recycle()
+            if (imported !== curated) imported.recycle()
             canvas.drawRect(
                 0f, 0f, width.toFloat(), height.toFloat(),
                 Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -41,12 +51,17 @@ object WallpaperRenderer {
             drawBackground(canvas, width, height, environment.background, ::px)
         }
 
-        val importedObject = objectArtworkFile?.takeIf { it.isFile }?.let { decodeForObject(it, width, height) }
+        val curatedObjectBitmap = curatedObject?.takeIf { !it.isRecycled }
+        val importedObject = curatedObjectBitmap
+            ?: objectArtworkFile?.takeIf { it.isFile }?.let { decodeForObject(it, width, height) }
         if (importedObject != null) {
             drawImportedObject(canvas, importedObject, width, height)
-            importedObject.recycle()
+            if (importedObject !== curatedObjectBitmap) importedObject.recycle()
         } else {
             drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
+        }
+        if (materialTexture != null && !materialTexture.isRecycled) {
+            drawMaterialGrain(canvas, materialTexture, width, height)
         }
         drawVignette(canvas, width, height)
         return bitmap
@@ -334,6 +349,25 @@ object WallpaperRenderer {
         val top = height * .38f - drawHeight / 2f
         val destination = RectF(left, top, left + drawWidth, top + drawHeight)
         canvas.drawBitmap(source, null, destination, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+    }
+
+    /**
+     * Lay a curated material tile over the finished composition.
+     *
+     * Using a BitmapShader keeps the cost constant no matter how large the
+     * wallpaper is, and a fixed low alpha makes the finish a texture rather than
+     * a filter over the user's artwork.
+     */
+    private fun drawMaterialGrain(canvas: Canvas, texture: Bitmap, width: Int, height: Int) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            shader = android.graphics.BitmapShader(
+                texture,
+                Shader.TileMode.REPEAT,
+                Shader.TileMode.REPEAT
+            )
+            alpha = 46
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
     }
 
     private fun sampleSize(sourceWidth: Int, sourceHeight: Int, targetWidth: Int, targetHeight: Int): Int {

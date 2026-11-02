@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Face It</string>
+    <string name="widget_description">Face It clock: the time, the date and your chosen finish, quietly.</string>
 </resources>
