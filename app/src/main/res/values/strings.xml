@@ -1,3 +1,4 @@
 <resources>
-    <string name="faceit_keyboard_label">FaceIt Keyboard</string>
+    <string name="app_name">Face It</string>
+    <string name="faceit_keyboard_label">Face It Keyboard</string>
 </resources>
