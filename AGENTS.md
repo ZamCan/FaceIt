@@ -13,7 +13,7 @@ This file is the first document every agent must read before changing the produc
 
 ## 1. Mission: build a personal visual environment platform
 
-Face It is not a wallpaper gallery with a few decorative settings. It is a premium, practical phone-personalisation and visual-composition platform. People should be able to shape the visual character of their devices: wallpapers, scenes, objects, materials, lighting, widgets, icons, dialer keypad surfaces, keyboard appearance and other integrations that Android genuinely permits.
+Face It is not a wallpaper gallery with a few decorative settings. It is a premium, practical phone-personalisation and visual-composition platform. People should be able to shape the visual character of their devices: wallpapers, scenes, objects, materials, lighting, widgets, icons, dialer keypad surfaces, selectable keyboard design styles and other supported integrations that Android genuinely permits.
 
 The defining idea is **compose, don't impose**. A user's visual environment is assembled from independent, reusable layers and controls. A background must not dictate the object, material, widget or icon style. Users can create, save, preview, revise, duplicate, apply and restore their own combinations.
 
@@ -95,6 +95,34 @@ A light bluish accent may be used selectively in relevant sections, just as a fo
 
 Artwork is the visual hero. UI chrome should frame it, not compete with it.
 
+### Glassmorphic visual treatment and premium control design
+
+A refined, tactile glassmorphic language is a major product direction across the app. Use layered translucent surfaces, controlled background diffusion, subtle specular highlights, edge reflections, soft depth, nuanced gradients and deliberate colour relationships to create a polished glass-like finish. Combine glass with ceramic, stone, metal and matte materials where appropriate.
+
+This must be engineered as a coherent design system, not applied as a cheap blur filter:
+- Build reusable surface/material components with consistent tokens for tint, opacity, blur, border, highlight, shadow, elevation and interaction state.
+- Create distinct resting, pressed, focused, selected, disabled and loading states.
+- Use controlled accent colour and carefully balanced tonal contrast; avoid washed-out pale text on translucent surfaces.
+- Preserve legibility over busy artwork with adaptive scrims, solid fallback surfaces or local contrast treatment.
+- Keep blur and layered effects bounded on low-end devices; fall back gracefully to opaque or simplified surfaces when needed.
+- Use meaningful colour, material and light to distinguish sections and controls without visual clutter.
+- Make important controls feel physically intentional: clear hit area, alignment, press depth, tactile response and consistent geometry.
+
+### No web-page design — absolute product-wide rule
+
+**A web-page-like interface is not acceptable anywhere in Face It.** This applies to every screen, studio, editor, gallery, settings surface, onboarding flow, widget configurator, preview and tool—not only the home screen.
+
+Do not design or implement the app as a responsive website squeezed into a phone:
+- No generic website header/hero/three-column-card patterns.
+- No desktop-style sidebars or navigation menus copied into narrow phone layouts.
+- No long text-first landing pages, article-like feature descriptions or endless vertically stacked web cards.
+- No generic web dashboard grids, marketing sections, oversized empty banners or browser-like page structure.
+- No controls that resemble unstyled HTML forms or web admin panels.
+
+Instead, design native Android experiences around the task: immersive artwork canvases, compact native-feeling toolbars, bottom navigation where appropriate, bottom sheets, contextual panels, gesture-aware editing, focused dialogs, segmented controls, native pickers and responsive Compose layouts. Use screen space intentionally and make the primary action obvious. On tablets or foldables, adapt the native composition intelligently; do not simply stretch a phone screen or turn it into a website.
+
+All screens must be reviewed on real Android device dimensions. A screen that looks like a web template, generic card dashboard or plain text settings page fails visual acceptance even if it compiles.
+
 ### Avoid
 
 - Generic blue/dark-blue AI dashboards.
@@ -117,7 +145,8 @@ The app should organise its major capabilities into a coherent, discoverable wor
 
 - **Discover:** high-quality artwork and curated collections, visually led, fast to browse.
 - **Create:** independent composition layers, editing tools, material and lighting controls, preview and save.
-- **Dialer:** dialer keypad design and supported dialling experience, with clear distinction from text keyboard.
+- **Dialer:** dialer keypad design and supported dialling experience.
+- **Keyboard Designs:** a gallery of selectable keyboard visual styles with isolated, pressable in-app demos; not a system keyboard.
 - **Library:** saved compositions, imported artwork, favourites and locally available content.
 - **Tools:** widgets, keyboard, Vault, SMS utilities and other independent tools, each with honest capability descriptions.
 
@@ -260,7 +289,7 @@ The app may offer a unified **Control Studio** to configure the integrations Fac
 
 ## 9. Dialer keypad studio — separate from text keyboard
 
-The phone dialer number pad and the text-entry keyboard are two different products and must remain separate in navigation, code, settings and documentation.
+The phone dialer number pad and the keyboard-design studio are two distinct visual experiences and must remain separate in navigation, code, settings and documentation. The keyboard-design studio is for selectable visual designs and in-app pressable demonstrations; it is not a system text-entry keyboard.
 
 ### Dialer keypad
 
@@ -277,23 +306,34 @@ Provide carefully designed states for digits 0–9, star, hash, delete and call.
 
 The current `ACTION_DIAL` handoff is not a replacement for the phone manufacturer's dialler. If implementing a full default dialer, satisfy Android's dialer role, required components and permissions, user consent, emergency-call expectations and telephony testing. Never suggest that Face It can reskin an arbitrary third-party Phone app.
 
-## 10. Text-entry keyboard studio — privacy-critical
+## 10. Keyboard appearance studio — selectable visual designs, not a replacement keyboard
 
-The optional Face It keyboard is a distinct Android InputMethodService. It must be trustworthy before it is marketed as a daily keyboard.
+**Product-owner clarification — binding decision:** The keyboard idea is a visual personalisation studio. It is NOT a request to build, install, activate or replace the user's system text-entry keyboard. Do not interpret the request as an InputMethodService, a new typing engine, a replacement keyboard app, or a phone dialer keypad.
 
-Requirements:
-- Layout support such as QWERTY, QWERTZ and AZERTY, with a clear path for additional languages.
-- Field-aware input behaviour for text, email, URI, phone, numeric, decimal and password fields.
-- Respect editor options, capitalization, autocorrect and action keys.
-- Password and sensitive fields must not be logged, persisted, analysed or transmitted.
-- No collection or transmission of typed content.
-- No hidden analytics on key presses.
-- Clear enable/select instructions through Android Settings.
-- Accessible key labels, comfortable touch targets, haptics that can be disabled, and reduced-motion support.
-- Reliable delete, shift, enter, space, punctuation, selection and composing behaviour.
-- Test on multiple Android versions and common third-party apps.
+The user's intent is to let people browse, preview, compare and select different **keyboard designs / visual styles** as personalisation concepts. These are selectable design treatments and visual presets. They may be shown in an interactive in-app demonstration so users can press keys and experience the design, but those demo keys are not connected to real system text input and must never intercept or transmit typed content.
 
-A beautiful keyboard that mishandles passwords, numeric fields, accessibility or text entry is not acceptable for release.
+### Required experience
+
+- A dedicated Keyboard Designs gallery/studio with a high-quality visual preview for each design.
+- Multiple genuinely distinct design families: refined glass, frosted glass, ceramic, stone, metallic, soft matte, translucent, sculpted and other carefully art-directed styles.
+- Distinct keycap geometry, spacing, typography, legends, surface finish, highlights, shadows, depth, palette and press-state animation.
+- Design variations for different visual tastes and screen proportions; avoid simply recolouring the same weak layout.
+- Users can inspect a design, switch between styles, compare previews, favourite designs and select a preferred visual design within Face It.
+- A clearly labelled **Try demo** / **Preview interaction** mode may allow users to press demonstration keys and see tactile/visual feedback. The demo is isolated inside Face It and does not type into other apps.
+- Demo mode must be obviously a demonstration, not a functioning system keyboard. Provide a clear exit.
+- Persist the selected design and preview preferences locally.
+- Make clear which choices are only Face It visual presets and which, if any, Android integration is genuinely supported in a future separately authorised scope.
+
+### Explicitly prohibited without a new product-owner decision
+
+- Do not register or ship an InputMethodService as the intended implementation of this keyboard-design request.
+- Do not ask users to enable or select Face It as their Android system keyboard.
+- Do not claim selected visual presets change Gboard, Samsung Keyboard or any third-party keyboard.
+- Do not claim a Face It design is active system-wide unless a real, supported platform capability has been implemented and separately approved.
+- Do not merge the keyboard-design gallery with the phone dialer number pad. They are distinct visual studios.
+- Do not build a fake system integration or use misleading system-settings instructions to make a demo look active.
+
+The correct deliverable is a beautiful, pressable **in-app design preview**, plus a persistent selected design preference. A future system-keyboard integration would require a new explicit product-owner decision and a separate privacy, platform and implementation review.
 
 ## 11. Private Vault and sensitive data
 
@@ -485,7 +525,7 @@ Work in this order unless a blocking defect requires a different sequence:
 **P2 — Real phone personalisation engines**
 - Native widget studio and widget configuration.
 - Dialer keypad studio and supported dialling integration.
-- Text-entry keyboard correctness, privacy and accessibility.
+- Keyboard-design gallery, premium selectable visual presets and isolated pressable demonstrations.
 - Launcher-compatible icon personalisation and honest platform guidance.
 - Supported control surfaces and shortcuts.
 
