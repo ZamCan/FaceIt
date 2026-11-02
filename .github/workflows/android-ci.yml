@@ -1,35 +1,127 @@
 name: Android CI
+
 concurrency:
   group: faceit-android-ci-${{ github.ref }}
   cancel-in-progress: true
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   verify:
+    name: Content gate, build, unit tests and Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
+      # Cheap structural checks first: a colour literal, a stray brace or a broken
+      # manifest fails in seconds instead of waiting for the compiler.
       - name: Validate artwork manifest and bundled assets
-        run: python3 tools/validate_artwork_pack.py
+        run: python3 tools/validate_artwork_pack.py --release
+
       - name: Verify source structure
         run: python3 tools/verify_sources.py
-      - name: Unit tests and debug APK
-        run: gradle --no-daemon testDebugUnitTest assembleDebug
-      - uses: actions/upload-artifact@v4
+
+      - name: Compile, run unit tests and assemble the debug APK
+        run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace
+
+      # Lint is recorded, not gated: the report is the artefact, and a failure here
+      # must not hide the build and test result above.
+      - name: Android Lint
+        continue-on-error: true
+        run: gradle --no-daemon lintDebug
+
+      - name: Summarise test results
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import glob
+          import xml.etree.ElementTree as ET
+
+          rows, total, failures, errors, skipped, suite_time = [], 0, 0, 0, 0, 0.0
+          for path in sorted(glob.glob("app/build/test-results/testDebugUnitTest/*.xml")):
+              root = ET.parse(path).getroot()
+              name = root.get("name", path)
+              tests = int(root.get("tests", 0))
+              bad = int(root.get("failures", 0)) + int(root.get("errors", 0))
+              skip = int(root.get("skipped", 0))
+              secs = float(root.get("time", 0))
+              total += tests
+              failures += int(root.get("failures", 0))
+              errors += int(root.get("errors", 0))
+              skipped += skip
+              suite_time += secs
+              rows.append((name, tests, bad, skip, secs))
+
+          print("## Unit tests")
+          print()
+          if not rows:
+              print("No JUnit XML was produced — treat the test result as unknown.")
+          else:
+              print("| Suite | Tests | Failures/errors | Skipped | Seconds |")
+              print("| --- | --- | --- | --- | --- |")
+              for name, tests, bad, skip, secs in rows:
+                  print(f"| {name} | {tests} | {bad} | {skip} | {secs:.2f} |")
+              print()
+              print(f"**Total: {total} tests, {failures} failures, {errors} errors, "
+                    f"{skipped} skipped, {suite_time:.2f}s**")
+          PY
+
+      - name: Summarise APK and asset sizes
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          from pathlib import Path
+
+          print()
+          print("## Artefacts")
+          print()
+          print("| Item | Size |")
+          print("| --- | --- |")
+          apk = Path("app/build/outputs/apk/debug/app-debug.apk")
+          if apk.exists():
+              print(f"| Debug APK | {apk.stat().st_size / 1e6:.1f} MB |")
+          else:
+              print("| Debug APK | not produced |")
+          assets = Path("app/src/main/assets")
+          bundled = sum(p.stat().st_size for p in assets.rglob("*.png"))
+          print(f"| Bundled PNG assets | {bundled / 1e6:.1f} MB |")
+          wallpapers = list((assets / "wallpapers").glob("*.png"))
+          print(f"| Wallpapers | {len(wallpapers)} files |")
+          PY
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
         with:
           name: FaceIt-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: FaceIt-reports
+          path: |
+            app/build/reports/tests/testDebugUnitTest/**
+            app/build/test-results/testDebugUnitTest/**
+            app/build/reports/lint-results-debug.html
+            app/build/reports/lint-results-debug.txt
+          if-no-files-found: warn
