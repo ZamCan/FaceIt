@@ -368,22 +368,15 @@ def _glyph_mark(px: int) -> Image.Image:
 
 
 def write_legacy_icons() -> None:
-    """Square and round legacy launcher icons, one render per density."""
-    for density, px in LEGACY_DENSITIES.items():
-        folder = RES / f"mipmap-{density}"
-        folder.mkdir(parents=True, exist_ok=True)
+    """Deprecated: kept as a no-op so the pipeline stays importable.
 
-        _glyph_mark(px).save(folder / "ic_launcher.png")
-
-        # A round icon must actually be a filled disc: launchers draw it as-is and
-        # Lint rejects a glyph-shaped blob here, just as it rejects a filled square
-        # for ic_launcher. The mark sits on the disc, inset inside its edge.
-        round_icon = Image.new("RGBA", (px, px), (0, 0, 0, 0))
-        ImageDraw.Draw(round_icon).ellipse((0, 0, px - 1, px - 1),
-                                           fill=rgba(IDENTITY["obsidian"]))
-        round_icon.paste(render_mark(px, padded=True), (0, 0), render_mark(px, padded=True))
-        round_icon.putalpha(ImageChops.multiply(round_icon.getchannel("A"), _mask("circle", px)))
-        round_icon.save(folder / "ic_launcher_round.png")
+    Launcher rasters used to be written per density, but minSdk is 26 and
+    mipmap-anydpi/ic_launcher.xml is an adaptive icon, so every supported device
+    takes the vector path. Lint was right on both counts it raised: the density
+    PNGs were unused, and having both an XML and a PNG called ic_launcher is a
+    collision rather than a fallback. The Play Store icon and the master PNG still
+    live in brand/, which is where non-launcher artwork belongs.
+    """
 
 
 def write_master_svg() -> None:
@@ -463,8 +456,8 @@ def main() -> int:
             "brand/faceit_playstore_512.png",
             "brand/faceit_mark_monochrome_512.png",
             "brand/faceit_icon_preview_sheet.png",
-            "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher.png",
-            "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_round.png",
+            "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_legacy.png",
+            "app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_round_legacy.png",
             "app/src/main/res/drawable/faceit_launcher_foreground.xml",
             "app/src/main/res/drawable/faceit_launcher_background.xml",
             "app/src/main/res/drawable/faceit_launcher_monochrome.xml",
