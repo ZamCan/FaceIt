@@ -22,17 +22,18 @@ Job: *Content gate, build, unit tests and Lint* (ubuntu-latest, Temurin JDK 17, 
 | 9 | `46de583` | **PASS** | 35 / 35 | 0 errors, 8 warnings | Round icon disc, `mipmap-anydpi`, data extraction rules, `targetSdk 36`. |
 | 10 | `50e3bff` | **PASS** | 35 / 35 | 0 errors, **7** warnings | Dead launcher rasters removed, round adaptive icon added. 4 dependency notices plus 3 Compose API warnings that only appear once the earlier ones are gone. |
 | 11 | `599023a` | **PASS** | 35 / 35 | 0 errors, 7 warnings | Documentation commit. Confirms run 10's result; the three Compose warnings are still open at this point. |
+| 12 | `10a43de` | **PASS** | **35 / 35** | **0 errors, 4 warnings** | Compose warnings fixed. Current head. Lint now reports only the four available-version notices. |
 
 **Correction.** I first wrote that run 10 produced 4 warnings. It produced 7: the
 three Compose findings were listed as `7 warnings` in the report I had already
 downloaded, and I summarised the dependency ones only. Recording the mistake rather
 than quietly editing the table.
 
-Run 10: `https://github.com/ZamCan/FaceIt/actions/runs/41461101080`, job 14:21:04Z → 14:22:23Z.
-Artifacts: `FaceIt-debug-apk` (30.2 MB), `FaceIt-reports` (JUnit XML, HTML test report,
-Lint HTML + TXT).
+Run 12 (current): `https://github.com/ZamCan/FaceIt/actions/runs/41461711617`.
+Artifacts: `FaceIt-debug-apk` (30.2 MB), `FaceIt-reports` (JUnit XML, HTML test
+report, Lint HTML + TXT). This is the run the numbers below come from.
 
-## Unit test results (run 10, from JUnit XML)
+## Unit test results (run 12, from JUnit XML)
 
 | Suite | Tests | Failures | Errors | Skipped |
 |---|---|---|---|---|
@@ -47,8 +48,9 @@ Lint HTML + TXT).
 
 ## Lint
 
-`lintDebug` on run 10 and 11: **0 errors, 7 warnings** — 4 `GradleDependency`
-notices and 3 Compose API findings:
+`lintDebug` on run 12: **0 errors, 4 warnings**, all `GradleDependency`.
+
+Runs 10 and 11 reported three Compose API findings, fixed in run 12:
 
 - `ArtworkStudioScreen.kt:478` `ModifierParameter`: modifier should be the first
   optional parameter in `CompositionPreview`.
@@ -66,7 +68,7 @@ The `GradleDependency` notices are:
 These are deliberately not actioned in a lint-cleanup change: a Compose BOM bump
 changes rendering behaviour and cannot be validated without a device.
 
-Warnings cleared across runs 7 → 10, each fixed rather than suppressed:
+Warnings cleared across runs 7 → 12, each fixed rather than suppressed:
 `IconLauncherShape` (×5) twice for different reasons, `Overdraw`, `DefaultLocale`
 (×4), `UnusedResources` (×2), `allowBackup` deprecation, `OldTargetApi`,
 `ObsoleteSdkInt`, `DataExtractionRules`, `IconXmlAndPng`.
