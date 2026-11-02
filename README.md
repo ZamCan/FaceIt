@@ -8,6 +8,7 @@ FaceIt is a native Android personalisation platform by ZamCan. It lets people bu
 
 - **Compose, don't impose:** independent visual layers can be combined without fixed category-bound themes.
 - **User-controlled:** each personalisation feature is optional and reversible.
+- **Verified build:** the content gate, unit tests, Lint and the debug APK are run by GitHub Actions on every push; see [docs/CI.md](docs/CI.md) for the run-by-run record. Nothing is described as release-ready without a device pass.
 - **Offline-first:** imported artwork is stored privately on-device. The curated pack ships 100 original generated wallpapers plus objects, material tiles and widget previews in `app/src/main/assets/`, and nothing is downloaded at runtime.
 - **Resource-aware:** inactive features must not keep unnecessary rendering or background work alive.
 - **Real functionality:** controls are exposed only when their behaviour is implemented.

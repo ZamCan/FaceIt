@@ -19,12 +19,13 @@ that evidence lives.
 | Icon visual review | **Inspected** | Preview sheet reviewed at 24/32/48/72/96 px and on light, dark, neutral, circle-mask and squircle-mask surfaces |
 | Keyboard palette contrast | **Verified numerically** | WCAG 2.1 ratios computed for all five palettes; Pearl Mint accent was raised from 2.78 to 4.27 after failing the 3.0 threshold |
 | Curated pack runtime wiring | **Unverified until compiled** | `assets/artwork_index.json` is emitted by the same tool as the PNGs, so ids, paths and dimensions cannot drift; the Kotlin that reads it has not been compiled |
-| Gradle unit tests (`testDebugUnitTest`) | **Not run** | No JDK, Android SDK or Gradle in the authoring environment, by instruction |
-| Debug APK build (`assembleDebug`) | **Not run** | Same reason |
-| Android Lint | **Not run** | Same reason |
-| Physical-device testing | **Not run** | No device available in this environment |
+| Gradle unit tests (`testDebugUnitTest`) | **Ran in CI, passed** | GitHub Actions run 41461101080: 35 tests, 0 failures, 0 errors, 0 skipped. Per-suite table in `docs/CI.md` |
+| Debug APK build (`assembleDebug`) | **Ran in CI, passed** | Same run: `BUILD SUCCESSFUL`, 30.2 MB debug APK uploaded as an artifact |
+| Android Lint | **Ran in CI** | Same run: 0 errors, 4 warnings, all available-version notices. Earlier runs found real defects, all fixed — see `docs/CI.md` |
+| Physical-device testing | **Not run** | No device or emulator is attached to CI; nothing here has been rendered on a screen |
 
-The build, lint and device rows are release gates. Nothing in this repository should be
+The device row is still a release gate. Build, test and Lint are now observed
+facts from CI, not claims: see `docs/CI.md` for the run-by-run record. Nothing in this repository should be
 described as release-ready until they are executed and recorded here.
 
 ## Commands
@@ -40,8 +41,10 @@ python3 tools/verify_sources.py
 # Identity regeneration (idempotent)
 python3 brand/generate_mark.py
 
-# Android build and tests, on a machine with JDK 17 + Android SDK 35
+# Android build, tests and Lint (JDK 17 + Android SDK 35). In this repository they
+# are run by .github/workflows/android-ci.yml on every push to main.
 gradle --no-daemon testDebugUnitTest assembleDebug
+gradle --no-daemon lintDebug
 ```
 
 ## What `tools/verify_sources.py` does and does not do
