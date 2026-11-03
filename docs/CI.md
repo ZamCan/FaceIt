@@ -99,3 +99,30 @@ Locally, the same two cheap gates run without a JDK:
 python3 tools/verify_sources.py
 python3 tools/validate_artwork_pack.py --release
 ```
+
+## Run 14 — style studio consolidation and the launcher integration
+
+- Head: the merge of the style-studio work already on `main` with the consolidated
+  studio, plus the Face It Home launcher that arrived during the work.
+- Result: **success**. 112 tests, 0 failures, 0 errors, 0 skipped, 16 suites.
+  Lint 0 errors / 4 warnings (all four `GradleDependency`, the deliberate BOM pins).
+  Debug APK 30.6 MB.
+- Two Lint warnings were introduced and removed inside this run: the widget picker
+  previews had lost their only reference and were reported as `UnusedResources`.
+  Rather than delete honest artwork, the generator now renders all nine finishes and
+  each style declares its own `previewRes` again.
+- Six CI-only failures were found and fixed across this work. They are listed
+  rather than summarised, because each one is a hole in the local checks:
+  1. `IconRenderer` routed 22 glyphs through a `stroke` paint that does not exist in
+     that file (it is called `paint`).
+  2. `PersonalisationScreens` used `Surface` without importing it. `verify_sources.py`
+     does not check imports; the compiler does.
+  3. `appliedStyleFor` was deleted along with the helper it sat beside.
+  4. Android `Color.WHITE` is an `Int` where the charging renderer takes `Long`, and
+     `Path.addOval` needs an explicit `Path.Direction`.
+  5. One test passed an `Int` where the contrast helper takes `Long`.
+  6. The Display shelf was generated but never concatenated into the catalogue, so
+     `everyCategoryIsPopulated` failed — the test did its job.
+- Also fixed on `main` while integrating: the launcher imported `matchParentSize` as
+  a top-level function (it is a `BoxScope` member) and used `sp` unimported. Both
+  broke `compileDebugKotlin` on `main` before this run.
