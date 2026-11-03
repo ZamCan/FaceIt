@@ -61,7 +61,10 @@ class ClockWidgetStylesTest {
         assertTrue(
             "expected a light finish for daylight",
             FaceItClockWidgetStyles.all.any { style ->
-                com.zamcan.faceit.themes.ThemeContrast.ratio(style.background, 0xFFFFFFFF) < 1.6
+                com.zamcan.faceit.themes.ThemeContrast.ratio(
+                    style.background.toLong() and 0xFFFFFFFFL,
+                    0xFFFFFFFFL
+                ) < 1.6
             }
         )
     }
