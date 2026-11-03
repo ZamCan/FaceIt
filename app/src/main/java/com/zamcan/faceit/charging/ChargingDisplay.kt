@@ -181,7 +181,7 @@ object ChargingRenderer {
         progress: Float,
         phase: Float = 0f,
         background: Long = style.trackColor,
-        textColor: Long = Color.WHITE,
+        textColor: Long = 0xFFFFFFFF,
         percentLabel: String? = null
     ) {
         val p = progress.coerceIn(0f, 1f)
@@ -453,7 +453,7 @@ object ChargingRenderer {
             }
 
             ChargingMotif.STARFIELD -> {
-                fill.color = withAlpha(style.trackColor, 255)
+                fill.color = style.trackColor.toInt()
                 val count = 24
                 for (i in 0 until count) {
                     val angle = (i / count.toFloat()) * 6.283f

@@ -29,10 +29,18 @@ data class FaceItClockStyle(
     val date: Int
 ) {
     /** Time-on-background contrast, kept at or above AAA for a glanceable widget. */
-    val timeContrast: Double get() = com.zamcan.faceit.themes.ThemeContrast.ratio(time, background)
+    val timeContrast: Double
+        get() = com.zamcan.faceit.themes.ThemeContrast.ratio(
+            time.toLong() and 0xFFFFFFFFL,
+            background.toLong() and 0xFFFFFFFFL
+        )
 
     /** Date line contrast; a supporting line may be quieter than the time itself. */
-    val dateContrast: Double get() = com.zamcan.faceit.themes.ThemeContrast.ratio(date, background)
+    val dateContrast: Double
+        get() = com.zamcan.faceit.themes.ThemeContrast.ratio(
+            date.toLong() and 0xFFFFFFFFL,
+            background.toLong() and 0xFFFFFFFFL
+        )
 }
 
 object FaceItClockWidgetStyles {

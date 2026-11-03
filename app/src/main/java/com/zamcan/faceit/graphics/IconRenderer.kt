@@ -402,7 +402,8 @@ object IconRenderer {
                 RectF(
                     box.left + w * 0.24f, box.top + w * 0.46f,
                     box.left + w * 0.76f, box.top + w * 0.96f
-                )
+                ),
+                Path.Direction.CW
             )
         }
         canvas.drawPath(pad, fill)
@@ -651,10 +652,10 @@ object IconRenderer {
     private fun drawMoon(canvas: Canvas, box: RectF, fill: Paint, accent: Paint) {
         val w = box.width()
         val crescent = Path().apply {
-            addOval(RectF(box.left + w * 0.16f, box.top + w * 0.02f, box.right - w * 0.16f, box.bottom - w * 0.02f))
+            addOval(RectF(box.left + w * 0.16f, box.top + w * 0.02f, box.right - w * 0.16f, box.bottom - w * 0.02f), Path.Direction.CW)
         }
         val bite = Path().apply {
-            addOval(RectF(box.left + w * 0.36f, box.top - w * 0.08f, box.right + w * 0.14f, box.top + w * 0.80f))
+            addOval(RectF(box.left + w * 0.36f, box.top - w * 0.08f, box.right + w * 0.14f, box.top + w * 0.80f), Path.Direction.CW)
         }
         canvas.save()
         canvas.clipPath(crescent)
