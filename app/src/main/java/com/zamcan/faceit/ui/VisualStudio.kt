@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -55,6 +58,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.zamcan.faceit.charging.ChargingMotif
 import com.zamcan.faceit.charging.ChargingStyles
 import com.zamcan.faceit.graphics.IconGlyph
@@ -65,6 +71,7 @@ import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.themes.FrameColours
 import com.zamcan.faceit.themes.VeilStyle
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
+import com.zamcan.faceit.ui.LocalMotionPolicy
 import com.zamcan.faceit.widget.FaceItClockWidgetStyles
 import kotlinx.coroutines.delay
 
@@ -355,6 +362,43 @@ internal object TopicCatalogue {
         FaceThemes.all.firstOrNull { it.id == style.id.removePrefix("feminine-") }
 }
 
+/**
+ * The charging canvas is the only continuously animated shelf in the studio.
+ * Keep its eligibility and phase arithmetic deterministic so lifecycle and
+ * reduced-motion regressions can be covered without an Android device.
+ */
+internal fun shouldAnimateChargingPreview(
+    category: StudioCategory,
+    isResumed: Boolean,
+    animationsEnabled: Boolean
+): Boolean = category == StudioCategory.CHARGING && isResumed && animationsEnabled
+
+internal fun nextChargingPreviewPhase(current: Float): Float =
+    (current + 0.018f) % 1f
+
+/** Resolve the frame without overriding an explicit user choice of None. */
+internal fun resolveStudioFrame(
+    theme: FaceTheme,
+    frameColourId: String,
+    shapeOverride: VeilStyle?
+): com.zamcan.faceit.themes.ResolvedFrame {
+    val themeFrame = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
+    if (shapeOverride == null) return themeFrame
+    return themeFrame.copy(
+        style = if (frameColourId == FrameColours.NONE_ID) VeilStyle.NONE else shapeOverride
+    )
+}
+
+/** A preview choice is still a user choice; only real widget instances own their own style. */
+internal fun shouldPersistStudioSelection(style: StudioStyle): Boolean = !style.appliesForReal
+
+/** Resolve stale or cross-category ids safely after catalogue changes or app upgrades. */
+internal fun resolveSelectedStyleId(category: StudioCategory, storedId: String?): String =
+    TopicCatalogue.find(storedId)
+        ?.takeIf { it.category == category }
+        ?.id
+        ?: TopicCatalogue.byCategory(category).first().id
+
 /** Persisted studio choices: one selected style per category, plus the frame colour. */
 internal class StudioPreferences(context: Context) {
     private val prefs = context.getSharedPreferences("faceit_personalisation_studio", Context.MODE_PRIVATE)
@@ -388,21 +432,45 @@ internal fun VisualStudioScreen(
     val colors = LocalFaceItColors.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
     var selectedId by remember(category) {
-        mutableStateOf(prefs.selected(category) ?: TopicCatalogue.byCategory(category).first().id)
+        mutableStateOf(resolveSelectedStyleId(category, prefs.selected(category)))
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var chargingPhase by remember { mutableStateOf(0f) }
+
+    val motionPolicy = LocalMotionPolicy.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var studioResumed by remember(lifecycleOwner) {
+        mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> studioResumed = true
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP,
+                Lifecycle.Event.ON_DESTROY -> studioResumed = false
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val styles = remember(category) { TopicCatalogue.byCategory(category) }
     val selected = TopicCatalogue.find(selectedId) ?: styles.first()
     val theme = remember(selected.id) { TopicCatalogue.themeFor(selected) } ?: FaceThemes.find(selectedThemeId)
 
-    LaunchedEffect(category) {
-        // One modest animation, only while the charging category is open. Everything
-        // else in the studio is static, so browsing costs no battery.
-        while (category == StudioCategory.CHARGING) {
-            delay(70)
-            chargingPhase = (chargingPhase + 0.018f) % 1f
+    LaunchedEffect(category, studioResumed, motionPolicy.animationsEnabled) {
+        // Animate only while this screen is resumed and Android's motion policy
+        // allows it. Leaving the app, opening another screen, battery saver,
+        // reduced system animation or thermal pressure suspends the ticker.
+        if (shouldAnimateChargingPreview(category, studioResumed, motionPolicy.animationsEnabled)) {
+            while (true) {
+                delay(70)
+                chargingPhase = nextChargingPreviewPhase(chargingPhase)
+            }
+        } else {
+            chargingPhase = 0f
         }
     }
 
@@ -539,7 +607,7 @@ internal fun VisualStudioScreen(
                     active = style.id == selected.id,
                     onClick = {
                         selectedId = style.id
-                        if (!style.appliesForReal && style.category != StudioCategory.CHARGING) {
+                        if (shouldPersistStudioSelection(style)) {
                             prefs.select(style.category, style.id)
                         }
                     }
@@ -606,7 +674,8 @@ private fun ApplyButton(
 ) {
     val colors = LocalFaceItColors.current
     Surface(
-        onClick = { if (enabled) onClick() },
+        onClick = onClick,
+        enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         color = when {
             !enabled -> colors.cardRaised
@@ -677,26 +746,35 @@ private fun FrameSwatch(id: String, argb: Long, active: Boolean, onPick: (String
     val isNone = id == "None"
     Box(
         Modifier
-            .size(if (active) 40.dp else 34.dp)
-            .clip(CircleShape)
-            .background(if (isNone) colors.card else Color(argb))
-            .border(
-                if (active) 2.dp else 1.dp,
-                if (active) colors.violet else colors.border,
-                CircleShape
-            )
+            // A 48 dp target stays comfortable even when the visible swatch is smaller.
+            .size(48.dp)
+            .toggleable(value = active, role = Role.RadioButton) { onPick(id) }
             .semantics { contentDescription = if (isNone) "No frame" else "$id frame" },
         contentAlignment = Alignment.Center
     ) {
-        if (isNone) {
-            Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else if (active) {
-            Icon(
-                Icons.Rounded.Check,
-                contentDescription = null,
-                tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
-                modifier = Modifier.size(18.dp)
-            )
+        Box(
+            Modifier
+                .padding(4.dp)
+                .size(if (active) 40.dp else 34.dp)
+                .clip(CircleShape)
+                .background(if (isNone) colors.card else Color(argb))
+                .border(
+                    if (active) 2.dp else 1.dp,
+                    if (active) colors.violet else colors.border,
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isNone) {
+                Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (active) {
+                Icon(
+                    Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
@@ -818,18 +896,9 @@ private fun HomeStage(
     shapeOverride: VeilStyle?,
     onFrameTap: () -> Unit
 ) {
-    val base = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
-    // On the Display page the card itself picks the shape; the colour still comes
-    // from the frame bar, and an untouched bar falls back to Onyx so the shape is
-    // actually visible rather than silently transparent.
-    val resolved = if (shapeOverride == null) {
-        base
-    } else {
-        com.zamcan.faceit.themes.ResolvedFrame(
-            style = shapeOverride,
-            colour = if (base.colour == theme.veilColor && frameColourId == "None") 0xFF29232B else base.colour
-        )
-    }
+    // A shape card selects geometry; the colour bar independently decides
+    // whether that geometry is visible. "None" always means no frame.
+    val resolved = resolveStudioFrame(theme, frameColourId, shapeOverride)
     Column(Modifier.fillMaxSize().padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("9:41", color = ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)

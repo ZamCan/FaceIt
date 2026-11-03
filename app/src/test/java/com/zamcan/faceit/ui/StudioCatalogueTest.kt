@@ -172,6 +172,32 @@ class StudioCatalogueTest {
     }
 
     @Test
+    fun explicitNoFrameAlwaysWinsOverTheSelectedDisplayShape() {
+        val theme = FaceThemes.all.first { it.veilStyle != VeilStyle.NONE }
+        val resolved = resolveStudioFrame(theme, FrameColours.NONE_ID, VeilStyle.OPEN_ARCH)
+        assertEquals(VeilStyle.NONE, resolved.style)
+    }
+
+    @Test
+    fun displayShapeAndColourRemainIndependent() {
+        val theme = FaceThemes.all.first()
+        FrameColours.all.forEach { colour ->
+            val resolved = resolveStudioFrame(theme, colour.id, VeilStyle.TWIN_CURVE)
+            assertEquals(VeilStyle.TWIN_CURVE, resolved.style)
+            assertEquals(colour.argb, resolved.colour)
+        }
+    }
+
+    @Test
+    fun themeDrivenGridHonoursExplicitNoFrame() {
+        val theme = FaceThemes.all.first { it.veilStyle != VeilStyle.NONE }
+        assertEquals(
+            VeilStyle.NONE,
+            resolveStudioFrame(theme, FrameColours.NONE_ID, null).style
+        )
+    }
+
+    @Test
     fun frameColoursAreCompleteAndNameable() {
         assertEquals(6, FrameColours.all.size)
         assertEquals(
