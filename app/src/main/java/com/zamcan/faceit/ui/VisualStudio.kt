@@ -376,6 +376,19 @@ internal fun shouldAnimateChargingPreview(
 internal fun nextChargingPreviewPhase(current: Float): Float =
     (current + 0.018f) % 1f
 
+/** Resolve the frame without overriding an explicit user choice of None. */
+internal fun resolveStudioFrame(
+    theme: FaceTheme,
+    frameColourId: String,
+    shapeOverride: VeilStyle?
+): com.zamcan.faceit.themes.ResolvedFrame {
+    val themeFrame = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
+    if (shapeOverride == null) return themeFrame
+    return themeFrame.copy(
+        style = if (frameColourId == FrameColours.NONE_ID) VeilStyle.NONE else shapeOverride
+    )
+}
+
 /** A preview choice is still a user choice; only real widget instances own their own style. */
 internal fun shouldPersistStudioSelection(style: StudioStyle): Boolean = !style.appliesForReal
 
@@ -883,18 +896,9 @@ private fun HomeStage(
     shapeOverride: VeilStyle?,
     onFrameTap: () -> Unit
 ) {
-    val base = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
-    // On the Display page the card itself picks the shape; the colour still comes
-    // from the frame bar, and an untouched bar falls back to Onyx so the shape is
-    // actually visible rather than silently transparent.
-    val resolved = if (shapeOverride == null) {
-        base
-    } else {
-        com.zamcan.faceit.themes.ResolvedFrame(
-            style = shapeOverride,
-            colour = if (base.colour == theme.veilColor && frameColourId == "None") 0xFF29232B else base.colour
-        )
-    }
+    // A shape card selects geometry; the colour bar independently decides
+    // whether that geometry is visible. "None" always means no frame.
+    val resolved = resolveStudioFrame(theme, frameColourId, shapeOverride)
     Column(Modifier.fillMaxSize().padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("9:41", color = ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
