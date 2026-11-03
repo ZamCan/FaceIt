@@ -590,7 +590,7 @@ Face It must bring themes, native widgets, icon design, app presentation, keyboa
 ### Feature truth and Android integration boundaries
 
 - Themes and palettes saved in Style Studio are Face It presets unless a supported Android setting integration is actually implemented.
-- Widgets must be real AppWidget providers. The existing clock widget supports Obsidian Glass, Warm Ceramic and Pearl Mint. Preview selection does not silently alter existing widget instances; Android owns placement and resize.
+- Widgets must be real AppWidget providers. The existing clock widget supports nine finishes across Glazed, Ceramic and Satin families: Obsidian Glass, Midnight Silk, Noir, Pearl Mint, Warm Ceramic, Warm Paper, Pearl Shell, Rose Satin and Sage Satin. Preview selection does not silently alter existing widget instances; Android owns placement and resize.
 - Icon families and app-grid designs are previews unless a supported launcher/icon-pack or pinned-shortcut integration is implemented. Never promise universal third-party launcher icon replacement.
 - Keyboard designs remain in-app visual presets and isolated pressable demos only. Do not add an InputMethodService.
 - Quick Settings/control panel concepts must not claim to replace or reskin Android's system controls.
