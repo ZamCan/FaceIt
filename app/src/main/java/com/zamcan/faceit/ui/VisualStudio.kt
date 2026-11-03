@@ -32,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +56,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.zamcan.faceit.charging.ChargingMotif
 import com.zamcan.faceit.charging.ChargingStyles
 import com.zamcan.faceit.graphics.IconGlyph
@@ -65,6 +69,7 @@ import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.themes.FrameColours
 import com.zamcan.faceit.themes.VeilStyle
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
+import com.zamcan.faceit.ui.LocalMotionPolicy
 import com.zamcan.faceit.widget.FaceItClockWidgetStyles
 import kotlinx.coroutines.delay
 
@@ -355,6 +360,20 @@ internal object TopicCatalogue {
         FaceThemes.all.firstOrNull { it.id == style.id.removePrefix("feminine-") }
 }
 
+/**
+ * The charging canvas is the only continuously animated shelf in the studio.
+ * Keep its eligibility and phase arithmetic deterministic so lifecycle and
+ * reduced-motion regressions can be covered without an Android device.
+ */
+internal fun shouldAnimateChargingPreview(
+    category: StudioCategory,
+    isResumed: Boolean,
+    animationsEnabled: Boolean
+): Boolean = category == StudioCategory.CHARGING && isResumed && animationsEnabled
+
+internal fun nextChargingPreviewPhase(current: Float): Float =
+    (current + 0.018f) % 1f
+
 /** Persisted studio choices: one selected style per category, plus the frame colour. */
 internal class StudioPreferences(context: Context) {
     private val prefs = context.getSharedPreferences("faceit_personalisation_studio", Context.MODE_PRIVATE)
@@ -393,16 +412,40 @@ internal fun VisualStudioScreen(
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var chargingPhase by remember { mutableStateOf(0f) }
 
+    val motionPolicy = LocalMotionPolicy.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var studioResumed by remember(lifecycleOwner) {
+        mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> studioResumed = true
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP,
+                Lifecycle.Event.ON_DESTROY -> studioResumed = false
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     val styles = remember(category) { TopicCatalogue.byCategory(category) }
     val selected = TopicCatalogue.find(selectedId) ?: styles.first()
     val theme = remember(selected.id) { TopicCatalogue.themeFor(selected) } ?: FaceThemes.find(selectedThemeId)
 
-    LaunchedEffect(category) {
-        // One modest animation, only while the charging category is open. Everything
-        // else in the studio is static, so browsing costs no battery.
-        while (category == StudioCategory.CHARGING) {
-            delay(70)
-            chargingPhase = (chargingPhase + 0.018f) % 1f
+    LaunchedEffect(category, studioResumed, motionPolicy.animationsEnabled) {
+        // Animate only while this screen is resumed and Android's motion policy
+        // allows it. Leaving the app, opening another screen, battery saver,
+        // reduced system animation or thermal pressure suspends the ticker.
+        if (shouldAnimateChargingPreview(category, studioResumed, motionPolicy.animationsEnabled)) {
+            while (true) {
+                delay(70)
+                chargingPhase = nextChargingPreviewPhase(chargingPhase)
+            }
+        } else {
+            chargingPhase = 0f
         }
     }
 
