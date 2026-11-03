@@ -3,7 +3,6 @@ package com.zamcan.faceit.launcher
 import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
@@ -45,12 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.zamcan.faceit.themes.FaceTheme
 import com.zamcan.faceit.themes.FaceThemes
@@ -88,7 +85,7 @@ class FaceItHomeActivity : ComponentActivity() {
         val preferences = StudioPreferences(this)
         val appStyle = TopicCatalogue.find(preferences.selected(StudioCategory.APPS))
         val themeStyle = TopicCatalogue.find(preferences.selected(StudioCategory.THEMES))
-        val theme = TopicCatalogue.themeFor(appStyle ?: themeStyle ?: returnWithDefaultTheme())
+        val theme = (appStyle ?: themeStyle)?.let(TopicCatalogue::themeFor)
             ?: FaceThemes.all.first()
         val displayStyle = TopicCatalogue.find(preferences.selected(StudioCategory.DISPLAY))
         val frame = resolveStudioFrame(theme, preferences.frameColour(), displayStyle?.veilShape)
@@ -122,7 +119,6 @@ class FaceItHomeActivity : ComponentActivity() {
         refreshHomeRole()
     }
 
-    private fun returnWithDefaultTheme() = FaceThemes.all.first()
 
     private fun refreshHomeRole() {
         isDefaultHome = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
