@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -51,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.zamcan.faceit.data.CuratedLibrary
 import com.zamcan.faceit.themes.FaceTheme
@@ -206,8 +206,10 @@ private fun FaceItHomeScreen(
 ) {
     val background = Color(theme.background)
     val raised = Color(theme.surfaceRaised).copy(alpha = .94f)
-    val ink = Color.White
-    val secondary = Color.White.copy(alpha = .78f)
+    // Ink comes from the theme, not from white. A light theme with white labels over
+    // its own pale wallpaper is the obvious failure, and Face It ships one.
+    val ink = Color(theme.textPrimary)
+    val secondary = Color(theme.textSecondary)
     val accent = Color(theme.accent)
 
     Box(Modifier.fillMaxSize()) {
