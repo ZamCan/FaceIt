@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -659,7 +661,8 @@ private fun ApplyButton(
 ) {
     val colors = LocalFaceItColors.current
     Surface(
-        onClick = { if (enabled) onClick() },
+        onClick = onClick,
+        enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         color = when {
             !enabled -> colors.cardRaised
@@ -730,26 +733,35 @@ private fun FrameSwatch(id: String, argb: Long, active: Boolean, onPick: (String
     val isNone = id == "None"
     Box(
         Modifier
-            .size(if (active) 40.dp else 34.dp)
-            .clip(CircleShape)
-            .background(if (isNone) colors.card else Color(argb))
-            .border(
-                if (active) 2.dp else 1.dp,
-                if (active) colors.violet else colors.border,
-                CircleShape
-            )
+            // A 48 dp target stays comfortable even when the visible swatch is smaller.
+            .size(48.dp)
+            .toggleable(value = active, role = Role.RadioButton) { onPick(id) }
             .semantics { contentDescription = if (isNone) "No frame" else "$id frame" },
         contentAlignment = Alignment.Center
     ) {
-        if (isNone) {
-            Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else if (active) {
-            Icon(
-                Icons.Rounded.Check,
-                contentDescription = null,
-                tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
-                modifier = Modifier.size(18.dp)
-            )
+        Box(
+            Modifier
+                .padding(4.dp)
+                .size(if (active) 40.dp else 34.dp)
+                .clip(CircleShape)
+                .background(if (isNone) colors.card else Color(argb))
+                .border(
+                    if (active) 2.dp else 1.dp,
+                    if (active) colors.violet else colors.border,
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isNone) {
+                Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (active) {
+                Icon(
+                    Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
