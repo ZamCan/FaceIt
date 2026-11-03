@@ -1,6 +1,6 @@
 # FaceIt — Android Architecture
 ## Platform baseline
-Native Android using Kotlin and Jetpack Compose; min SDK 26, compile/target SDK 35. Feature-first packages isolate platform adapters from presentation. Core use is local-first. There is no input-method service: keyboard appearance is an in-app design gallery (AGENTS.md §10), so nothing in the manifest registers an `InputMethodService`.
+Native Android using Kotlin and Jetpack Compose; min SDK 26, compile SDK 35 and target SDK 36. Feature-first packages isolate platform adapters from presentation. Core use is local-first. There is no input-method service: keyboard appearance is an in-app design gallery (AGENTS.md §10), so nothing in the manifest registers an `InputMethodService`.
 ## Runtime layers
 1. Presentation: Compose screens, navigation and accessibility.
 2. Domain: composition model, layer rules and feature policy.
