@@ -65,6 +65,9 @@ class StudioCatalogueTest {
             assertNotNull("missing theme card ${theme.id}", TopicCatalogue.find(theme.id))
             assertNotNull("missing icon family for ${theme.id}", TopicCatalogue.find("icons-${theme.id}"))
             assertNotNull("missing grid for ${theme.id}", TopicCatalogue.find("apps-${theme.id}"))
+            assertEquals(theme, TopicCatalogue.themeFor(TopicCatalogue.find(theme.id)!!))
+            assertEquals(theme, TopicCatalogue.themeFor(TopicCatalogue.find("icons-${theme.id}")!!))
+            assertEquals(theme, TopicCatalogue.themeFor(TopicCatalogue.find("apps-${theme.id}")!!))
         }
     }
 
