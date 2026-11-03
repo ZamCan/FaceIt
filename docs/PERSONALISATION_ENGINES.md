@@ -11,7 +11,7 @@ This document defines the next engineering layer. It distinguishes implemented f
 ## Wallpaper content engine
 - A release wallpaper is a real, bundled, high-resolution PNG with a stable ID, dimensions, SHA-256, category, creator, licence and provenance.
 - The release validator must reject missing, duplicate, low-resolution, unlicensed or hash-mismatched entries.
-- Target at least 100 curated wallpapers before calling the first content pack complete. No generated placeholders or remote hotlinks count.
+- The current bundled baseline contains 100 unique 1080×2400 generated PNG wallpapers, 100 thumbnails, 10 object renders and 8 material textures. The manifest and release validator verify provenance, dimensions and hashes. Continue art direction and physical full-screen review; do not describe the vector-derived baseline as photographic content or as the end of content development.
 - Decode sampled bitmaps off the main thread, bound caches, release evicted bitmaps, and render previews at display size.
 - Preserve original artwork; crop and colour adjustments are non-destructive composition settings.
 
@@ -23,8 +23,9 @@ This document defines the next engineering layer. It distinguishes implemented f
 ## Themes, widgets, icons and display concepts
 - Save local Face It style presets and keep palette, frame colour and material choices independently editable.
 - The current clock widget remains a real AppWidget with per-instance style selection; do not imply that a Style Studio preview silently changes existing widget instances.
-- Icon and app-grid galleries are previews unless a supported launcher, icon-pack or pinned-shortcut integration is explicitly implemented.
-- Niqab-inspired display frames are optional visual concepts with user-selectable colours; they are not a system overlay or launcher replacement.
+- Face It Home is implemented as an optional Android HOME-role launcher. The user must explicitly approve the Android role request; the launcher displays its own installed-app grid, selected bundled wallpaper and optional display frame. Verify role switching and app-launch behaviour on physical devices before release.
+- This launcher does not provide universal icon replacement in Samsung One UI or other third-party launchers. Icon-family galleries outside Face It Home remain previews unless a compatible icon-pack or pinned-shortcut integration is separately implemented.
+- Niqab-inspired display frames are optional visual treatments. They render in Face It Home only when that launcher is explicitly selected; elsewhere they remain previews.
 - Quick-control and charging treatments are preview concepts until a separately approved Android integration exists. Never bypass Android background activity, overlay or foreground-service restrictions.
 
 ## Text and SMS
