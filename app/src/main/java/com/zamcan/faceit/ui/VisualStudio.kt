@@ -358,8 +358,16 @@ internal object TopicCatalogue {
 
     fun find(id: String?): StudioStyle? = styles.firstOrNull { it.id == id }
 
-    fun themeFor(style: StudioStyle): FaceTheme? =
-        FaceThemes.all.firstOrNull { it.id == style.id.removePrefix("feminine-") }
+    fun themeFor(style: StudioStyle): FaceTheme? {
+        val themeId = when (style.category) {
+            StudioCategory.THEMES -> style.id
+            StudioCategory.FEMININE -> style.id.removePrefix("feminine-")
+            StudioCategory.ICONS -> style.id.removePrefix("icons-")
+            StudioCategory.APPS -> style.id.removePrefix("apps-")
+            else -> return null
+        }
+        return FaceThemes.find(themeId)
+    }
 }
 
 /**
