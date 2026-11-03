@@ -167,7 +167,11 @@ internal fun PersonalisationStudioScreen(
     val setThemePreset = LocalSetFaceItThemePresetId.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
     var selectedIds by remember(activeThemeId) {
-        mutableStateOf(StudioCategory.entries.associateWith { prefs.selected(it) }.toMutableMap().apply { if (get(StudioCategory.THEMES) == null) put(StudioCategory.THEMES, activeThemeId) })
+        mutableStateOf(
+            StudioCategory.entries.associateWith { prefs.selected(it) }.let { saved ->
+                if (saved[StudioCategory.THEMES] == null) saved + (StudioCategory.THEMES to activeThemeId) else saved
+            }
+        )
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var pulse by remember { mutableStateOf(false) }
@@ -272,7 +276,7 @@ internal fun PersonalisationStudioScreen(
                 onClick = {
                     prefs.select(category, selected.id)
                     if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(selected.id)
-                    selectedIds = (selectedIds + (category to selected.id)).toMutableMap()
+                    selectedIds = selectedIds + (category to selected.id)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)
@@ -291,7 +295,7 @@ internal fun PersonalisationStudioScreen(
                 val active = selected.id == style.id
                 Surface(
                     onClick = {
-                        selectedIds = (selectedIds + (category to style.id)).toMutableMap()
+                        selectedIds = selectedIds + (category to style.id)
                         if (category != StudioCategory.KEYBOARDS) prefs.select(category, style.id)
                         if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(style.id)
                         if (style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier" || style.id == "feminine-niqab-frame") {
