@@ -374,6 +374,16 @@ internal fun shouldAnimateChargingPreview(
 internal fun nextChargingPreviewPhase(current: Float): Float =
     (current + 0.018f) % 1f
 
+/** A preview choice is still a user choice; only real widget instances own their own style. */
+internal fun shouldPersistStudioSelection(style: StudioStyle): Boolean = !style.appliesForReal
+
+/** Resolve stale or cross-category ids safely after catalogue changes or app upgrades. */
+internal fun resolveSelectedStyleId(category: StudioCategory, storedId: String?): String =
+    TopicCatalogue.find(storedId)
+        ?.takeIf { it.category == category }
+        ?.id
+        ?: TopicCatalogue.byCategory(category).first().id
+
 /** Persisted studio choices: one selected style per category, plus the frame colour. */
 internal class StudioPreferences(context: Context) {
     private val prefs = context.getSharedPreferences("faceit_personalisation_studio", Context.MODE_PRIVATE)
@@ -407,7 +417,7 @@ internal fun VisualStudioScreen(
     val colors = LocalFaceItColors.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
     var selectedId by remember(category) {
-        mutableStateOf(prefs.selected(category) ?: TopicCatalogue.byCategory(category).first().id)
+        mutableStateOf(resolveSelectedStyleId(category, prefs.selected(category)))
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var chargingPhase by remember { mutableStateOf(0f) }
@@ -582,7 +592,7 @@ internal fun VisualStudioScreen(
                     active = style.id == selected.id,
                     onClick = {
                         selectedId = style.id
-                        if (!style.appliesForReal && style.category != StudioCategory.CHARGING) {
+                        if (shouldPersistStudioSelection(style)) {
                             prefs.select(style.category, style.id)
                         }
                     }
