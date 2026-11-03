@@ -22,6 +22,10 @@
 - Optional Niqab-inspired draped-frame preview with independent Onyx, Rose, Plum, Pearl, Sage and Sand colour choices.
 - Dedicated feminine collection direction with cats and other cute animals, floral and jewellery cues, colourful icon families and multiple material palettes.
 - Local per-category style and frame-colour preferences; system-level integrations remain explicitly bounded by Android capability.
+- Charging preview animation now runs only while the charging shelf is active, the studio is resumed, and the shared Android motion policy permits animation. It suspends on pause/background, reduced motion, battery saver and thermal throttling.
+- Preview selections (including charging looks) persist independently; real clock-widget finishes remain configured per placed widget instance.
+- Stale or cross-category saved style IDs resolve safely to a valid default after catalogue changes.
+- Draped-frame colour swatches are selectable radio controls with 48 dp touch targets and accessible selected state. An explicit None choice now always disables the frame, independent of the selected shape.
 
 ## Foundation iteration
 Native Android project, CI, local composition persistence, functional dialer keypad visual studio with ACTION_DIAL, procedural offline wallpaper renderer and offline visual taxonomy.
