@@ -26,4 +26,4 @@ Each widget instance stores its own selected style. Both time and date are rende
 - Each widget ID has independent style preferences.
 - Launcher placement and resizing remain controlled by the Android launcher.
 
-This is the first real widget integration, not the complete future Widget Studio. Additional clock, calendar, photo and shortcut widgets require their own tested native implementations.
+This is the first real widget integration, not the complete future Widget Studio. The Style Studio may preview the three installed clock finishes, but it does not silently change existing widget instances. Additional calendar, photo, battery and shortcut widgets require their own tested native providers and configuration flows.

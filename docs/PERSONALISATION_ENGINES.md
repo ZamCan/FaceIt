@@ -15,12 +15,17 @@ This document defines the next engineering layer. It distinguishes implemented f
 - Decode sampled bitmaps off the main thread, bound caches, release evicted bitmaps, and render previews at display size.
 - Preserve original artwork; crop and colour adjustments are non-destructive composition settings.
 
-## Text-entry keyboard
-- Keyboard appearance is a FaceIt IME feature, separate from the dialer keypad.
-- Profiles independently control key geometry, spacing, material, typography, palette, layout, haptics and sound.
-- IME must provide accessible labels, password-field privacy behaviour, incognito/private-field handling, input-type aware layouts, language switching, and a clear system Settings enable/select flow.
-- Never log, persist, transmit or analyse typed content. No clipboard history or network permission is required for the core keyboard.
-- Do not enable the IME automatically; Android requires the user to enable and select it.
+## Keyboard appearance gallery
+- Keyboard designs are in-app visual presets only, not a system input method.
+- Users browse, select, favourite and try isolated pressable demonstrations.
+- Never register an InputMethodService or claim to change Gboard, Samsung Keyboard or other apps.
+
+## Themes, widgets, icons and display concepts
+- Save local Face It style presets and keep palette, frame colour and material choices independently editable.
+- The current clock widget remains a real AppWidget with per-instance style selection; do not imply that a Style Studio preview silently changes existing widget instances.
+- Icon and app-grid galleries are previews unless a supported launcher, icon-pack or pinned-shortcut integration is explicitly implemented.
+- Niqab-inspired display frames are optional visual concepts with user-selectable colours; they are not a system overlay or launcher replacement.
+- Quick-control and charging treatments are preview concepts until a separately approved Android integration exists. Never bypass Android background activity, overlay or foreground-service restrictions.
 
 ## Text and SMS
 - Rich visual styling belongs to the local composer and preview.

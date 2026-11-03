@@ -112,7 +112,8 @@ internal enum class ToolsPage(val label: String) {
     Home("Tools"),
     KeyboardDesigns("Keyboard designs"),
     Vault("Private Vault"),
-    Sms("SMS composer")
+    Sms("SMS composer"),
+    Personalisation("Style studio")
 }
 
 @Composable

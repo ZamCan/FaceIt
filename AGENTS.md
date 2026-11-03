@@ -575,3 +575,26 @@ At the end of each substantial task, report:
 ## Final product standard
 
 Face It must earn trust at first glance and retain it through daily use. The icon, interface, artwork, widgets, keypad surfaces and every control must feel like parts of one carefully designed product. Beautiful appearance and real engineering are equally mandatory. Never ship a visual promise in place of a working capability.
+
+
+## 21. Unified personalisation studios — expanded product-owner direction
+
+Face It must bring themes, native widgets, icon design, app presentation, keyboard appearances, controls, charging visuals and display treatments into one coherent Style Studio. Users should be able to explore related design families, preview the result on a device canvas and save local style choices. Do not turn this into a generic web dashboard or a list of disconnected feature cards.
+
+### Required visual collections
+
+- Build a dedicated optional feminine collection with professionally art-directed colour palettes, cats and other cute animals, floral and jewellery-inspired details, colourful app-symbol families, pearl, satin, ceramic and soft-glass materials. It must remain one creative universe among many; never force gendered assumptions or lock users out of other styles.
+- Include an optional **Niqab-inspired display frame**: a respectful, refined draped visual frame around a device/app-grid preview. Users can independently choose its colour (Onyx, Rose, Plum, Pearl, Sage, Sand), combine it with other wallpapers and visual treatments, and turn it off. Do not reduce it to a costume icon or use it as a mandatory app mask.
+- Keep the visual preview beautiful and recognisable as a phone composition: real app-symbol artwork, widgets, display content and contextual status elements should appear within the frame opening. Avoid a generic card dashboard.
+
+### Feature truth and Android integration boundaries
+
+- Themes and palettes saved in Style Studio are Face It presets unless a supported Android setting integration is actually implemented.
+- Widgets must be real AppWidget providers. The existing clock widget supports Obsidian Glass, Warm Ceramic and Pearl Mint. Preview selection does not silently alter existing widget instances; Android owns placement and resize.
+- Icon families and app-grid designs are previews unless a supported launcher/icon-pack or pinned-shortcut integration is implemented. Never promise universal third-party launcher icon replacement.
+- Keyboard designs remain in-app visual presets and isolated pressable demos only. Do not add an InputMethodService.
+- Quick Settings/control panel concepts must not claim to replace or reskin Android's system controls.
+- Charging animations may be previewed in-app. Do not claim a system charging overlay without a separately approved, permission-correct Android implementation; respect background-launch and manufacturer restrictions.
+- Display treatments are in-app previews unless an explicit supported platform action (such as wallpaper application) is invoked.
+
+Each category must have clear capability labels, local persistence where appropriate, a reduced-motion/static fallback, accessible contrast and a coherent route to its actual supported implementation. Never represent a preview as a completed OS-level integration.

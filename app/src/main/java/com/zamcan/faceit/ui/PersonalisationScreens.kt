@@ -75,6 +75,11 @@ internal fun ToolsHubScreen(
     when (page) {
         ToolsPage.Home -> ToolsHomeScreen(modifier, onOpen)
         ToolsPage.KeyboardDesigns -> KeyboardDesignGalleryScreen(modifier, onBack)
+        ToolsPage.Personalisation -> PersonalisationStudioScreen(
+            modifier = modifier,
+            onBack = onBack,
+            onOpenKeyboardDesigns = { onOpen(ToolsPage.KeyboardDesigns) }
+        )
         ToolsPage.Vault -> VaultScreen(modifier, onBack)
         ToolsPage.Sms -> SmsComposerScreen(modifier, onBack)
     }
@@ -99,6 +104,13 @@ private fun ToolsHomeScreen(
             description = "Native tools connected to Android's supported workflows."
         )
 
+        ToolCard(
+            icon = Icons.Rounded.Palette,
+            title = "Style studio",
+            description = "Explore themes, widgets, icons, app layouts, controls, display frames and charging visuals.",
+            meta = "Personalisation workspace",
+            onClick = { onOpen(ToolsPage.Personalisation) }
+        )
         ToolCard(
             icon = Icons.Rounded.Keyboard,
             title = "Keyboard designs",

@@ -15,6 +15,14 @@
 - Accessibility: legend and accent contrast is now asserted in unit tests; the
   Pearl Mint accent was corrected after failing the 3.0 non-text threshold.
 
+## Delivered: unified personalisation studio foundation
+
+- Native Style Studio route in the main navigation workspace.
+- Connected categories for themes, clock widget finishes, icon families, app-grid concepts, keyboard designs, quick-control concepts, charging animation previews and display treatments.
+- Optional Niqab-inspired draped-frame preview with independent Onyx, Rose, Plum, Pearl, Sage and Sand colour choices.
+- Dedicated feminine collection direction with cats and other cute animals, floral and jewellery cues, colourful icon families and multiple material palettes.
+- Local per-category style and frame-colour preferences; system-level integrations remain explicitly bounded by Android capability.
+
 ## Foundation iteration
 Native Android project, CI, local composition persistence, functional dialer keypad visual studio with ACTION_DIAL, procedural offline wallpaper renderer and offline visual taxonomy.
 ## Artwork and wallpaper release gate

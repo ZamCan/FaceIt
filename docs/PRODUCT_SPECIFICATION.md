@@ -97,6 +97,26 @@ The lion should feel integrated into the football environment through lighting, 
 
 Sacred-site content must not receive unrelated or inappropriate overlays automatically.
 
+
+## 4A. Complete personalisation studios
+
+Face It brings the following visual surfaces together in one Style Studio. Users can browse coherent design families, preview them on a device canvas, save local Face It style choices and move between related studios without losing their composition.
+
+- **Themes:** light/dark-compatible material and colour presets, with independent palette and finish choices.
+- **Widgets:** native Android AppWidget designs with per-instance configuration. The current real integration is the clock widget with Obsidian Glass, Warm Ceramic and Pearl Mint finishes; additional widget families require their own providers and configuration flows.
+- **Icons:** carefully art-directed icon families and app-symbol previews. Universal replacement of arbitrary installed app icons is not promised; launcher support or user-pinned shortcuts must be used where genuinely supported.
+- **Apps and home presentation:** visual app-grid concepts, including an optional Niqab-inspired draped display frame. The frame is a user-selectable visual design, with independent colour choices (Onyx, Rose, Plum, Pearl, Sage and Sand). It is an in-app concept until a separately implemented and user-selected launcher integration exists; it does not replace the phone's home app or system UI.
+- **Keyboard designs:** selectable visual designs and isolated pressable demos inside Face It only. Never register an InputMethodService or claim to change a third-party keyboard.
+- **Controls:** quick-control panel concepts. Android Quick Settings remain owned by the operating system; Face It must not claim to reskin or intercept them.
+- **Charging:** charging-screen and energy-animation concepts with bounded, reduced-motion-aware previews. A preview is not a system charging overlay; background launch restrictions and manufacturer charging screens must be respected.
+- **Display:** visual display treatments and frames that can be previewed independently from wallpapers. Only wallpaper application and other explicit supported Android integrations are active system changes.
+
+### Feminine and expressive collections
+
+Include a dedicated, optional feminine design collection without forcing it on any user or reducing it to a single palette. It may include elegant pastel and saturated colourways, cute animal and cat artwork, playful but polished icon families, floral and jewellery-inspired details, soft glass, pearl, satin and ceramic materials. Users can mix these with other visual universes.
+
+Niqab-inspired display frames are an optional respectful design family, not a default or a restriction. Users can select a frame style, choose its colour independently and combine it with different wallpapers, app-grid previews, widgets and icon treatments. Keep the visual treatment refined and culturally respectful; do not imply that the frame is an Android system feature unless a real launcher implementation is later built and explicitly selected.
+
 ## 5. Wallpaper and offline artwork library
 
 The first release must include at least **100 high-quality PNG wallpapers** as actual bundled offline assets.
