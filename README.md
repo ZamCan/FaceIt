@@ -23,7 +23,7 @@ The current main branch includes:
 - Local composition preferences and a unified Style Studio with selectable in-app themes (including an optional feminine collection), widgets, icon families, app-grid concepts, keyboard styles, controls, charging previews and display treatments.
 - Optional **Face It Home** Android launcher: a user-consented HOME-role activity with an installed-app grid, selected bundled wallpaper, selected theme and optional draped display frame. It does not activate until the user explicitly chooses **Set as Home** and approves Android's prompt.
 - Face It theme palettes persist locally and actively recolour the app's own interface; Android system UI remains under OS control.
-- Optional Niqab-inspired draped app/display frame preview with six independently selectable colours.
+- Optional Niqab-inspired draped app/display frame with six independently selectable colours; available as a preview and inside Face It Home when that launcher is explicitly selected.
 - Device image import for PNG, JPEG and WebP into private app storage.
 - Independent background and main-object image assignments.
 - Live procedural composition preview with category-specific backgrounds and object/material rendering.
