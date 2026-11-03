@@ -37,7 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backspace
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.Collections
-import androidx.compose.material.icons.rounded.Dialpad
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Image
@@ -94,6 +94,8 @@ import com.zamcan.faceit.data.CompositionPresets
 import com.zamcan.faceit.data.CuratedLibrary
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
+import com.zamcan.faceit.data.ThemeWallpaperMode
+import com.zamcan.faceit.data.applyingTheme
 import com.zamcan.faceit.graphics.WallpaperRenderer
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
@@ -102,8 +104,8 @@ import kotlinx.coroutines.withContext
 
 private enum class Destination(val label: String) {
     Discover("Discover"),
+    Themes("Themes"),
     Create("Create"),
-    Dialer("Dialer"),
     Library("Library"),
     Tools("Tools")
 }
@@ -125,6 +127,7 @@ fun FaceItApp() {
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
     var toolsPage by remember { mutableStateOf(ToolsPage.Home) }
+    var visualPage by remember { mutableStateOf(VisualPage.Themes) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     // AGENTS.md §13/§17: one runtime policy decides whether motion may animate.
@@ -222,9 +225,16 @@ fun FaceItApp() {
         }
     }
 
-    BackHandler(enabled = showGallery || destination != Destination.Discover || toolsPage != ToolsPage.Home) {
+    BackHandler(
+        enabled = showGallery ||
+            destination != Destination.Discover ||
+            visualPage != VisualPage.Themes ||
+            toolsPage != ToolsPage.Home
+    ) {
         if (showGallery) {
             showGallery = false
+        } else if (destination == Destination.Themes && visualPage != VisualPage.Themes) {
+            visualPage = VisualPage.Themes
         } else if (destination == Destination.Tools && toolsPage != ToolsPage.Home) {
             toolsPage = ToolsPage.Home
         } else {
@@ -288,10 +298,22 @@ fun FaceItApp() {
                         onOpenLibrary = { destination = Destination.Library }
                     )
 
-                    Destination.Dialer -> DialerScreen(
-                        style = environment.dialerStyle,
-                        modifier = Modifier.padding(padding),
-                        onStyle = { update(environment.copy(dialerStyle = it)) }
+                    Destination.Themes -> VisualStudioScreen(
+                        page = visualPage,
+                        selectedThemeId = environment.themeId,
+                        onOpen = { visualPage = it },
+                        onThemeSelected = { theme ->
+                            update(
+                                environment.applyingTheme(
+                                    theme,
+                                    keepWallpaper = environment.wallpaperMode == ThemeWallpaperMode.KEEP
+                                )
+                            )
+                            scope.launch {
+                                snackbarHostState.showSnackbar("${theme.name} applied")
+                            }
+                        },
+                        modifier = Modifier.padding(padding)
                     )
 
                     Destination.Library -> ArtworkStudioScreen(
@@ -378,7 +400,7 @@ private fun FaceItNavigation(
                             imageVector = when (item) {
                                 Destination.Discover -> Icons.Rounded.Explore
                                 Destination.Create -> Icons.Rounded.Tune
-                                Destination.Dialer -> Icons.Rounded.Dialpad
+                                Destination.Themes -> Icons.Rounded.Palette
                                 Destination.Library -> Icons.Rounded.Collections
                                 Destination.Tools -> Icons.Rounded.Settings
                             },
@@ -980,173 +1002,6 @@ private fun CompositionScreen(
     }
 }
 
-@Composable
-private fun DialerScreen(
-    style: String,
-    modifier: Modifier,
-    onStyle: (String) -> Unit
-) {
-    val context = LocalContext.current
-    val colors = LocalFaceItColors.current
-    var number by remember { mutableStateOf("") }
-    val digits = listOf(
-        "1" to "",
-        "2" to "ABC",
-        "3" to "DEF",
-        "4" to "GHI",
-        "5" to "JKL",
-        "6" to "MNO",
-        "7" to "PQRS",
-        "8" to "TUV",
-        "9" to "WXYZ",
-        "*" to "",
-        "0" to "+",
-        "#" to ""
-    )
-    val materials = listOf(
-        Triple("Ceramic Sculpt", "CERAMIC", "Ceramic"),
-        Triple("Frosted Glass", "GLASS", "Glass"),
-        Triple("Natural Stone", "STONE", "Stone"),
-        Triple("Brushed Metal", "METAL", "Metal")
-    )
-
-    Box(modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .widthIn(max = 480.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            ScreenHeader(
-                eyebrow = "Dialer keypad",
-                title = "Sculpted keys",
-                description = "An in-app number pad that hands the number to Android's system dialler."
-            )
-
-            OutlinedTextField(
-                value = number,
-                onValueChange = { entered ->
-                    number = entered.filter { it.isDigit() || it == '+' || it == '*' || it == '#' }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.headlineSmall,
-                label = { Text("Phone number") },
-                placeholder = { Text("Enter a number", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                shape = MaterialTheme.shapes.large,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = colors.card,
-                    unfocusedContainerColor = colors.card,
-                    focusedBorderColor = colors.violet,
-                    unfocusedBorderColor = colors.border
-                ),
-                trailingIcon = {
-                    if (number.isNotEmpty()) {
-                        IconButton(onClick = { number = number.dropLast(1) }) {
-                            Icon(
-                                Icons.Rounded.Backspace,
-                                contentDescription = "Delete last digit"
-                            )
-                        }
-                    }
-                }
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    "KEY MATERIAL",
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.4.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    materials.forEach { (styleName, materialName, label) ->
-                        MaterialSwatch(
-                            materialName = materialName,
-                            label = label,
-                            selected = style == styleName,
-                            modifier = Modifier.weight(1f),
-                            onClick = { onStyle(styleName) }
-                        )
-                    }
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                digits.chunked(3).forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        row.forEach { (digit, letters) ->
-                            SculptedDialKey(
-                                digit = digit,
-                                letters = letters,
-                                style = style,
-                                onClick = { number += digit },
-                                modifier = Modifier.weight(1f).height(68.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(
-                    onClick = { number = "" },
-                    modifier = Modifier.weight(1f).height(54.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    enabled = number.isNotEmpty(),
-                    border = BorderStroke(1.dp, colors.border)
-                ) {
-                    Text("Clear")
-                }
-                Button(
-                    onClick = {
-                        if (number.isNotBlank()) {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null))
-                                )
-                            }.onFailure {
-                                Toast.makeText(context, "Unable to open dialler", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
-                    modifier = Modifier.weight(2f).height(54.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.mint,
-                        contentColor = Color(0xFF071411)
-                    )
-                ) {
-                    Icon(Icons.Rounded.Call, contentDescription = null, modifier = Modifier.size(19.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Open dialler")
-                }
-            }
-
-            InfoNote(
-                text = "This keypad does not place calls or replace your default Phone app. FaceIt hands the number to Android with ACTION_DIAL, using the system dialler you already trust.",
-                tint = colors.ice
-            )
-        }
-    }
-}
-
-/**
- * Curated object artwork picker.
- *
- * Objects ship with the app, so selecting one never touches the network and
- * never writes a user file. "None" falls back to the studio's own recipe.
- */
 @Composable
 private fun CuratedObjectPicker(
     selectedId: String?,

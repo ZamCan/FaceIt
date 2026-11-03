@@ -11,8 +11,18 @@ data class PersonalEnvironment(
     val motion: String = "Subtle",
     val widgetsEnabled: Boolean = true,
     val iconsEnabled: Boolean = true,
+    /**
+     * Legacy field kept only so previously saved environments still load.
+     * Keypad appearance is now [keypadDesignId]; nothing reads this for rendering.
+     */
+    @Deprecated("Use keypadDesignId. Retained for loading old saved environments.")
     val dialerStyle: String = "Ceramic Sculpt",
     val resourceProfile: String = "Balanced",
+    /** Selected complete theme; every field below can still be overridden on its own. */
+    val themeId: String = "pearl_mint",
+    val wallpaperMode: ThemeWallpaperMode = ThemeWallpaperMode.FOLLOW_THEME,
+    /** Keypad appearance preset. Presentation only — Face It is not a dialler. */
+    val keypadDesignId: String = "ceramic_sculpt",
     val selectedArtworkFile: String? = null,
     val selectedObjectFile: String? = null,
     /** Curated bundled wallpaper id from the shipped pack, or null. */
@@ -32,6 +42,9 @@ data class PersonalEnvironment(
         put("iconsEnabled", iconsEnabled)
         put("dialerStyle", dialerStyle)
         put("resourceProfile", resourceProfile)
+        put("themeId", themeId)
+        put("wallpaperMode", wallpaperMode.name)
+        put("keypadDesignId", keypadDesignId)
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
         put("curatedArtworkId", curatedArtworkId)
@@ -54,6 +67,11 @@ data class PersonalEnvironment(
                     iconsEnabled = json.optBoolean("iconsEnabled", true),
                     dialerStyle = json.optString("dialerStyle", "Ceramic Sculpt"),
                     resourceProfile = json.optString("resourceProfile", "Balanced"),
+                    themeId = json.optString("themeId", "pearl_mint"),
+                    wallpaperMode = runCatching {
+                        ThemeWallpaperMode.valueOf(json.optString("wallpaperMode", "FOLLOW_THEME"))
+                    }.getOrDefault(ThemeWallpaperMode.FOLLOW_THEME),
+                    keypadDesignId = json.optString("keypadDesignId", "ceramic_sculpt"),
                     selectedArtworkFile = json.optString("selectedArtworkFile", "")
                         .takeIf { it.isNotBlank() && it != "null" },
                     selectedObjectFile = json.optString("selectedObjectFile", "")
