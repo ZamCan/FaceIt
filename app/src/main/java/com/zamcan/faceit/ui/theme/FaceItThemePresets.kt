@@ -1,6 +1,8 @@
 package com.zamcan.faceit.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.zamcan.faceit.themes.FaceTheme
+import com.zamcan.faceit.themes.FaceThemes
 
 data class FaceItThemePreset(
     val id: String,
@@ -29,6 +31,37 @@ object FaceItThemePresets {
         FaceItThemePreset("feminine-lilac-luxe", "Lilac Luxe", Color(0xFF5A3FD0), Color(0xFFC3B0FF), Color(0xFF6D638E), Color(0xFFBCAFE2), Color(0xFF9A6B4B), Color(0xFFEBC4A8))
     )
 
+    /**
+     * Every complete theme in [FaceThemes] also becomes an app palette, so applying
+     * a theme in the style studio really changes Face It's own surfaces. Dark
+     * presets use the theme accent as-is; light presets use a darkened accent so
+     * text on a pale surface keeps its contrast.
+     */
+    private val themePresets: List<FaceItThemePreset> = FaceThemes.all.map { theme ->
+        FaceItThemePreset(
+            id = theme.id,
+            label = theme.name,
+            accentLight = darken(theme.accent, 0.42f),
+            accentDark = Color(theme.accent),
+            secondaryLight = darken(theme.accentSecondary, 0.45f),
+            secondaryDark = Color(theme.accentSecondary),
+            tertiaryLight = darken(theme.border, 0.55f),
+            tertiaryDark = Color(theme.border)
+        )
+    }
+
+    private fun darken(argb: Long, amount: Float): Color {
+        val r = ((argb shr 16) and 0xFF) * (1f - amount)
+        val g = ((argb shr 8) and 0xFF) * (1f - amount)
+        val b = (argb and 0xFF) * (1f - amount)
+        return Color(r.toInt(), g.toInt(), b.toInt())
+    }
+
     fun find(id: String): FaceItThemePreset = findOrNull(id) ?: all.first()
-    fun findOrNull(id: String): FaceItThemePreset? = all.firstOrNull { it.id == id }
+    fun findOrNull(id: String): FaceItThemePreset? =
+        all.firstOrNull { it.id == id } ?: themePresets.firstOrNull { it.id == id }
+
+    /** Looks up the preset for a [FaceTheme], used when a theme is applied. */
+    fun forTheme(theme: FaceTheme): FaceItThemePreset =
+        themePresets.firstOrNull { it.id == theme.id } ?: find(DEFAULT_ID)
 }

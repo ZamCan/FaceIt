@@ -122,8 +122,8 @@ object FaceThemes {
             iconTile = IconTile.PEBBLE_CIRCLE,
             iconTileColor = 0xFF3A2530,
             iconGlyphColor = 0xFFFFF0F4,
-            widgetStyleId = "Ceramic",
-            chargingStyleId = "rose_bloom",
+            widgetStyleId = "Satin",
+            chargingStyleId = "rose_halo",
             veilStyle = VeilStyle.VEIL_FRAME,
             veilColor = 0xFFE9A6BE,
             isDark = true
@@ -377,8 +377,16 @@ object FaceThemes {
     fun byFamily(family: String?): List<FaceTheme> =
         if (family == null) all else all.filter { it.family == family }
 
-    /** Every glyph the icon set must be able to draw, in grid order. */
-    val showcaseGlyphs = IconGlyph.entries
+    /**
+     * The glyphs the theme cards preview, in grid order.
+     *
+     * Deliberately the first six: they are the ones that read at 30 dp on a card.
+     * The full 34-glyph set is exercised by the Icons page and by the renderer tests.
+     */
+    val showcaseGlyphs: List<IconGlyph> = listOf(
+        IconGlyph.PHONE, IconGlyph.MESSAGE, IconGlyph.CAMERA, IconGlyph.CAT,
+        IconGlyph.GALLERY, IconGlyph.MUSIC
+    )
 }
 
 /** WCAG maths shared by the theme checks and the tests. */

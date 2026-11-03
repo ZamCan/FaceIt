@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -14,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.zamcan.faceit.data.EnvironmentStore
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -30,6 +32,18 @@ fun FaceItTheme(
     }
     var presetId by remember {
         mutableStateOf(preferences.getString("faceit_theme_preset", FaceItThemePresets.DEFAULT_ID) ?: FaceItThemePresets.DEFAULT_ID)
+    }
+    // If the environment records a theme the palette is not showing, the environment
+    // wins: a stale preference must never leave the app in the wrong colours.
+    LaunchedEffect(Unit) {
+        val environmentTheme = EnvironmentStore(context).load().themeId
+        if (environmentTheme != FaceItThemePresets.DEFAULT_ID &&
+            FaceItThemePresets.findOrNull(environmentTheme) != null &&
+            environmentTheme != presetId
+        ) {
+            preferences.edit().putString("faceit_theme_preset", environmentTheme).apply()
+            presetId = environmentTheme
+        }
     }
     val preset = FaceItThemePresets.find(presetId)
     val accent = if (darkTheme) preset.accentDark else preset.accentLight

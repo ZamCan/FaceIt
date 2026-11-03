@@ -23,6 +23,10 @@ data class PersonalEnvironment(
     val wallpaperMode: ThemeWallpaperMode = ThemeWallpaperMode.FOLLOW_THEME,
     /** Keypad appearance preset. Presentation only — Face It is not a dialler. */
     val keypadDesignId: String = "ceramic_sculpt",
+    /** Writing style for the SMS composer. Real typography, not look-alike glyphs. */
+    val writingStyleId: String = "plain",
+    /** Named frame colour for the draped display frame, or "None" to turn it off. */
+    val frameColourId: String = "None",
     val selectedArtworkFile: String? = null,
     val selectedObjectFile: String? = null,
     /** Curated bundled wallpaper id from the shipped pack, or null. */
@@ -45,6 +49,8 @@ data class PersonalEnvironment(
         put("themeId", themeId)
         put("wallpaperMode", wallpaperMode.name)
         put("keypadDesignId", keypadDesignId)
+        put("writingStyleId", writingStyleId)
+        put("frameColourId", frameColourId)
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
         put("curatedArtworkId", curatedArtworkId)
@@ -72,6 +78,8 @@ data class PersonalEnvironment(
                         ThemeWallpaperMode.valueOf(json.optString("wallpaperMode", "FOLLOW_THEME"))
                     }.getOrDefault(ThemeWallpaperMode.FOLLOW_THEME),
                     keypadDesignId = json.optString("keypadDesignId", "ceramic_sculpt"),
+                    writingStyleId = json.optString("writingStyleId", "plain"),
+                    frameColourId = json.optString("frameColourId", "None"),
                     selectedArtworkFile = json.optString("selectedArtworkFile", "")
                         .takeIf { it.isNotBlank() && it != "null" },
                     selectedObjectFile = json.optString("selectedObjectFile", "")

@@ -96,6 +96,8 @@ import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.data.ThemeWallpaperMode
 import com.zamcan.faceit.data.applyingTheme
+import com.zamcan.faceit.themes.FaceTheme
+import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.graphics.WallpaperRenderer
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
@@ -121,6 +123,7 @@ internal enum class ToolsPage(val label: String) {
 @Composable
 fun FaceItApp() {
     val context = LocalContext.current
+    val setThemePreset = com.zamcan.faceit.ui.theme.LocalSetFaceItThemePresetId.current
     val store = remember { EnvironmentStore(context) }
     val artworkRepository = remember { ArtworkRepository(context) }
     val curatedLibrary = remember { CuratedLibrary(context) }
@@ -128,7 +131,6 @@ fun FaceItApp() {
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
     var toolsPage by remember { mutableStateOf(ToolsPage.Home) }
-    var visualPage by remember { mutableStateOf(VisualPage.Themes) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     // AGENTS.md §13/§17: one runtime policy decides whether motion may animate.
@@ -137,6 +139,35 @@ fun FaceItApp() {
     fun update(next: PersonalEnvironment) {
         environment = next
         store.save(next)
+    }
+
+    // A studio choice becomes real state here, and the message naming the theme is
+    // the only confirmation the user gets — so it names the theme, not "saved".
+    val applyStudioStyle: (StudioStyle) -> Unit = remember(environment) {
+        { style ->
+            when (style.category) {
+                StudioCategory.THEMES, StudioCategory.FEMININE -> {
+                    val theme = FaceThemes.find(style.id)
+                    setThemePreset(theme.id)
+                    update(
+                        environment.applyingTheme(
+                            theme,
+                            keepWallpaper = environment.wallpaperMode == ThemeWallpaperMode.KEEP
+                        )
+                    )
+                    scope.launch { snackbarHostState.showSnackbar("${theme.name} applied") }
+                }
+                StudioCategory.KEYPAD -> {
+                    update(environment.copy(keypadDesignId = style.id.removePrefix("keypad-")))
+                    scope.launch { snackbarHostState.showSnackbar("${style.title} keypad selected") }
+                }
+                StudioCategory.WRITING -> {
+                    update(environment.copy(writingStyleId = style.id.removePrefix("writing-")))
+                    scope.launch { snackbarHostState.showSnackbar("${style.title} writing style selected") }
+                }
+                else -> Unit
+            }
+        }
     }
 
     // Curated layers are decoded off the main thread and released as soon as the
@@ -226,16 +257,9 @@ fun FaceItApp() {
         }
     }
 
-    BackHandler(
-        enabled = showGallery ||
-            destination != Destination.Discover ||
-            visualPage != VisualPage.Themes ||
-            toolsPage != ToolsPage.Home
-    ) {
+    BackHandler(enabled = showGallery || destination != Destination.Discover || toolsPage != ToolsPage.Home) {
         if (showGallery) {
             showGallery = false
-        } else if (destination == Destination.Themes && visualPage != VisualPage.Themes) {
-            visualPage = VisualPage.Themes
         } else if (destination == Destination.Tools && toolsPage != ToolsPage.Home) {
             toolsPage = ToolsPage.Home
         } else {
@@ -300,20 +324,9 @@ fun FaceItApp() {
                     )
 
                     Destination.Themes -> VisualStudioScreen(
-                        page = visualPage,
                         selectedThemeId = environment.themeId,
-                        onOpen = { visualPage = it },
-                        onThemeSelected = { theme ->
-                            update(
-                                environment.applyingTheme(
-                                    theme,
-                                    keepWallpaper = environment.wallpaperMode == ThemeWallpaperMode.KEEP
-                                )
-                            )
-                            scope.launch {
-                                snackbarHostState.showSnackbar("${theme.name} applied")
-                            }
-                        },
+                        appliedStyleId = { category -> appliedStyleFor(category, environment) },
+                        onStyleChosen = applyStudioStyle,
                         modifier = Modifier.padding(padding)
                     )
 

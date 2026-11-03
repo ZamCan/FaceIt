@@ -253,3 +253,41 @@ Network failure must not break the offline library or saved compositions. No man
 - No ads in dialling, keyboard input, SMS conversations, Vault or essential device functions.
 - No deceptive buttons, accidental ad taps or forced reward-video loops.
 - Content and infrastructure costs must be measured before scaling.
+
+## Style studio (current)
+
+One studio, eleven categories, reached from the **Themes** tab (and linked from
+Tools). Every card is generated from a real engine rather than written by hand, so
+a card cannot advertise a colour the renderer cannot draw.
+
+| Category | Entries | Backed by | Applied for real? |
+|---|---|---|---|
+| Themes | 12 | `themes/FaceThemes.kt` | In-app palette |
+| Feminine | subset of the above | `FaceThemes` (family Ladies/Cute) | In-app palette |
+| Icons | 12 families × 34 glyphs | `graphics/IconRenderer.kt` | In-app only |
+| Apps | 12 grids | `FaceThemes` + `DisplayFrameResolver` | In-app only |
+| Widgets | 9 | `widget/FaceItClockWidgetStyles.kt` | **Yes — real AppWidget** |
+| Keyboards | 10 designs | `keyboard/KeyboardDesignCatalogue.kt` | In-app only |
+| Keypad | 8 | `keypad/KeypadDesigns.kt` | In-app only |
+| Controls | 5 | `VisualStudio.kt` | In-app only |
+| Charging | 24 | `charging/ChargingDisplay.kt` | In-app preview |
+| Display | frame × 6 colours | `themes/DisplayFrame.kt` | Preview; wallpaper is real |
+| Writing | 16 | `text/WritingStyles.kt` | In-app only |
+
+### Honest boundaries
+
+- Themes change Face It's own surfaces; they do not recolour Android or other apps.
+- The clock widget is the only appearance feature with a genuine system
+  integration. Each placed widget stores the finish it was created with.
+- Keyboard, keypad, controls, icons and charging are visual designs and previews.
+  There is no `InputMethodService`, no launcher replacement, no quick-settings
+  reskin and no charging-screen overlay.
+- Writing styles use real font families with tracking, leading and slant. No
+  Unicode look-alike substitution: text stays searchable and screen-reader legible.
+
+### The draped frame
+
+The product-owner reference was a "niqab" frame around the app list. It is shipped
+as **any of five drape shapes in any of six named colours, switchable off**
+(default: off). What is drawn is translucent geometry — curves, arc edges, layered
+folds — behind and around the icons. No figure, face or garment is illustrated.

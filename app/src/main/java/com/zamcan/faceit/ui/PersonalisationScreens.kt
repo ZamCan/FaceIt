@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,13 +54,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 import com.zamcan.faceit.messaging.SmsSegmentEstimator
 import com.zamcan.faceit.messaging.SmsTransportHandoff
+import com.zamcan.faceit.text.WritingStyle
+import com.zamcan.faceit.text.WritingStyles
+import com.zamcan.faceit.text.WritingSurface
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import com.zamcan.faceit.vault.LocalVaultStore
 import java.io.ByteArrayOutputStream
@@ -75,11 +79,9 @@ internal fun ToolsHubScreen(
     when (page) {
         ToolsPage.Home -> ToolsHomeScreen(modifier, onOpen)
         ToolsPage.KeyboardDesigns -> KeyboardDesignGalleryScreen(modifier, onBack)
-        ToolsPage.Personalisation -> PersonalisationStudioScreen(
-            modifier = modifier,
-            onBack = onBack,
-            onOpenKeyboardDesigns = { onOpen(ToolsPage.KeyboardDesigns) }
-        )
+        // The style studio moved to its own primary destination: it became the
+        // largest surface in the product and did not belong behind a tools card.
+        ToolsPage.Personalisation -> ToolsHomeScreen(modifier, onOpen)
         ToolsPage.Vault -> VaultScreen(modifier, onBack)
         ToolsPage.Sms -> SmsComposerScreen(modifier, onBack)
     }
@@ -106,9 +108,9 @@ private fun ToolsHomeScreen(
 
         ToolCard(
             icon = Icons.Rounded.Widgets,
-            title = "Style studio",
-            description = "Explore themes, widgets, icons, app layouts, controls, display frames and charging visuals.",
-            meta = "Personalisation workspace",
+            title = "Clock widgets",
+            description = "Nine clock finishes for the real home-screen widget. Adding one opens the widget picker's own configuration.",
+            meta = "Real AppWidget",
             onClick = { onOpen(ToolsPage.Personalisation) }
         )
         ToolCard(
@@ -428,18 +430,17 @@ private fun SmsComposerScreen(modifier: Modifier, onBack: () -> Unit) {
     val colors = LocalFaceItColors.current
     var recipient by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
-    var fontChoice by remember { mutableStateOf("Sans") }
+    // Writing styles are a real catalogue now: family, tracking, leading, slant and
+    // casing, all applied to the text itself. No look-alike Unicode substitution.
+    var writingId by remember { mutableStateOf(WritingStyles.all.first().id) }
+    val writing = WritingStyles.find(writingId)
+    val writingOptions = remember { WritingStyles.forSurface(WritingSurface.MESSAGE) }
     var colourChoice by remember { mutableStateOf("Pearl") }
     val messageColour = when (colourChoice) {
         "Mint" -> colors.mint
         "Violet" -> colors.violet
         "Warm" -> colors.peach
         else -> MaterialTheme.colorScheme.onSurface
-    }
-    val messageFont = when (fontChoice) {
-        "Serif" -> FontFamily.Serif
-        "Mono" -> FontFamily.Monospace
-        else -> FontFamily.SansSerif
     }
     val estimate = SmsSegmentEstimator.estimate(body)
     val transportLabel = when (estimate.encoding) {
@@ -487,12 +488,49 @@ private fun SmsComposerScreen(modifier: Modifier, onBack: () -> Unit) {
                 )
             )
 
-            ChoiceChips(
-                title = "Preview font",
-                options = listOf("Sans", "Serif", "Mono"),
-                selected = fontChoice,
-                onSelected = { fontChoice = it }
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "WRITING STYLE",
+                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(writingOptions, key = { it.id }) { style ->
+                        val active = style.id == writingId
+                        Surface(
+                            onClick = { writingId = style.id },
+                            shape = MaterialTheme.shapes.medium,
+                            color = if (active) colors.violet.copy(alpha = .14f) else colors.card,
+                            border = BorderStroke(
+                                if (active) 1.5.dp else 1.dp,
+                                if (active) colors.violet.copy(alpha = .6f) else colors.border
+                            )
+                        ) {
+                            Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+                                Text(style.name, style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    style.render("Aa the cat"),
+                                    fontFamily = style.family,
+                                    fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
+                                    letterSpacing = style.letterSpacingEm.sp,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+                }
+                Text(
+                    writing.sample,
+                    fontFamily = writing.family,
+                    fontStyle = if (writing.italic) FontStyle.Italic else FontStyle.Normal,
+                    letterSpacing = writing.letterSpacingEm.sp,
+                    lineHeight = (16 * writing.lineHeightMultiple).sp,
+                    fontSize = (15 * writing.scale).sp,
+                    color = colors.mint
+                )
+            }
             ChoiceChips(
                 title = "Preview colour",
                 options = listOf("Pearl", "Mint", "Violet", "Warm"),
@@ -513,9 +551,11 @@ private fun SmsComposerScreen(modifier: Modifier, onBack: () -> Unit) {
                 },
                 textStyle = TextStyle(
                     color = messageColour,
-                    fontFamily = messageFont,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp
+                    fontFamily = writing.family,
+                    fontStyle = if (writing.italic) FontStyle.Italic else FontStyle.Normal,
+                    letterSpacing = writing.letterSpacingEm.sp,
+                    fontSize = (16 * writing.scale).sp,
+                    lineHeight = (24 * writing.lineHeightMultiple).sp
                 ),
                 shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(

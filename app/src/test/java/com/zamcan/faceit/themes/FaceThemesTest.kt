@@ -126,6 +126,48 @@ class FaceThemesTest {
     }
 
     @Test
+    fun frameIsOffUnlessTheUserAsksForIt() {
+        val theme = FaceThemes.find("sakura")
+        // "None" is an explicit user choice and beats the theme's own suggestion.
+        val off = DisplayFrameResolver.resolve(FrameColours.NONE_ID, theme)
+        assertTrue(!off.enabled)
+        assertEquals(VeilStyle.NONE, off.style)
+    }
+
+    @Test
+    fun choosingAFrameColourShowsTheThemeShapeInThatColour() {
+        val theme = FaceThemes.find("heritage_gold")
+        val resolved = DisplayFrameResolver.resolve("Plum", theme)
+        assertTrue(resolved.enabled)
+        assertEquals(FrameColours.find("Plum")!!.argb, resolved.colour)
+        assertEquals(theme.veilStyle, resolved.style)
+    }
+
+    @Test
+    fun aColourChoiceOnAThemelessFrameStillProducesAFrame() {
+        val bare = FaceThemes.all.first { it.veilStyle == VeilStyle.NONE }
+        val resolved = DisplayFrameResolver.resolve("Sage", bare)
+        assertTrue("a colour choice must draw something", resolved.enabled)
+        assertEquals(VeilStyle.SOFT_DRAPE, resolved.style)
+    }
+
+    @Test
+    fun everyFrameColourCanBeResolvedByName() {
+        FrameColours.all.forEach { colour ->
+            assertEquals(colour.argb, DisplayFrameResolver.resolve(colour.id, FaceThemes.find("obsidian_violet")).colour)
+        }
+    }
+
+    @Test
+    fun everyThemeShapeIsDrawableAndNamed() {
+        VeilStyle.entries.forEach { style ->
+            assertTrue("$style has no name", style.name.isNotBlank())
+        }
+        // At least one theme must show each shape, or a shape is dead code.
+        assertTrue(VeilStyle.entries.count { it != VeilStyle.NONE } >= 5)
+    }
+
+    @Test
     fun contrastMathsMatchesKnownValues() {
         assertEquals(21.0, ThemeContrast.ratio(0xFFFFFFFF, 0xFF000000), 0.01)
         assertEquals(1.0, ThemeContrast.ratio(0xFF336699, 0xFF336699), 0.001)

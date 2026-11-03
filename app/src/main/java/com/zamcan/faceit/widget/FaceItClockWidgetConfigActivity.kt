@@ -98,10 +98,16 @@ private fun WidgetStyleConfig(
         ScreenHeader(
             eyebrow = "Home screen",
             title = "FaceIt clock",
-            description = "Choose a material finish for this widget. Each widget keeps its own saved style."
+            description = "Choose a material finish for this widget. Each placed widget keeps the finish it was created with."
         )
 
-        FaceItClockWidgetStyles.all.forEach { style ->
+        FaceItClockWidgetStyles.families.forEach { family ->
+            Text(
+                text = family.uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.3.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FaceItClockWidgetStyles.all.filter { it.family == family }.forEach { style ->
             val active = selected.id == style.id
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -145,6 +151,7 @@ private fun WidgetStyleConfig(
                         )
                     }
                 }
+            }
             }
         }
 

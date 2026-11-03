@@ -22,7 +22,10 @@ import android.graphics.Shader
  * permanent animation loop (AGENTS.md §8 forbids that in a widget).
  */
 
-enum class ChargingMotif { RING, PULSE, FILL, SPARK, PETALS, CAT, MOON, LANTERN, PITCH, AURORA, PAPER, WAVE }
+enum class ChargingMotif {
+    RING, PULSE, FILL, SPARK, PETALS, CAT, MOON, LANTERN, PITCH, AURORA, PAPER, WAVE,
+    HEART, BUTTERFLY, STARFIELD, ORBIT, GARDEN
+}
 
 data class ChargingStyle(
     val id: String,
@@ -96,7 +99,67 @@ object ChargingStyles {
             "paper_fill", "Paper fill", ChargingMotif.PAPER,
             0xFFEDE5D8, 0xFF2F6F62, 0xFF9A6B3F,
             "Quiet paper bars stack up. No glow, no motion beyond the fill."
-        )
+        ),
+        ChargingStyle(
+            "rose_halo", "Rose halo", ChargingMotif.HEART,
+            0xFF2E1D25, 0xFFF0A8C0, 0xFFFFD9A8,
+            "A heart fills beat by beat, with a soft halo behind it."
+        ),
+        ChargingStyle(
+            "pearl_bloom", "Pearl bloom", ChargingMotif.HEART,
+            0xFF3A2A2E, 0xFFE8BFCE, 0xFFC6E4DA,
+            "Pearl sheen on a slowly filling heart. Quiet, not sugary."
+        ),
+        ChargingStyle(
+            "flutter_fill", "Flutter fill", ChargingMotif.BUTTERFLY,
+            0xFF232034, 0xFFC9A7E8, 0xFF9BE0C8,
+            "Wings widen as the level climbs, then settle at full."
+        ),
+        ChargingStyle(
+            "glyph_petals", "Glyph petals", ChargingMotif.GARDEN,
+            0xFF1F2A24, 0xFF8FD3B5, 0xFFF2C48E,
+            "Four petals, one per quarter. Leaves appear as you pass each."
+        ),
+        ChargingStyle(
+            "catnap_curl", "Catnap curl", ChargingMotif.CAT,
+            0xFF2B2420, 0xFFE6B892, 0xFFA9D6C6,
+            "A curled kitten, tail tightening as the battery fills."
+        ),
+        ChargingStyle(
+            "gem_heart", "Gem heart", ChargingMotif.HEART,
+            0xFF241A2C, 0xFFD9A6E8, 0xFF8FC8E8,
+            "Faceted heart with a violet interior light."
+        ),
+        ChargingStyle(
+            "paw_steps", "Paw steps", ChargingMotif.GARDEN,
+            0xFF26221C, 0xFFDCC08C, 0xFF9AD2BE,
+            "Paw prints appear along a path, one per ten percent."
+        ),
+        ChargingStyle(
+            "starfield", "Starfield", ChargingMotif.STARFIELD,
+            0xFF0E1526, 0xFF8FB6FF, 0xFFE9D8A8,
+            "Stars kindle one by one against a deep sky."
+        ),
+        ChargingStyle(
+            "orbit_map", "Orbit map", ChargingMotif.ORBIT,
+            0xFF141B2A, 0xFF7FD4C8, 0xFFD9A9E0,
+            "A moon orbits a planet; the ring is the progress."
+        ),
+        ChargingStyle(
+            "paper_heart", "Paper heart", ChargingMotif.HEART,
+            0xFFF2EAE0, 0xFFB8607A, 0xFF3C6E62,
+            "Folded paper heart on cream. The one light charging motif."
+        ),
+        ChargingStyle(
+            "harvest_gold", "Harvest gold", ChargingMotif.GARDEN,
+            0xFF2B2418, 0xFFDCB878, 0xFF8FC8A8,
+            "A wheat and leaf motif warming from the base upward."
+        ),
+        ChargingStyle(
+            "silk_pulse", "Silk pulse", ChargingMotif.PULSE,
+            0xFF2E2430, 0xFFCBA8D8, 0xFFF0C8B8,
+            "A slow satin sheen travelling around a thin ring."
+        ),
     )
 
     fun find(id: String?): ChargingStyle = all.firstOrNull { it.id == id } ?: all.first()
@@ -318,6 +381,144 @@ object ChargingRenderer {
                     }
                     canvas.drawPath(ribbon, stroke)
                 }
+            }
+
+            ChargingMotif.HEART -> {
+                val heart = Path().apply {
+                    moveTo(centreX, centreY + radius * 0.72f)
+                    cubicTo(
+                        centreX - radius * 1.05f, centreY + radius * 0.10f,
+                        centreX - radius * 0.72f, centreY - radius * 0.82f,
+                        centreX, centreY - radius * 0.34f
+                    )
+                    cubicTo(
+                        centreX + radius * 0.72f, centreY - radius * 0.82f,
+                        centreX + radius * 1.05f, centreY + radius * 0.10f,
+                        centreX, centreY + radius * 0.72f
+                    )
+                    close()
+                }
+                stroke.color = mix(style.trackColor, Color.WHITE, 0.16f)
+                stroke.strokeWidth = radius * 0.07f
+                canvas.drawPath(heart, stroke)
+                canvas.save()
+                val level = centreY + radius * 0.76f - radius * 1.6f * p
+                canvas.clipRect(RectF(centreX - radius * 1.1f, level, centreX + radius * 1.1f, centreY + radius * 0.8f))
+                fill.color = style.progressColor.toInt()
+                canvas.drawPath(heart, fill)
+                canvas.restore()
+                if (style.motif == ChargingMotif.HEART) {
+                    // one specular streak so the fill reads as liquid, not vinyl
+                    fill.color = withAlpha(style.sparkColor.toInt(), 150)
+                    canvas.save()
+                    canvas.clipPath(heart)
+                    canvas.drawOval(
+                        RectF(centreX - radius * 0.52f, centreY - radius * 0.56f,
+                              centreX - radius * 0.16f, centreY - radius * 0.22f), fill
+                    )
+                    canvas.restore()
+                }
+            }
+
+            ChargingMotif.BUTTERFLY -> {
+                // wings open with the level: at 0 % the fold is shut, at 100 % it is wide
+                val spread = 0.35f + 0.65f * p
+                val upper = Path().apply {
+                    moveTo(centreX, centreY - radius * 0.10f)
+                    cubicTo(
+                        centreX - radius * 1.10f * spread, centreY - radius * 1.05f,
+                        centreX - radius * 1.10f * spread, centreY + radius * 0.22f,
+                        centreX, centreY + radius * 0.16f
+                    )
+                    close()
+                }
+                val lower = Path().apply {
+                    moveTo(centreX, centreY + radius * 0.16f)
+                    cubicTo(
+                        centreX - radius * 0.92f * spread, centreY + radius * 0.30f,
+                        centreX - radius * 0.62f * spread, centreY + radius * 1.02f,
+                        centreX, centreY + radius * 0.58f
+                    )
+                    close()
+                }
+                val mirror = Path(upper).apply { transform(android.graphics.Matrix().apply { preScale(-1f, 1f, centreX, 0f) }) }
+                val mirrorLower = Path(lower).apply { transform(android.graphics.Matrix().apply { preScale(-1f, 1f, centreX, 0f) }) }
+                fill.color = style.progressColor.toInt()
+                listOf(upper, mirror, lower, mirrorLower).forEach { canvas.drawPath(it, fill) }
+                fill.color = withAlpha(style.sparkColor.toInt(), 170)
+                listOf(upper, mirror).forEach { canvas.drawPath(it, fill) }
+                stroke.color = style.sparkColor.toInt()
+                stroke.strokeWidth = radius * 0.06f
+                canvas.drawLine(centreX, centreY - radius * 0.22f, centreX, centreY + radius * 0.62f, stroke)
+            }
+
+            ChargingMotif.STARFIELD -> {
+                fill.color = withAlpha(style.trackColor, 255)
+                val count = 24
+                for (i in 0 until count) {
+                    val angle = (i / count.toFloat()) * 6.283f
+                    val ring = radius * (0.55f + 0.42f * ((i % 5) / 5f))
+                    val x = centreX + ring * kotlin.math.cos(angle)
+                    val y = centreY + ring * kotlin.math.sin(angle) * 0.9f
+                    val lit = (i / count.toFloat()) <= p
+                    fill.color = if (lit) style.progressColor.toInt()
+                    else withAlpha(style.sparkColor.toInt(), 45)
+                    val size = radius * if (lit) 0.075f else 0.045f
+                    canvas.drawCircle(x, y, size, fill)
+                    if (lit) {
+                        fill.color = withAlpha(style.sparkColor.toInt(), 120)
+                        canvas.drawCircle(x, y, size * 2.1f, fill)
+                    }
+                }
+                stroke.color = withAlpha(style.sparkColor.toInt(), 120)
+                stroke.strokeWidth = radius * 0.025f
+                canvas.drawCircle(centreX, centreY, radius * (0.96f), stroke)
+            }
+
+            ChargingMotif.ORBIT -> {
+                fill.color = withAlpha(style.progressColor.toInt(), 90)
+                canvas.drawCircle(centreX, centreY, radius * 0.42f, fill)
+                fill.color = style.progressColor.toInt()
+                canvas.drawCircle(centreX, centreY, radius * 0.30f, fill)
+                stroke.color = mix(style.trackColor, Color.WHITE, 0.18f)
+                stroke.strokeWidth = radius * 0.05f
+                canvas.save()
+                canvas.rotate(-18f, centreX, centreY)
+                canvas.drawOval(
+                    RectF(centreX - radius, centreY - radius * 0.42f,
+                          centreX + radius, centreY + radius * 0.42f), stroke
+                )
+                stroke.color = style.sparkColor.toInt()
+                stroke.strokeWidth = radius * 0.09f
+                val sweep = RectF(centreX - radius, centreY - radius * 0.42f,
+                                  centreX + radius, centreY + radius * 0.42f)
+                canvas.drawArc(sweep, -90f, 359.9f * p, false, stroke)
+                val angle = Math.toRadians((-90.0 + 359.9 * p))
+                val moonX = centreX + (radius * Math.cos(angle)).toFloat()
+                val moonY = centreY + (radius * 0.42f * Math.sin(angle)).toFloat()
+                fill.color = style.sparkColor.toInt()
+                canvas.drawCircle(moonX, moonY, radius * 0.12f, fill)
+                canvas.restore()
+            }
+
+            ChargingMotif.GARDEN -> {
+                val petals = 4
+                for (i in 0 until petals) {
+                    val threshold = (i + 1) / petals.toFloat()
+                    val open = p >= threshold - 0.001f
+                    val angle = Math.toRadians(-90.0 + i * 90.0)
+                    val dist = radius * if (open) 0.46f else 0.26f
+                    val px = centreX + (dist * kotlin.math.cos(angle)).toFloat()
+                    val py = centreY + (dist * kotlin.math.sin(angle)).toFloat()
+                    fill.color = if (open) style.progressColor.toInt()
+                    else withAlpha(style.sparkColor.toInt(), 60)
+                    canvas.drawCircle(px, py, radius * if (open) 0.30f else 0.22f, fill)
+                }
+                fill.color = style.sparkColor.toInt()
+                canvas.drawCircle(centreX, centreY, radius * 0.16f, fill)
+                stroke.color = withAlpha(style.sparkColor.toInt(), 150)
+                stroke.strokeWidth = radius * 0.035f
+                canvas.drawLine(centreX, centreY, centreX - radius * 0.9f, centreY + radius * 0.9f, stroke)
             }
 
             ChargingMotif.SPARK -> {
