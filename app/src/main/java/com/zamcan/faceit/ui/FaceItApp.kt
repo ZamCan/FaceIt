@@ -161,7 +161,9 @@ fun FaceItApp() {
         { style ->
             when (style.category) {
                 StudioCategory.THEMES, StudioCategory.FEMININE -> {
-                    val theme = FaceThemes.find(style.id)
+                    // Feminine cards carry a "feminine-" prefix so the two shelves can
+                    // hold the same theme without id collisions.
+                    val theme = FaceThemes.find(style.id.removePrefix("feminine-"))
                     setThemePreset(theme.id)
                     update(
                         environment.applyingTheme(

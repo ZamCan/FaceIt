@@ -45,6 +45,20 @@ class StudioCatalogueTest {
     }
 
     @Test
+    fun everyThemeAppearsInTheMainShelfAndFeminineLooksAppearInBoth() {
+        assertEquals(FaceThemes.all.size, TopicCatalogue.byCategory(StudioCategory.THEMES).size)
+        val feminine = TopicCatalogue.byCategory(StudioCategory.FEMININE)
+        assertTrue("feminine shelf is empty", feminine.size >= 3)
+        // Each feminine card points at a real theme once its prefix is removed.
+        feminine.forEach { style ->
+            assertTrue(
+                style.id,
+                FaceThemes.all.any { it.id == style.id.removePrefix("feminine-") }
+            )
+        }
+    }
+
+    @Test
     fun eachThemeContributesAThemeAnIconFamilyAndAGrid() {
         FaceThemes.all.forEach { theme ->
             assertNotNull("missing theme card ${theme.id}", TopicCatalogue.find(theme.id))

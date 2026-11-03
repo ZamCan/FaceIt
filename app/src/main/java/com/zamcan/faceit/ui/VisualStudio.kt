@@ -131,11 +131,9 @@ internal object TopicCatalogue {
     private fun themeStyles(theme: FaceTheme) = StudioStyle(
         id = theme.id,
         title = theme.name,
-        category = if (theme.family == "Ladies" || theme.family == "Cute") {
-            StudioCategory.FEMININE
-        } else {
-            StudioCategory.THEMES
-        },
+        // Every theme appears in Themes; the feminine looks also appear in their own
+        // collection, because a shared user should be able to find them either way.
+        category = StudioCategory.THEMES,
         detail = theme.description,
         accent = theme.accent,
         surface = theme.surface,
@@ -208,6 +206,32 @@ internal object TopicCatalogue {
         )
     }
 
+    private val keyboardStyles = com.zamcan.faceit.keyboard.KeyboardDesignCatalogue.all.map { design ->
+        StudioStyle(
+            id = "keyboard-${design.id}",
+            title = design.name,
+            category = StudioCategory.KEYBOARDS,
+            detail = design.description,
+            accent = 0xFF000000L or design.highlight.toLong(),
+            surface = 0xFF1B1B22,
+            ink = 0xFFF6F4FA,
+            capability = "In-app visual design",
+            glyph = IconGlyph.SEARCH,
+            appliesForReal = false
+        )
+    }
+
+    /** The feminine collection: the Ladies and Cute families, as their own shelf. */
+    private val feminineStyles = FaceThemes.all
+        .filter { it.family == "Ladies" || it.family == "Cute" }
+        .map { theme ->
+            themeStyles(theme).copy(
+                id = "feminine-${theme.id}",
+                category = StudioCategory.FEMININE,
+                capability = "Face It theme · in-app surfaces"
+            )
+        }
+
     private val chargingStyles = ChargingStyles.all.map { charge ->
         StudioStyle(
             id = "charge-${charge.id}",
@@ -269,8 +293,10 @@ internal object TopicCatalogue {
     val styles: List<StudioStyle> = run {
         val base = FaceThemes.all
         base.map(::themeStyles) +
+            feminineStyles +
             base.flatMap(::iconStyles) +
             base.map(::appStyles) +
+            keyboardStyles +
             widgetStyles +
             keypadStyles +
             chargingStyles +
@@ -283,8 +309,8 @@ internal object TopicCatalogue {
 
     fun find(id: String?): StudioStyle? = styles.firstOrNull { it.id == id }
 
-    fun themeFor(style: StudioStyle): FaceTheme? = FaceThemes.find(style.id).takeIf { it.id == style.id }
-        ?: FaceThemes.all.firstOrNull { style.id.endsWith("_${it.id}") || style.id == it.id }
+    fun themeFor(style: StudioStyle): FaceTheme? =
+        FaceThemes.all.firstOrNull { it.id == style.id.removePrefix("feminine-") }
 }
 
 /** Persisted studio choices: one selected style per category, plus the frame colour. */
