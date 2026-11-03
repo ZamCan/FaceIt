@@ -80,7 +80,7 @@ import kotlinx.coroutines.delay
 /**
  * Visual studio — the single home for every look in Face It.
  *
- * Nine categories, one shared [StudioStyle] model, one device preview. The
+ * Eleven categories, one shared [StudioStyle] model, one device preview. The
  * catalogue is composed from the real engines rather than hand-written cards:
  * themes come from [FaceThemes], icons from [IconGlyph], keypads from
  * [KeypadDesigns], charging from [ChargingStyles], writing from [WritingStyles]
@@ -653,8 +653,8 @@ internal fun VisualStudioScreen(
                         "Previewed in-app. Android does not let an ordinary app replace the system charging screen."
                     StudioCategory.DISPLAY ->
                         "Screen treatment previews. Wallpaper application is the one display change Face It performs for real, and only when you ask."
-                    StudioCategory.ICONS, StudioCategory.APPS ->
-                        "An in-app icon family and grid. Launchers control whether third-party icon packs or grids can be applied."
+                    StudioCategory.ICONS ->
+                        "An in-app icon family preview. Android launchers control whether third-party icon packs can be applied."
                 },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
