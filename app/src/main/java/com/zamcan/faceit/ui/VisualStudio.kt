@@ -338,6 +338,7 @@ internal object TopicCatalogue {
             base.flatMap(::iconStyles) +
             base.map(::appStyles) +
             keyboardStyles +
+            displayStyles +
             widgetStyles +
             keypadStyles +
             chargingStyles +
