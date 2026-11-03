@@ -112,6 +112,20 @@ private enum class Destination(val label: String) {
     Tools("Tools")
 }
 
+/**
+ * Which style each studio category is currently showing as applied.
+ *
+ * The studio asks this so a card can say "Applied" instead of "Apply" — a small
+ * thing, but the difference between a preview shelf and a settings surface.
+ */
+private fun appliedStyleFor(category: StudioCategory, environment: PersonalEnvironment): String? =
+    when (category) {
+        StudioCategory.THEMES, StudioCategory.FEMININE -> environment.themeId
+        StudioCategory.KEYPAD -> "keypad-${environment.keypadDesignId}"
+        StudioCategory.WRITING -> "writing-${environment.writingStyleId}"
+        else -> null
+    }
+
 internal enum class ToolsPage(val label: String) {
     Home("Tools"),
     KeyboardDesigns("Keyboard designs"),
