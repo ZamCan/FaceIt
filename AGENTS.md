@@ -534,7 +534,7 @@ Work in this order unless a blocking defect requires a different sequence:
 - SMS composer accuracy and safe handoff.
 
 **P4 — Content and advanced experiences**
-- Curated, provenance-verified 100+ PNG wallpaper collection.
+- Expand the shipped 100-wallpaper baseline with additional art-directed, provenance-verified PNG collections.
 - Object and material asset library.
 - On-demand 3D studio and carefully controlled advanced effects.
 - Additional curated visual universes and optional content packs.
