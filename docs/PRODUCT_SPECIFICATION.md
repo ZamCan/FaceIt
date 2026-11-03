@@ -172,7 +172,7 @@ On-demand interactive objects, 360-degree rotation, material and lighting contro
 Private local artwork and saved compositions, protected by genuine device authentication or app authentication. A decorative lock screen alone is not security.
 
 ### Optional advanced integrations
-Launcher, SMS client, sound experiences and other device integrations are independent opt-ins. Each requires separate feasibility, permission and platform-policy review. FaceIt does not claim arbitrary control over Android system buttons, volume keys, notification shade or third-party applications.
+Face It Home's optional Android HOME-role integration is implemented and user-consented. Further launcher capabilities, a full default dialer, an SMS client, sound experiences and other device integrations remain separate opt-ins requiring their own feasibility, permission and platform-policy review. FaceIt does not claim arbitrary control over Android system buttons, volume keys, notification shade or third-party applications.
 
 ## 7. Dialer keypad visual requirements
 
