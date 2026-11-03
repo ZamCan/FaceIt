@@ -7,6 +7,7 @@ import com.zamcan.faceit.text.WritingStyles
 import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.themes.FrameColours
 import com.zamcan.faceit.themes.ThemeContrast
+import com.zamcan.faceit.themes.VeilStyle
 import com.zamcan.faceit.widget.FaceItClockWidgetStyles
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -65,6 +66,15 @@ class StudioCatalogueTest {
             assertNotNull("missing icon family for ${theme.id}", TopicCatalogue.find("icons-${theme.id}"))
             assertNotNull("missing grid for ${theme.id}", TopicCatalogue.find("apps-${theme.id}"))
         }
+    }
+
+    @Test
+    fun theDisplayShelfOffersEveryShapePlusOff() {
+        val display = TopicCatalogue.byCategory(StudioCategory.DISPLAY)
+        assertEquals(FaceThemes.all.size.let { it }.coerceAtLeast(1).let { 6 }, display.size)
+        val shapes = display.mapNotNull { it.veilShape }.toSet()
+        assertEquals(VeilStyle.entries.toSet(), shapes)
+        assertTrue(display.any { it.veilShape == VeilStyle.NONE })
     }
 
     @Test

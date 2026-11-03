@@ -123,7 +123,9 @@ internal data class StudioStyle(
     /** Which glyph the card and the preview show, when the category draws icons. */
     val glyph: IconGlyph = IconGlyph.HOME,
     /** True where the product can actually apply it outside a preview. */
-    val appliesForReal: Boolean = false
+    val appliesForReal: Boolean = false,
+    /** Set on Display cards: the drape shape that card previews. */
+    val veilShape: VeilStyle? = null
 )
 
 internal object TopicCatalogue {
@@ -245,6 +247,45 @@ internal object TopicCatalogue {
             glyph = IconGlyph.CHARGE,
             appliesForReal = false
         )
+    }
+
+    private val displayStyles: List<StudioStyle> = buildList {
+        add(
+            StudioStyle(
+                id = "display-none",
+                title = "No frame",
+                category = StudioCategory.DISPLAY,
+                detail = "The plain grid. No drape, no border, nothing over the icons.",
+                accent = 0xFF6C6C7A,
+                surface = 0xFF1C1C22,
+                ink = 0xFFF4F2F8,
+                capability = "In-app display concept",
+                glyph = IconGlyph.HOME,
+                veilShape = VeilStyle.NONE
+            )
+        )
+        listOf(
+            VeilStyle.SOFT_DRAPE to ("Soft drape" to "Curtains of shading down both sides, opening in the middle."),
+            VeilStyle.VEIL_FRAME to ("Veil frame" to "A band across the top and a rounded border around the grid."),
+            VeilStyle.LAYERED_FOLD to ("Layered fold" to "Three folded bands, each catching a little more light."),
+            VeilStyle.OPEN_ARCH to ("Open arch" to "A single arch over the grid with one lit point at its crown."),
+            VeilStyle.TWIN_CURVE to ("Twin curve" to "Two curves rising from the base, meeting under the dock.")
+        ).forEach { (shape, copy) ->
+            add(
+                StudioStyle(
+                    id = "display-${shape.name.lowercase()}",
+                    title = copy.first,
+                    category = StudioCategory.DISPLAY,
+                    detail = copy.second,
+                    accent = 0xFFB68A9D,
+                    surface = 0xFF2C202A,
+                    ink = 0xFFF6EEF2,
+                    capability = "In-app display concept",
+                    glyph = IconGlyph.HOME,
+                    veilShape = shape
+                )
+            )
+        }
     }
 
     private val controlStyles = listOf(
@@ -759,6 +800,7 @@ private fun DeviceCanvas(
                     accent = accent,
                     ink = ink,
                     frameColourId = frameColourId,
+                    shapeOverride = style.veilShape,
                     onFrameTap = onFrameTap
                 )
             }
@@ -772,9 +814,21 @@ private fun HomeStage(
     accent: Color,
     ink: Color,
     frameColourId: String,
+    shapeOverride: VeilStyle?,
     onFrameTap: () -> Unit
 ) {
-    val resolved = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
+    val base = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
+    // On the Display page the card itself picks the shape; the colour still comes
+    // from the frame bar, and an untouched bar falls back to Onyx so the shape is
+    // actually visible rather than silently transparent.
+    val resolved = if (shapeOverride == null) {
+        base
+    } else {
+        com.zamcan.faceit.themes.ResolvedFrame(
+            style = shapeOverride,
+            colour = if (base.colour == theme.veilColor && frameColourId == "None") 0xFF29232B else base.colour
+        )
+    }
     Column(Modifier.fillMaxSize().padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("9:41", color = ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
