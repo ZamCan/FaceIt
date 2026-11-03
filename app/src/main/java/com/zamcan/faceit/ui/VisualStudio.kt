@@ -1,6 +1,7 @@
 package com.zamcan.faceit.ui
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -73,6 +74,7 @@ import com.zamcan.faceit.themes.VeilStyle
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import com.zamcan.faceit.ui.LocalMotionPolicy
 import com.zamcan.faceit.widget.FaceItClockWidgetStyles
+import com.zamcan.faceit.launcher.FaceItHomeActivity
 import kotlinx.coroutines.delay
 
 /**
@@ -180,7 +182,7 @@ internal object TopicCatalogue {
         accent = theme.accent,
         surface = theme.surface,
         ink = theme.textPrimary,
-        capability = "In-app launcher concept",
+        capability = "Optional Android Home launcher",
         glyph = IconGlyph.HOME,
         appliesForReal = false
     )
@@ -587,13 +589,18 @@ internal fun VisualStudioScreen(
                     selected.appliesForReal -> "Add the widget to see this finish"
                     category == StudioCategory.CHARGING -> "Previewing the animation above"
                     category == StudioCategory.WRITING -> "Apply in the SMS composer"
+                    category == StudioCategory.APPS -> "Open Face It Home"
                     else -> "Apply ${selected.title}"
                 },
                 enabled = !selected.appliesForReal && category != StudioCategory.CHARGING,
                 alreadyApplied = appliedStyleId(category) == selected.id
             ) {
                 prefs.select(category, selected.id)
-                onStyleChosen(selected)
+                if (category == StudioCategory.APPS) {
+                    context.startActivity(Intent(context, FaceItHomeActivity::class.java))
+                } else {
+                    onStyleChosen(selected)
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -638,6 +645,8 @@ internal fun VisualStudioScreen(
                         "Appearance presets for a number pad. Face It does not place calls and does not replace your phone's dialler."
                     StudioCategory.WRITING ->
                         "Real font families, tracking, leading and slant — the words stay ordinary text, so they remain searchable and readable by screen readers."
+                    StudioCategory.APPS ->
+                        "Face It Home is an optional Android launcher. It becomes your Home screen only after you choose Set as Home and accept Android's role prompt. Open Home settings to switch back at any time."
                     StudioCategory.CONTROLS ->
                         "An in-app concept. Android's own quick settings are controlled by the system and cannot be reskinned by an ordinary app."
                     StudioCategory.CHARGING ->
@@ -961,7 +970,7 @@ private fun HomeStage(
  * hid the content would be a mask, and a mask is the one thing this must not be.
  */
 @Composable
-private fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Modifier) {
+internal fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val w = size.width
         val h = size.height
