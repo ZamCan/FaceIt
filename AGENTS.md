@@ -526,7 +526,7 @@ Work in this order unless a blocking defect requires a different sequence:
 - Native widget studio and widget configuration.
 - Dialer keypad studio and supported dialling integration.
 - Keyboard-design gallery, premium selectable visual presets and isolated pressable demonstrations.
-- Launcher-compatible icon personalisation and honest platform guidance.
+- Validate the optional Face It Home Android HOME-role integration on physical devices; continue launcher-compatible icon personalisation with honest platform guidance.
 - Supported control surfaces and shortcuts.
 
 **P3 — Private and communication tools**
