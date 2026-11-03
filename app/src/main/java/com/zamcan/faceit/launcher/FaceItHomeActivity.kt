@@ -90,7 +90,7 @@ class FaceItHomeActivity : ComponentActivity() {
         val preferences = StudioPreferences(this)
         val appStyle = TopicCatalogue.find(preferences.selected(StudioCategory.APPS))
         val themeStyle = TopicCatalogue.find(preferences.selected(StudioCategory.THEMES))
-        val theme = (appStyle ?: themeStyle)?.let(TopicCatalogue::themeFor)
+        val theme = (appStyle ?: themeStyle)?.let { TopicCatalogue.themeFor(it) }
             ?: FaceThemes.all.first()
         val displayStyle = TopicCatalogue.find(preferences.selected(StudioCategory.DISPLAY))
         val frame = resolveStudioFrame(theme, preferences.frameColour(), displayStyle?.veilShape)
