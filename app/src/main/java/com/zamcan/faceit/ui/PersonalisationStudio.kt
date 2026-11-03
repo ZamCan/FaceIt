@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -165,7 +166,7 @@ internal fun PersonalisationStudioScreen(
     val activeThemeId = LocalFaceItThemePresetId.current
     val setThemePreset = LocalSetFaceItThemePresetId.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
-    var selectedIds by remember {
+    var selectedIds by remember(activeThemeId) {
         mutableStateOf(StudioCategory.entries.associateWith { prefs.selected(it) }.toMutableMap().apply { if (get(StudioCategory.THEMES) == null) put(StudioCategory.THEMES, activeThemeId) })
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
@@ -182,7 +183,7 @@ internal fun PersonalisationStudioScreen(
     )
 
     Column(
-        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -222,7 +223,7 @@ internal fun PersonalisationStudioScreen(
             }
         }
 
-        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().height(350.dp), contentAlignment = Alignment.Center) {
             StudioDevicePreview(
                 style = selected,
                 frameColour = Color(frameHex),
@@ -271,7 +272,7 @@ internal fun PersonalisationStudioScreen(
                 onClick = {
                     prefs.select(category, selected.id)
                     if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(selected.id)
-                    selectedIds = selectedIds + (category to selected.id)
+                    selectedIds = (selectedIds + (category to selected.id)).toMutableMap()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)
@@ -290,7 +291,7 @@ internal fun PersonalisationStudioScreen(
                 val active = selected.id == style.id
                 Surface(
                     onClick = {
-                        selectedIds = selectedIds + (category to style.id)
+                        selectedIds = (selectedIds + (category to style.id)).toMutableMap()
                         if (category != StudioCategory.KEYBOARDS) prefs.select(category, style.id)
                         if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(style.id)
                         if (style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier" || style.id == "feminine-niqab-frame") {
@@ -340,7 +341,7 @@ private fun StudioDevicePreview(
     val darkInk = if (style.surface < 0xFF777777) Color(0xFFF8F4F7) else Color(0xFF342A31)
     val isNiqab = style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier" || style.id == "feminine-niqab-frame"
     Surface(
-        modifier = Modifier.width(224.dp).aspectRatio(.53f),
+        modifier = Modifier.width(180.dp).aspectRatio(.53f),
         shape = RoundedCornerShape(32.dp),
         color = base,
         border = BorderStroke(2.dp, accent.copy(alpha = .65f)),
