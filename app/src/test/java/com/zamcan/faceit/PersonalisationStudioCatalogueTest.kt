@@ -28,6 +28,8 @@ class PersonalisationStudioCatalogueTest {
         assertNotNull(PersonalisationCatalogue.find("theme-cat-garden"))
         assertNotNull(PersonalisationCatalogue.find("icon-cat"))
         assertNotNull(PersonalisationCatalogue.find("icon-petal"))
+        assertNotNull(PersonalisationCatalogue.find("feminine-cat-garden"))
+        assertNotNull(PersonalisationCatalogue.find("feminine-niqab-frame"))
         assertTrue(PersonalisationCatalogue.find("theme-cat-garden")!!.accent != PersonalisationCatalogue.find("theme-obsidian")!!.accent)
     }
 

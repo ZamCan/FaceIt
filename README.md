@@ -20,7 +20,9 @@ FaceIt is a native Android personalisation platform by ZamCan. It lets people bu
 
 The current main branch includes:
 - Native Kotlin and Jetpack Compose application.
-- Local composition preferences.
+- Local composition preferences and a unified Style Studio with selectable in-app themes (including an optional feminine collection), widgets, icons, app-grid concepts, keyboard styles, controls, charging previews and display treatments.
+- Face It theme palettes persist locally and actively recolour the app's own interface; Android system UI remains under OS control.
+- Optional Niqab-inspired draped app/display frame preview with six independently selectable colours.
 - Device image import for PNG, JPEG and WebP into private app storage.
 - Independent background and main-object image assignments.
 - Live procedural composition preview with category-specific backgrounds and object/material rendering.

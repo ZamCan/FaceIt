@@ -105,7 +105,7 @@ private fun ToolsHomeScreen(
         )
 
         ToolCard(
-            icon = Icons.Rounded.Palette,
+            icon = Icons.Rounded.Widgets,
             title = "Style studio",
             description = "Explore themes, widgets, icons, app layouts, controls, display frames and charging visuals.",
             meta = "Personalisation workspace",

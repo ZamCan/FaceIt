@@ -31,11 +31,9 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Keyboard
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Pets
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -54,7 +52,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +59,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
+import com.zamcan.faceit.ui.theme.LocalFaceItThemePresetId
+import com.zamcan.faceit.ui.theme.LocalSetFaceItThemePresetId
 
 internal enum class StudioCategory(val label: String) {
     THEMES("Themes"),
@@ -71,7 +70,8 @@ internal enum class StudioCategory(val label: String) {
     KEYBOARDS("Keyboards"),
     CONTROLS("Controls"),
     CHARGING("Charging"),
-    DISPLAY("Display")
+    DISPLAY("Display"),
+    FEMININE("Feminine edit")
 }
 
 internal data class StudioStyle(
@@ -86,6 +86,7 @@ internal data class StudioStyle(
 
 internal object PersonalisationCatalogue {
     val styles = listOf(
+        StudioStyle("theme-default", "Face It Original", StudioCategory.THEMES, "The original neutral, violet and mint material palette", 0xFF5A3FD0, 0xFFF8F5F0, "Face It theme preset"),
         StudioStyle("theme-pearl-bloom", "Pearl Bloom", StudioCategory.THEMES, "Warm pearl, petal accents and soft glass", 0xFFC77F9B, 0xFFF4E8E8, "Face It theme preset"),
         StudioStyle("theme-cat-garden", "Cat Garden", StudioCategory.THEMES, "Playful cats, botanical tones and bright details", 0xFFDA8C62, 0xFFF6E8D9, "Face It theme preset"),
         StudioStyle("theme-niqab-atelier", "Niqab Atelier", StudioCategory.THEMES, "A refined draped-frame visual language", 0xFFB68A9D, 0xFF2C202A, "Face It theme preset"),
@@ -117,7 +118,12 @@ internal object PersonalisationCatalogue {
 
         StudioStyle("display-veil", "Niqab-inspired display", StudioCategory.DISPLAY, "A customisable draped frame for a display preview", 0xFFB68A9D, 0xFF2C202A, "In-app display concept"),
         StudioStyle("display-edge", "Luminous Edge", StudioCategory.DISPLAY, "A subtle edge-light treatment", 0xFF9C8BE0, 0xFF242330, "In-app display concept"),
-        StudioStyle("display-pearl", "Pearl Matte", StudioCategory.DISPLAY, "A calm, light material-led display", 0xFFC77F9B, 0xFFF4E8E8, "In-app display concept")
+        StudioStyle("display-pearl", "Pearl Matte", StudioCategory.DISPLAY, "A calm, light material-led display", 0xFFC77F9B, 0xFFF4E8E8, "In-app display concept"),
+        StudioStyle("feminine-cat-garden", "Cat Garden", StudioCategory.FEMININE, "Cute cats, soft botanical colour and playful app symbols", 0xFFDA8C62, 0xFFF6E8D9, "Face It theme preset"),
+        StudioStyle("feminine-petal-pop", "Petal Pop", StudioCategory.FEMININE, "Bright petal tones, joyful colour and rounded icon shapes", 0xFFE58EB1, 0xFFF9E8F0, "Face It theme preset"),
+        StudioStyle("feminine-pearl-atelier", "Pearl Atelier", StudioCategory.FEMININE, "Pearl, satin and delicate jewellery-inspired detail", 0xFFB99AA8, 0xFFF2EAE8, "Face It theme preset"),
+        StudioStyle("feminine-niqab-frame", "Niqab frame", StudioCategory.FEMININE, "A draped display frame with six custom colour choices", 0xFFB68A9D, 0xFF2C202A, "In-app display concept"),
+        StudioStyle("feminine-lilac-luxe", "Lilac Luxe", StudioCategory.FEMININE, "Lilac glass, silver accents and soft luminous details", 0xFF9C8BE0, 0xFFEDE8F6, "Face It theme preset"),
     )
 
     val frameColours = listOf(
@@ -156,18 +162,19 @@ internal fun PersonalisationStudioScreen(
     val context = LocalContext.current
     val prefs = remember { PersonalisationStudioPreferences(context) }
     val colors = LocalFaceItColors.current
+    val activeThemeId = LocalFaceItThemePresetId.current
+    val setThemePreset = LocalSetFaceItThemePresetId.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
     var selectedIds by remember {
-        mutableStateOf(StudioCategory.entries.associateWith { prefs.selected(it) })
+        mutableStateOf(StudioCategory.entries.associateWith { prefs.selected(it) }.toMutableMap().apply { if (get(StudioCategory.THEMES) == null) put(StudioCategory.THEMES, activeThemeId) })
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var pulse by remember { mutableStateOf(false) }
     val currentStyles = PersonalisationCatalogue.byCategory(category)
     val selected = PersonalisationCatalogue.find(selectedIds[category] ?: "")
         ?: currentStyles.first()
-    val isFrame = selected.id == "apps-niqab" || selected.id == "display-veil" || selected.id == "theme-niqab-atelier"
+    val isFrame = selected.id == "apps-niqab" || selected.id == "display-veil" || selected.id == "theme-niqab-atelier" || selected.id == "feminine-niqab-frame"
     val frameHex = PersonalisationCatalogue.frameColours.first { it.first == frameColour }.second
-    val selectedAccent = Color(selected.accent)
     val pulseProgress by animateFloatAsState(
         targetValue = if (pulse) 1f else 0f,
         animationSpec = tween(durationMillis = 850),
@@ -263,6 +270,7 @@ internal fun PersonalisationStudioScreen(
             Button(
                 onClick = {
                     prefs.select(category, selected.id)
+                    if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(selected.id)
                     selectedIds = selectedIds + (category to selected.id)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -284,7 +292,8 @@ internal fun PersonalisationStudioScreen(
                     onClick = {
                         selectedIds = selectedIds + (category to style.id)
                         if (category != StudioCategory.KEYBOARDS) prefs.select(category, style.id)
-                        if (style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier") {
+                        if (category == StudioCategory.THEMES || category == StudioCategory.FEMININE) setThemePreset(style.id)
+                        if (style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier" || style.id == "feminine-niqab-frame") {
                             prefs.setFrameColour(frameColour)
                         }
                     },
@@ -308,10 +317,10 @@ internal fun PersonalisationStudioScreen(
 
         Text(
             when (category) {
-                StudioCategory.WIDGETS -> "The three clock finishes below are connected to the installed Face It clock widget. Android controls widget placement and resizing."
+                StudioCategory.WIDGETS -> "These are the three finishes supported by the native Face It clock widget. Choose a finish in the widget configuration flow when adding an instance; this preview does not change an existing widget."
                 StudioCategory.KEYBOARDS -> "These are selectable visual designs and isolated demos inside Face It. They do not replace your phone keyboard."
                 StudioCategory.ICONS, StudioCategory.APPS, StudioCategory.CONTROLS, StudioCategory.CHARGING, StudioCategory.DISPLAY -> "This is an in-app design preview. Android launchers and system UI control whether third-party icon packs, app grids, quick controls or charging screens can be applied."
-                StudioCategory.THEMES -> "Saved here as a Face It style preset. It does not silently replace Android's system theme."
+                StudioCategory.THEMES, StudioCategory.FEMININE -> "Saved as a Face It theme. The chosen palette changes Face It surfaces, not Android or other apps."
             },
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -329,7 +338,7 @@ private fun StudioDevicePreview(
     val base = Color(style.surface)
     val accent = Color(style.accent)
     val darkInk = if (style.surface < 0xFF777777) Color(0xFFF8F4F7) else Color(0xFF342A31)
-    val isNiqab = style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier"
+    val isNiqab = style.id == "apps-niqab" || style.id == "display-veil" || style.id == "theme-niqab-atelier" || style.id == "feminine-niqab-frame"
     Surface(
         modifier = Modifier.width(224.dp).aspectRatio(.53f),
         shape = RoundedCornerShape(32.dp),
@@ -343,7 +352,7 @@ private fun StudioDevicePreview(
                 StudioCategory.CONTROLS -> ControlPanelPreview(accent, base, darkInk)
                 StudioCategory.WIDGETS -> WidgetPreview(accent, base, darkInk, style.title)
                 StudioCategory.KEYBOARDS -> KeyboardPreview(accent, base, darkInk)
-                StudioCategory.ICONS -> IconGridPreview(accent, base, darkInk, style.id)
+                StudioCategory.ICONS -> IconGridPreview(accent, darkInk, style.id)
                 else -> {
                     Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -351,7 +360,7 @@ private fun StudioDevicePreview(
                             Spacer(Modifier.weight(1f))
                             Text("●  ●  ▰", color = darkInk.copy(alpha = .7f), style = MaterialTheme.typography.labelSmall)
                         }
-                        if (style.category == StudioCategory.THEMES || style.category == StudioCategory.APPS || style.category == StudioCategory.DISPLAY) {
+                        if (style.category == StudioCategory.THEMES || style.category == StudioCategory.APPS || style.category == StudioCategory.DISPLAY || style.category == StudioCategory.FEMININE || style.category == StudioCategory.FEMININE) {
                             Text("Personal space", color = darkInk, style = MaterialTheme.typography.titleMedium)
                             Surface(shape = RoundedCornerShape(18.dp), color = accent.copy(alpha = .22f), border = BorderStroke(1.dp, accent.copy(alpha = .45f))) {
                                 Column(Modifier.fillMaxWidth().padding(12.dp)) {
@@ -395,14 +404,14 @@ private fun AppGrid(accent: Color, ink: Color, styleId: String) {
             Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                 repeat(4) { column ->
                     val index = row * 4 + column
-                    val bg = if (styleId == "apps-cat") iconBackgrounds[(index + 1) % iconBackgrounds.size] else iconBackgrounds[index % iconBackgrounds.size]
+                    val bg = if (styleId.contains("cat")) iconBackgrounds[(index + 1) % iconBackgrounds.size] else iconBackgrounds[index % iconBackgrounds.size]
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Surface(shape = RoundedCornerShape(if (styleId == "apps-niqab") 15.dp else 13.dp), color = bg, modifier = Modifier.size(32.dp), border = BorderStroke(1.dp, Color.White.copy(alpha = .35f))) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = when (index % 4) {
                                         0 -> Icons.Rounded.Apps
-                                        1 -> if (styleId == "apps-cat") Icons.Rounded.Pets else Icons.Rounded.Collections
+                                        1 -> if (styleId.contains("cat")) Icons.Rounded.Pets else Icons.Rounded.Collections
                                         2 -> Icons.Rounded.Favorite
                                         else -> Icons.Rounded.Settings
                                     },
@@ -421,7 +430,7 @@ private fun AppGrid(accent: Color, ink: Color, styleId: String) {
 }
 
 @Composable
-private fun IconGridPreview(accent: Color, base: Color, ink: Color, styleId: String) {
+private fun IconGridPreview(accent: Color, ink: Color, styleId: String) {
     Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text("Icon collection", color = ink, style = MaterialTheme.typography.titleMedium)
         AppGrid(accent, ink, styleId)
