@@ -277,8 +277,10 @@ a card cannot advertise a colour the renderer cannot draw.
 ### Honest boundaries
 
 - Themes change Face It's own surfaces; they do not recolour Android or other apps.
-- The clock widget is the only appearance feature with a genuine system
-  integration. Each placed widget stores the finish it was created with.
+- The clock widget and optional Face It Home launcher are the two
+  genuine Android integrations in this style system. Each placed widget stores
+  the finish it was created with; Face It Home becomes the default launcher only
+  after the user explicitly approves Android's HOME role.
 - Keyboard, keypad, controls, icon families and charging remain visual designs/previews; there is no `InputMethodService`, quick-settings reskin or charging-screen overlay.
 - Face It Home is the one real launcher integration: an optional Android HOME-role activity, explicitly selected by the user. It presents its own app grid and does not replace third-party launcher icons or system UI.
 - Writing styles use real font families with tracking, leading and slant. No
