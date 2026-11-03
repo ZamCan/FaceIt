@@ -36,7 +36,6 @@ import androidx.compose.material.icons.rounded.Pets
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -231,8 +230,7 @@ internal fun PersonalisationStudioScreen(
             StudioDevicePreview(
                 style = selected,
                 frameColour = Color(frameHex),
-                chargingProgress = pulseProgress,
-                onChargingPulse = { pulse = !pulse }
+                chargingProgress = pulseProgress
             )
         }
 
@@ -337,8 +335,7 @@ internal fun PersonalisationStudioScreen(
 private fun StudioDevicePreview(
     style: StudioStyle,
     frameColour: Color,
-    chargingProgress: Float,
-    onChargingPulse: () -> Unit
+    chargingProgress: Float
 ) {
     val base = Color(style.surface)
     val accent = Color(style.accent)
@@ -353,7 +350,7 @@ private fun StudioDevicePreview(
     ) {
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(base, base.copy(alpha = .88f))))) {
             when (style.category) {
-                StudioCategory.CHARGING -> ChargingDisplay(accent, base, darkInk, chargingProgress, onChargingPulse)
+                StudioCategory.CHARGING -> ChargingDisplay(accent, base, darkInk, chargingProgress)
                 StudioCategory.CONTROLS -> ControlPanelPreview(accent, base, darkInk)
                 StudioCategory.WIDGETS -> WidgetPreview(accent, base, darkInk, style.title)
                 StudioCategory.KEYBOARDS -> KeyboardPreview(accent, base, darkInk)
@@ -492,7 +489,7 @@ private fun KeyboardPreview(accent: Color, base: Color, ink: Color) {
 }
 
 @Composable
-private fun ChargingDisplay(accent: Color, base: Color, ink: Color, progress: Float, onPulse: () -> Unit) {
+private fun ChargingDisplay(accent: Color, base: Color, ink: Color, progress: Float) {
     Column(Modifier.fillMaxSize().padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Text("POWERING UP", color = ink.copy(alpha = .7f), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.6.sp))
         Spacer(Modifier.height(24.dp))
@@ -510,11 +507,5 @@ private fun ChargingDisplay(accent: Color, base: Color, ink: Color, progress: Fl
         Spacer(Modifier.height(18.dp))
         Text("Charging beautifully", color = ink, style = MaterialTheme.typography.titleSmall)
         Text("A custom visual concept", color = ink.copy(alpha = .7f), style = MaterialTheme.typography.labelSmall)
-        Spacer(Modifier.height(22.dp))
-        OutlinedButton(onClick = onPulse, border = BorderStroke(1.dp, accent), colors = ButtonDefaults.outlinedButtonColors(contentColor = ink)) {
-            Icon(Icons.Rounded.FlashOn, contentDescription = null)
-            Spacer(Modifier.width(7.dp))
-            Text("Pulse preview")
-        }
     }
 }
