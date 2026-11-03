@@ -94,7 +94,7 @@ that, because a duplicated image is filler:
 - No scraped or unlicensed player, club, brand, photographer or artist material.
 - Distinguish photography from reconstruction and generated artwork.
 - Record rights and provenance before shipping.
-- Verify Islamic place names, historical context and any Arabic calligraphy.
+- Verify place names, historical context and any Arabic calligraphy.
 - Never invent religious quotations or use sacred text as disposable decoration.
 - Do not bundle fake/demo wallpapers to satisfy the 100-image requirement.
 

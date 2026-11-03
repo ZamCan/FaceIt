@@ -13,14 +13,16 @@ FaceIt is a native Android personalisation platform by ZamCan. It lets people bu
 - **Resource-aware:** inactive features must not keep unnecessary rendering or background work alive.
 - **Real functionality:** controls are exposed only when their behaviour is implemented.
 - **Privacy-first:** local processing by default.
-- **Respectful content:** Islamic cities, sacred architecture and Islamic visual heritage lead the first curated collections.
+- **Respectful content:** culturally significant cities, sacred architecture, geometric art and architectural heritage are integrated naturally into the first curated collections.
 - **Platform honesty:** integrations use supported Android APIs, roles and explicit user choices.
 
 ## Working Android foundation
 
 The current main branch includes:
 - Native Kotlin and Jetpack Compose application.
-- Local composition preferences.
+- Local composition preferences and a unified Style Studio with selectable in-app themes (including an optional feminine collection), widgets, icons, app-grid concepts, keyboard styles, controls, charging previews and display treatments.
+- Face It theme palettes persist locally and actively recolour the app's own interface; Android system UI remains under OS control.
+- Optional Niqab-inspired draped app/display frame preview with six independently selectable colours.
 - Device image import for PNG, JPEG and WebP into private app storage.
 - Independent background and main-object image assignments.
 - Live procedural composition preview with category-specific backgrounds and object/material rendering.
@@ -46,7 +48,7 @@ Keyboard Designs are in-app visual presets. A real system text-entry keyboard wo
 ## Planned capabilities
 
 - At least 100 bundled, rights-verified PNG wallpapers — shipped: 100, all original generated artwork recorded in `content/artwork/manifest.json`.
-- Expanded curated Islamic architecture, football, professional, nature, city and design collections.
+- Expanded curated heritage architecture, football, professional, nature, city and design collections.
 - Native widget studio and deeper widget configuration.
 - Supported icon personalisation.
 - Optional default-dialer integration, subject to Android role and telephony requirements.

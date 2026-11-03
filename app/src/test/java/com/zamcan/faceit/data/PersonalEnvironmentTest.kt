@@ -38,12 +38,12 @@ class PersonalEnvironmentTest {
     @Test fun sampleCompositionsPreserveTheirDistinctVisualDirections() {
         val stone = CompositionPresets.find("The Stone Guardian")!!
         val madinah = CompositionPresets.find("Madinah Serenity")!!
-        val geometry = CompositionPresets.find("Islamic Geometry")!!
+        val geometry = CompositionPresets.find("Heritage Geometry")!!
 
         assertEquals("Football", stone.background)
         assertEquals("Lion sculpture", stone.mainObject)
         assertEquals("Natural stone", stone.material)
-        assertEquals("Islamic architecture", madinah.background)
+        assertEquals("Heritage architecture", madinah.background)
         assertEquals("Marble", madinah.material)
         assertEquals("Geometry", geometry.background)
     }

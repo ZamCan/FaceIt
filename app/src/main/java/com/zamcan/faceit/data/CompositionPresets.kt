@@ -15,7 +15,7 @@ object CompositionPresets {
         ),
         PersonalEnvironment(
             name = "Madinah Serenity",
-            background = "Islamic architecture",
+            background = "Heritage architecture",
             mainObject = "Geometric crystal",
             material = "Marble",
             motion = "Static",
@@ -24,7 +24,7 @@ object CompositionPresets {
             resourceProfile = "Essential"
         ),
         PersonalEnvironment(
-            name = "Islamic Geometry",
+            name = "Heritage Geometry",
             background = "Geometry",
             mainObject = "Geometric crystal",
             material = "Brushed metal",

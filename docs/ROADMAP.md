@@ -15,11 +15,19 @@
 - Accessibility: legend and accent contrast is now asserted in unit tests; the
   Pearl Mint accent was corrected after failing the 3.0 non-text threshold.
 
+## Delivered: unified personalisation studio foundation
+
+- Native Style Studio route in the main navigation workspace.
+- Connected categories for themes, clock widget finishes, icon families, app-grid concepts, keyboard designs, quick-control concepts, charging animation previews and display treatments.
+- Optional Niqab-inspired draped-frame preview with independent Onyx, Rose, Plum, Pearl, Sage and Sand colour choices.
+- Dedicated feminine collection direction with cats and other cute animals, floral and jewellery cues, colourful icon families and multiple material palettes.
+- Local per-category style and frame-colour preferences; system-level integrations remain explicitly bounded by Android capability.
+
 ## Foundation iteration
 Native Android project, CI, local composition persistence, functional dialer keypad visual studio with ACTION_DIAL, procedural offline wallpaper renderer and offline visual taxonomy.
 ## Artwork and wallpaper release gate
 Produce and verify at least 100 original or licensed high-quality PNG wallpapers. Build manifest, hashes, thumbnails and responsive derivatives. Implement catalogue search, preview, crop, favourites and offline apply. Verify provenance and licences.
 ## Platform engines
-Native widgets; launcher-compatible icon integration; full dialer role integration after platform review; separate text-entry InputMethodService; encrypted Vault; on-demand 3D and resource lifecycle.
+Native widgets; launcher-compatible icon integration; full dialer role integration after platform review; expanded in-app keyboard design gallery and isolated demonstrations (no system keyboard); encrypted Vault; on-demand 3D and resource lifecycle.
 ## Release gate
 No feature is complete because a screen exists. Each requires behaviour, tests, permission handling, offline/failure handling, accessibility and physical-device validation.

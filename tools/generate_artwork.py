@@ -1214,8 +1214,8 @@ def build_catalogue() -> list[Spec]:
                 tags=[prefix],
             ))
 
-    # 20 — Islamic cities, architecture and geometric heritage
-    add("heritage", "Islamic architecture & geometry", [
+    # 20 — historic cities, architecture and geometric heritage
+    add("heritage", "Heritage architecture & geometry", [
         ("Eight-Fold Rosette", "girih", "makkah_dusk"),
         ("Madinah Sandstone", "dome_skyline", "madinah_sand"),
         ("Pointed Arcade", "arcade", "quds_stone"),

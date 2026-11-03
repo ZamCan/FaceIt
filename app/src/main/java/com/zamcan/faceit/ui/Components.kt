@@ -732,7 +732,7 @@ fun GradientTile(
 ) {
     val colors = LocalFaceItColors.current
     val palette = when {
-        category.contains("Islamic", true) -> listOf(Color(0xFF173A3C), Color(0xFF8C7A5B), Color(0xFF233436))
+        category.contains("Heritage", true) -> listOf(Color(0xFF173A3C), Color(0xFF8C7A5B), Color(0xFF233436))
         category.contains("Football", true) || category.contains("Sport", true) -> listOf(Color(0xFF1B3A34), Color(0xFF4E7A5E), Color(0xFF14211D))
         category.contains("Nature", true) -> listOf(Color(0xFF17333C), Color(0xFF6E8370), Color(0xFF22352D))
         category.contains("Geometry", true) -> listOf(Color(0xFF241D36), Color(0xFF5A4968), Color(0xFF161923))

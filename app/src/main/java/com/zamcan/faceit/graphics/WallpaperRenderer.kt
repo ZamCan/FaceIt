@@ -75,7 +75,7 @@ object WallpaperRenderer {
         px: (Float) -> Float
     ) {
         val colors = when {
-            category.contains("Islamic", true) -> intArrayOf(0xFF172A31.toInt(), 0xFF806D55.toInt(), 0xFF1A2528.toInt())
+            category.contains("Heritage", true) -> intArrayOf(0xFF172A31.toInt(), 0xFF806D55.toInt(), 0xFF1A2528.toInt())
             category.contains("Nature", true) -> intArrayOf(0xFF182F3B.toInt(), 0xFF71836E.toInt(), 0xFF273B32.toInt())
             category.contains("Geometry", true) -> intArrayOf(0xFF211B32.toInt(), 0xFF54445F.toInt(), 0xFF161923.toInt())
             category.contains("City", true) -> intArrayOf(0xFF202A3B.toInt(), 0xFF7B6C66.toInt(), 0xFF171B25.toInt())
@@ -88,7 +88,7 @@ object WallpaperRenderer {
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bg)
 
         when {
-            category.contains("Islamic", true) -> drawMosqueSilhouette(canvas, width, height, px)
+            category.contains("Heritage", true) -> drawMosqueSilhouette(canvas, width, height, px)
             category.contains("Nature", true) -> drawLandscape(canvas, width, height, px)
             category.contains("Geometry", true) -> drawGeometry(canvas, width, height, px)
             category.contains("City", true) -> drawCityscape(canvas, width, height, px)
