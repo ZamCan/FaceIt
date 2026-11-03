@@ -3,6 +3,7 @@ package com.zamcan.faceit.launcher
 import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
@@ -42,13 +43,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import com.zamcan.faceit.data.CuratedLibrary
 import com.zamcan.faceit.themes.FaceTheme
 import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.ui.DrapeFrame
@@ -71,6 +75,7 @@ internal data class FaceItLaunchableApp(
 class FaceItHomeActivity : ComponentActivity() {
 
     private var isDefaultHome by mutableStateOf(false)
+    private val curatedLibrary by lazy { CuratedLibrary(applicationContext) }
 
     private val homeRoleRequest = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -94,13 +99,22 @@ class FaceItHomeActivity : ComponentActivity() {
             FaceItTheme {
                 var apps by remember { mutableStateOf<List<FaceItLaunchableApp>>(emptyList()) }
                 var loading by remember { mutableStateOf(true) }
+                var wallpaper by remember { mutableStateOf<ImageBitmap?>(null) }
                 LaunchedEffect(Unit) {
                     apps = withContext(Dispatchers.IO) { loadLaunchableApps() }
                     loading = false
                 }
+                LaunchedEffect(theme.wallpaperId) {
+                    wallpaper = withContext(Dispatchers.IO) {
+                        curatedLibrary.find(theme.wallpaperId)?.let { artwork ->
+                            curatedLibrary.thumbnail(artwork, 720)?.asImageBitmap()
+                        }
+                    }
+                }
                 FaceItHomeScreen(
                     apps = apps,
                     loading = loading,
+                    wallpaper = wallpaper,
                     theme = theme,
                     frameStyle = frame.style,
                     frameColour = frame.colour,
@@ -121,8 +135,13 @@ class FaceItHomeActivity : ComponentActivity() {
 
 
     private fun refreshHomeRole() {
-        isDefaultHome = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+        isDefaultHome = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             getSystemService(RoleManager::class.java)?.isRoleHeld(RoleManager.ROLE_HOME) == true
+        } else {
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo?.packageName == packageName
+        }
     }
 
     private fun requestHomeRole() {
@@ -175,6 +194,7 @@ class FaceItHomeActivity : ComponentActivity() {
 private fun FaceItHomeScreen(
     apps: List<FaceItLaunchableApp>,
     loading: Boolean,
+    wallpaper: ImageBitmap?,
     theme: FaceTheme,
     frameStyle: com.zamcan.faceit.themes.VeilStyle,
     frameColour: Long,
@@ -185,17 +205,30 @@ private fun FaceItHomeScreen(
     onBack: () -> Unit
 ) {
     val background = Color(theme.background)
-    val raised = Color(theme.surfaceRaised)
-    val ink = Color(theme.textPrimary)
-    val secondary = Color(theme.textSecondary)
+    val raised = Color(theme.surfaceRaised).copy(alpha = .94f)
+    val ink = Color.White
+    val secondary = Color.White.copy(alpha = .78f)
     val accent = Color(theme.accent)
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(background, Color(theme.surface))))
-            .padding(horizontal = 18.dp, vertical = 12.dp)
-    ) {
+    Box(Modifier.fillMaxSize()) {
+        wallpaper?.let {
+            Image(
+                bitmap = it,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        }
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.Black.copy(alpha = .62f), background.copy(alpha = .68f))
+                    )
+                )
+                .padding(horizontal = 18.dp, vertical = 12.dp)
+        ) {
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -307,6 +340,7 @@ private fun FaceItHomeScreen(
                 TextButton(onClick = onBack) { Text("Back to Face It") }
             }
         }
+    }
     }
 }
 
