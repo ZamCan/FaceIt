@@ -71,7 +71,7 @@ class StudioCatalogueTest {
     @Test
     fun theDisplayShelfOffersEveryShapePlusOff() {
         val display = TopicCatalogue.byCategory(StudioCategory.DISPLAY)
-        assertEquals(FaceThemes.all.size.let { it }.coerceAtLeast(1).let { 6 }, display.size)
+        assertEquals(VeilStyle.entries.size, display.size)
         val shapes = display.mapNotNull { it.veilShape }.toSet()
         assertEquals(VeilStyle.entries.toSet(), shapes)
         assertTrue(display.any { it.veilShape == VeilStyle.NONE })
