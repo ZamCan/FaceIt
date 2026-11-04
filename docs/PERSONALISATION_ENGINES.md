@@ -50,3 +50,40 @@ This document defines the next engineering layer. It distinguishes implemented f
 - Test install/upgrade/uninstall, process death, rotation, low-memory recovery and Android 13–15 permissions.
 - Verify on a physical Samsung device: launcher icon masks, wallpaper targets, keyboard switching, widget configuration and SMS handoff.
 - Run unit tests, lint, release minification and signed APK verification. CI success alone is not physical-device certification.
+
+## Catalogue volume — expanded pass (unreleased)
+
+This pass added volume to every catalogue that is drawn in-app, at the product
+owner's request to generate as many resources as possible. Nothing here changes
+what the app claims to control: the widget finishes are still real AppWidgets,
+and everything else is still labelled an in-app preview.
+
+| Catalogue | Before | Now | Notes |
+|---|---|---|---|
+| Complete themes | 12 | 39 | seven families; 6 light themes; 33 distinct wallpapers paired |
+| Icon glyphs | 34 | 53 | eight drawn per theme, chosen by family rather than one shared set |
+| Drape frame shapes | 6 | 10 | all abstract geometry; still off by default |
+| Charging styles | 24 | 42 | 25 motifs, eight of them new renderers |
+| Keypad designs | 8 | 23 | every purpose represented; three light boards |
+| Writing styles | 16 | 41 | 23 message, 7 heading, 5 caption, 5 signature |
+| Clock widget finishes | 9 | 15 | each with a generated preview card |
+
+How the volume was held to the design bar:
+- Every theme, keypad and charging style was checked numerically *before* it was
+  written into the source: body text >= 4.5:1 on its surface, secondary text and
+  accents >= 3.0:1, keypad legends >= 4.5:1 on the key, charging progress
+  >= 2.0:1 on its track. The audit ran as a script; entries that failed were
+  recoloured, not shipped.
+- Every `wallpaperId`, `keyboardDesignId`, `widgetStyleId` and `chargingStyleId`
+  referenced by a theme was resolved against the shipped catalogues, so no theme
+  points at art that does not exist.
+- The six new widget finishes have six newly rendered preview cards from
+  `tools/generate_artwork.py`; their colours are duplicated by hand in that
+  generator, which is the one place the two files can drift.
+- Unit-test floors were raised for every catalogue, so a lost generator shows up
+  as a red build instead of a smaller app.
+
+What is *not* done: none of this has been through CI yet — the run that follows
+this commit is the first verification. Physical-device review of the new finishes,
+the ten new frame shapes and the per-family icon vocabularies is still outstanding, and
+`docs/CI.md` records that as a gate rather than a claim.
