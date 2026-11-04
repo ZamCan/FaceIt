@@ -217,6 +217,54 @@ object WritingStyles {
         WritingStyle(
             "signature_bold", "Sign-off bold", WritingTone.BOLD, WritingSurface.SIGNATURE, sans,
             0.01f, 1.1f, 1f, false, true, "Yours, properly."
+        ),
+        WritingStyle(
+            "letter_warm", "Letter warm", WritingTone.ELEGANT, WritingSurface.MESSAGE, serif,
+            0.02f, 1.62f, 1.03f, false, false, "I kept the ticket stub, if that means anything"
+        ),
+        WritingStyle(
+            "note_brisk", "Note brisk", WritingTone.BOLD, WritingSurface.MESSAGE, sans,
+            0.00f, 1.30f, 1.00f, false, false, "Running ten minutes late, start without me."
+        ),
+        WritingStyle(
+            "soft_caption", "Soft caption", WritingTone.QUIET, WritingSurface.CAPTION, serif,
+            0.05f, 1.55f, 0.94f, true, false, "the long light after five"
+        ),
+        WritingStyle(
+            "bold_caption", "Bold caption", WritingTone.BOLD, WritingSurface.CAPTION, sans,
+            0.03f, 1.25f, 1.02f, false, false, "We were there."
+        ),
+        WritingStyle(
+            "clean_heading", "Clean heading", WritingTone.CLASSIC, WritingSurface.HEADING, sans,
+            0.06f, 1.20f, 1.02f, false, false, "This Week"
+        ),
+        WritingStyle(
+            "retro_heading", "Retro heading", WritingTone.RETRO, WritingSurface.HEADING, mono,
+            0.10f, 1.25f, 1.00f, false, true, "INDEX"
+        ),
+        WritingStyle(
+            "signature_formal", "Sign-off formal", WritingTone.CLASSIC, WritingSurface.SIGNATURE, serif,
+            0.01f, 1.15f, 1.00f, false, false, "Kind regards,"
+        ),
+        WritingStyle(
+            "signature_soft", "Sign-off soft", WritingTone.ELEGANT, WritingSurface.SIGNATURE, sans,
+            0.04f, 1.20f, 0.97f, true, false, "all my love"
+        ),
+        WritingStyle(
+            "code_heading", "Code heading", WritingTone.RETRO, WritingSurface.HEADING, mono,
+            0.02f, 1.30f, 1.00f, false, false, "release notes"
+        ),
+        WritingStyle(
+            "gentle_caption", "Gentle caption", WritingTone.QUIET, WritingSurface.CAPTION, sans,
+            0.07f, 1.60f, 0.92f, false, false, "quietly, on a Sunday"
+        ),
+        WritingStyle(
+            "bright_note", "Bright note", WritingTone.CUTE, WritingSurface.MESSAGE, sans,
+            0.03f, 1.42f, 1.05f, false, false, "kettle is on, biscuits are out"
+        ),
+        WritingStyle(
+            "measured", "Measured", WritingTone.CLASSIC, WritingSurface.MESSAGE, serif,
+            0.00f, 1.48f, 1.00f, false, false, "The meeting moved to Thursday at ten."
         )
     )
 
