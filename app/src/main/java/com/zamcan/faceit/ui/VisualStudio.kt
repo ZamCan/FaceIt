@@ -284,7 +284,11 @@ internal object TopicCatalogue {
             VeilStyle.PLEAT to ("Pleat" to "Even folds of shading down both edges, fading before the labels."),
             VeilStyle.CORNER_TAB to ("Corner tab" to "Four brackets holding the grid; every edge centre stays clear."),
             VeilStyle.DOCK_BAND to ("Dock band" to "A soft band behind the dock with one thin lit rule above it."),
-            VeilStyle.RIBBON to ("Ribbon" to "A single diagonal ribbon of colour across the icons.")
+            VeilStyle.RIBBON to ("Ribbon" to "A single diagonal ribbon of colour across the icons."),
+            VeilStyle.TOP_CORNICE to ("Top cornice" to "A shallow lit band across the top edge only."),
+            VeilStyle.SIDE_PANELS to ("Side panels" to "Two vertical panels holding the grid like a mount."),
+            VeilStyle.HALO to ("Halo" to "A soft ring of colour behind the grid, fading before the edges."),
+            VeilStyle.BASE_PLINTH to ("Base plinth" to "A solid base under the dock with one accent line.")
         ).forEach { (shape, copy) ->
             add(
                 StudioStyle(
@@ -1094,6 +1098,78 @@ internal fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Mo
                     Offset(w * 0.90f, h * 0.795f),
                     strokeWidth = w * 0.006f,
                     cap = StrokeCap.Round
+                )
+            }
+            VeilStyle.TOP_CORNICE -> {
+                val band = Path().apply {
+                    moveTo(0f, 0f)
+                    lineTo(w, 0f)
+                    lineTo(w, h * 0.10f)
+                    lineTo(0f, h * 0.13f)
+                    close()
+                }
+                drawPath(band, colour.copy(alpha = .30f))
+                drawLine(
+                    colour.copy(alpha = .55f),
+                    Offset(w * 0.06f, h * 0.135f),
+                    Offset(w * 0.94f, h * 0.105f),
+                    strokeWidth = w * 0.007f
+                )
+                drawRect(
+                    Color.White.copy(alpha = .10f),
+                    topLeft = Offset(0f, 0f),
+                    size = Size(w, h * 0.035f)
+                )
+            }
+            VeilStyle.SIDE_PANELS -> {
+                listOf(0f to 0.20f, 0.80f to 1f).forEach { (start, end) ->
+                    val panel = Path().apply {
+                        moveTo(w * start, 0f)
+                        lineTo(w * end, 0f)
+                        lineTo(w * end - w * 0.04f, h)
+                        lineTo(w * start + w * 0.04f, h)
+                        close()
+                    }
+                    drawPath(panel, colour.copy(alpha = .24f))
+                }
+                drawLine(
+                    colour.copy(alpha = .42f),
+                    Offset(w * 0.22f, h * 0.08f),
+                    Offset(w * 0.19f, h * 0.92f),
+                    strokeWidth = w * 0.006f
+                )
+                drawLine(
+                    colour.copy(alpha = .42f),
+                    Offset(w * 0.78f, h * 0.08f),
+                    Offset(w * 0.81f, h * 0.92f),
+                    strokeWidth = w * 0.006f
+                )
+            }
+            VeilStyle.HALO -> {
+                drawCircle(
+                    colour.copy(alpha = .13f),
+                    radius = w * 0.62f,
+                    center = Offset(w * 0.5f, h * 0.44f),
+                    style = Stroke(width = w * 0.10f)
+                )
+                drawCircle(
+                    colour.copy(alpha = .22f),
+                    radius = w * 0.44f,
+                    center = Offset(w * 0.5f, h * 0.44f),
+                    style = Stroke(width = w * 0.02f)
+                )
+            }
+            VeilStyle.BASE_PLINTH -> {
+                drawRect(
+                    colour.copy(alpha = .28f),
+                    topLeft = Offset(0f, h * 0.90f),
+                    size = Size(w, h * 0.10f)
+                )
+                drawLine(
+                    colour.copy(alpha = .62f),
+                    Offset(w * 0.04f, h * 0.90f),
+                    Offset(w * 0.96f, h * 0.90f),
+                    strokeWidth = w * 0.007f
                 )
             }
             VeilStyle.RIBBON -> {

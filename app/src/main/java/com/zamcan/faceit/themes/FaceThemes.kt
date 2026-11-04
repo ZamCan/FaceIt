@@ -76,7 +76,11 @@ enum class VeilStyle(val label: String, val description: String) {
     PLEAT("Pleat", "Even vertical pleats of shading fall down both edges and fade before the labels."),
     CORNER_TAB("Corner tab", "Four corner brackets hold the grid; the middle of every edge stays clear."),
     DOCK_BAND("Dock band", "A soft band across the base behind the dock, with a thin lit rule above it."),
-    RIBBON("Ribbon", "One diagonal ribbon of colour sweeps corner to corner behind the icons.")
+    RIBBON("Ribbon", "One diagonal ribbon of colour sweeps corner to corner behind the icons."),
+    TOP_CORNICE("Top cornice", "A shallow cornice across the top, with a lit underside like cut stone."),
+    SIDE_PANELS("Side panels", "Two vertical panels of shading hold the grid between them like a mount."),
+    HALO("Halo", "A soft ring of colour behind the grid, fading before it reaches the edges."),
+    BASE_PLINTH("Base plinth", "A solid plinth under the dock, with one accent line along its top.")
 }
 
 object FaceThemes {

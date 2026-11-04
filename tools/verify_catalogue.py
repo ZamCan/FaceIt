@@ -575,6 +575,16 @@ def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: 
     if unknown:
         problem(f"themes using icon tiles that do not exist: {unknown}")
 
+    # the frame test states a count; it must match the enum minus the off state
+    veils_all = enum_constants("VeilStyle", source("themes/FaceThemes.kt"))
+    expected = len([v for v in veils_all if v != "NONE"])
+    test = (ROOT / "app" / "src" / "test" / "java" / "com" / "zamcan" / "faceit"
+            / "themes" / "DisplayFrameTest.kt")
+    if test.exists():
+        found = re.search(r"assertEquals\((\d+), shapes\.size\)", test.read_text())
+        if found and int(found.group(1)) != expected:
+            problem(f"DisplayFrameTest expects {found.group(1)} shapes, the enum has {expected}")
+
     # every frame shape must be drawable in the studio
     studio = source("ui/VisualStudio.kt")
     routed = set(re.findall(r"VeilStyle\.([A-Z_]+)\s*->", studio))
