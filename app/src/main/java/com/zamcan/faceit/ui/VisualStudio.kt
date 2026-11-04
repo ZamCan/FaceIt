@@ -1626,12 +1626,16 @@ internal fun DrawScope.drawStudioGlyph(glyph: IconGlyph, ink: Color, accent: Col
         }
         IconGlyph.CLOCK -> {
             drawCircle(ink, w * 0.44f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
-            drawLine(ink, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.5f, h * 0.24f), stroke)
-            drawLine(ink, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.70f, h * 0.60f), stroke)
+            drawLine(ink, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.5f, h * 0.24f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(ink, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.70f, h * 0.60f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
         }
         IconGlyph.MUSIC -> {
-            drawLine(ink, Offset(w * 0.66f, h * 0.06f), Offset(w * 0.66f, h * 0.68f), stroke)
-            drawLine(ink, Offset(w * 0.66f, h * 0.06f), Offset(w * 0.94f, h * 0.14f), stroke)
+            drawLine(ink, Offset(w * 0.66f, h * 0.06f), Offset(w * 0.66f, h * 0.68f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(ink, Offset(w * 0.66f, h * 0.06f), Offset(w * 0.94f, h * 0.14f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
             drawCircle(ink, w * 0.13f, Offset(w * 0.52f, h * 0.72f))
             drawCircle(ink, w * 0.13f, Offset(w * 0.80f, h * 0.62f))
         }
@@ -1641,7 +1645,8 @@ internal fun DrawScope.drawStudioGlyph(glyph: IconGlyph, ink: Color, accent: Col
         }
         IconGlyph.CALENDAR -> {
             drawRoundRect(ink, Offset(0f, h * 0.16f), Size(w, h * 0.80f), CornerRadius(w * 0.12f), style = Stroke(stroke))
-            drawLine(ink, Offset(0f, h * 0.38f), Offset(w, h * 0.38f), stroke)
+            drawLine(ink, Offset(0f, h * 0.38f), Offset(w, h * 0.38f),
+                strokeWidth = stroke)
             drawCircle(accent, w * 0.09f, Offset(w * 0.5f, h * 0.64f))
         }
         IconGlyph.HOME -> {
@@ -1676,6 +1681,476 @@ internal fun DrawScope.drawStudioGlyph(glyph: IconGlyph, ink: Color, accent: Col
         IconGlyph.SETTINGS -> {
             drawCircle(ink, w * 0.42f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
             drawCircle(accent, w * 0.16f, Offset(w * 0.5f, h * 0.5f))
+        }
+        IconGlyph.MAIL -> {
+            drawRoundRect(ink, Offset(0f, h * 0.18f), Size(w, h * 0.64f),
+                CornerRadius(w * 0.12f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.04f, h * 0.22f)
+                    lineTo(w * 0.5f, h * 0.58f)
+                    lineTo(w * 0.96f, h * 0.22f)
+                },
+                ink, style = Stroke(stroke)
+            )
+        }
+        IconGlyph.BROWSER -> {
+            drawCircle(ink, w * 0.44f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
+            drawOval(accent, Offset(w * 0.30f, h * 0.10f), Size(w * 0.40f, h * 0.80f),
+                style = Stroke(stroke * 0.6f))
+            drawLine(accent, Offset(w * 0.08f, h * 0.5f), Offset(w * 0.92f, h * 0.5f),
+                strokeWidth = stroke * 0.6f)
+        }
+        IconGlyph.WEATHER -> {
+            drawCircle(accent, w * 0.17f, Offset(w * 0.36f, h * 0.34f))
+            val cloud = Path().apply {
+                moveTo(w * 0.18f, h * 0.76f)
+                cubicTo(w * 0.04f, h * 0.76f, w * 0.06f, h * 0.52f, w * 0.24f, h * 0.52f)
+                cubicTo(w * 0.28f, h * 0.28f, w * 0.62f, h * 0.28f, w * 0.66f, h * 0.52f)
+                cubicTo(w * 0.88f, h * 0.50f, w * 0.92f, h * 0.76f, w * 0.74f, h * 0.76f)
+                close()
+            }
+            drawPath(cloud, ink)
+        }
+        IconGlyph.FILES -> {
+            val folder = Path().apply {
+                moveTo(w * 0.06f, h * 0.82f)
+                lineTo(w * 0.06f, h * 0.24f)
+                lineTo(w * 0.40f, h * 0.24f)
+                lineTo(w * 0.48f, h * 0.36f)
+                lineTo(w * 0.94f, h * 0.36f)
+                lineTo(w * 0.94f, h * 0.82f)
+                close()
+            }
+            drawPath(folder, ink, style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.24f, h * 0.58f), Offset(w * 0.76f, h * 0.58f),
+                strokeWidth = stroke * 0.7f)
+        }
+        IconGlyph.PAW -> {
+            repeat(3) { index ->
+                val angle = Math.toRadians((200 + index * 35).toDouble())
+                drawCircle(accent, w * 0.07f, Offset(
+                    w * (0.32f + index * 0.18f),
+                    h * (0.40f - 0.06f * kotlin.math.cos(angle).toFloat())
+                ))
+            }
+            drawCircle(ink, w * 0.20f, Offset(w * 0.34f, h * 0.66f))
+            drawCircle(ink, w * 0.20f, Offset(w * 0.66f, h * 0.66f))
+        }
+        IconGlyph.LEAF -> {
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.22f, h * 0.86f)
+                    cubicTo(w * 0.10f, h * 0.34f, w * 0.52f, h * 0.06f, w * 0.88f, h * 0.14f)
+                    cubicTo(w * 0.90f, h * 0.62f, w * 0.56f, h * 0.90f, w * 0.22f, h * 0.86f)
+                    close()
+                },
+                ink
+            )
+            drawLine(accent, Offset(w * 0.24f, h * 0.84f), Offset(w * 0.80f, h * 0.22f),
+                strokeWidth = stroke * 0.7f)
+        }
+        IconGlyph.TREE -> {
+            drawLine(accent, Offset(w * 0.5f, h * 0.92f), Offset(w * 0.5f, h * 0.46f),
+                strokeWidth = stroke * 1.1f)
+            val crown = Path().apply {
+                moveTo(w * 0.5f, h * 0.06f)
+                lineTo(w * 0.82f, h * 0.50f)
+                lineTo(w * 0.18f, h * 0.50f)
+                close()
+            }
+            drawPath(crown, ink)
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.5f, h * 0.18f)
+                    lineTo(w * 0.94f, h * 0.70f)
+                    lineTo(w * 0.06f, h * 0.70f)
+                    close()
+                },
+                ink, style = Stroke(stroke * 0.8f)
+            )
+        }
+        IconGlyph.BUTTERFLY -> {
+            val leftWing = Path().apply {
+                moveTo(w * 0.5f, h * 0.84f)
+                cubicTo(w * 0.02f, h * 0.84f, w * 0.04f, h * 0.20f, w * 0.48f, h * 0.40f)
+                close()
+            }
+            val rightWing = Path().apply {
+                moveTo(w * 0.5f, h * 0.84f)
+                cubicTo(w * 0.98f, h * 0.84f, w * 0.96f, h * 0.20f, w * 0.52f, h * 0.40f)
+                close()
+            }
+            drawPath(leftWing, ink)
+            drawPath(rightWing, accent)
+            drawLine(ink, Offset(w * 0.5f, h * 0.34f), Offset(w * 0.5f, h * 0.92f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.STAR -> {
+            val outer = w * 0.46f
+            val inner = w * 0.19f
+            val star = Path().apply {
+                repeat(10) { index ->
+                    val r = if (index % 2 == 0) outer else inner
+                    val a = Math.toRadians(-90.0 + index * 36.0)
+                    val x = w * 0.5f + r * kotlin.math.cos(a).toFloat()
+                    val y = h * 0.5f + r * kotlin.math.sin(a).toFloat()
+                    if (index == 0) moveTo(x, y) else lineTo(x, y)
+                }
+                close()
+            }
+            drawPath(star, ink)
+            drawCircle(accent, w * 0.07f, Offset(w * 0.5f, h * 0.5f))
+        }
+        IconGlyph.CLOCK -> {
+            drawCircle(ink, w * 0.44f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
+            drawLine(ink, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.5f, h * 0.22f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.5f, h * 0.5f), Offset(w * 0.72f, h * 0.62f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+        }
+        IconGlyph.SEARCH -> {
+            drawCircle(ink, w * 0.30f, Offset(w * 0.42f, h * 0.40f), style = Stroke(stroke))
+            drawLine(ink, Offset(w * 0.64f, h * 0.64f), Offset(w * 0.92f, h * 0.92f),
+                strokeWidth = stroke * 1.2f, cap = StrokeCap.Round)
+        }
+        IconGlyph.GIFT -> {
+            drawRoundRect(ink, Offset(w * 0.10f, h * 0.36f), Size(w * 0.80f, h * 0.52f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.5f, h * 0.36f), Offset(w * 0.5f, h * 0.88f),
+                strokeWidth = stroke)
+            drawCircle(ink, w * 0.15f, Offset(w * 0.36f, h * 0.24f), style = Stroke(stroke * 0.8f))
+            drawCircle(ink, w * 0.15f, Offset(w * 0.64f, h * 0.24f), style = Stroke(stroke * 0.8f))
+        }
+        IconGlyph.RING -> {
+            drawCircle(ink, w * 0.28f, Offset(w * 0.5f, h * 0.62f), style = Stroke(stroke))
+            val jewel = Path().apply {
+                moveTo(w * 0.5f, h * 0.06f)
+                lineTo(w * 0.70f, h * 0.26f)
+                lineTo(w * 0.5f, h * 0.42f)
+                lineTo(w * 0.30f, h * 0.26f)
+                close()
+            }
+            drawPath(jewel, accent)
+        }
+        IconGlyph.COFFEE -> {
+            drawRoundRect(ink, Offset(w * 0.12f, h * 0.34f), Size(w * 0.56f, h * 0.48f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawCircle(accent, w * 0.16f, Offset(w * 0.78f, h * 0.54f), style = Stroke(stroke * 0.9f))
+            repeat(2) { index ->
+                drawLine(
+                    accent,
+                    Offset(w * (0.28f + index * 0.20f), h * 0.30f),
+                    Offset(w * (0.34f + index * 0.20f), h * 0.10f),
+                    strokeWidth = stroke * 0.6f, cap = StrokeCap.Round
+                )
+            }
+        }
+        IconGlyph.BAG -> {
+            drawRoundRect(ink, Offset(w * 0.10f, h * 0.34f), Size(w * 0.80f, h * 0.54f),
+                CornerRadius(w * 0.12f), style = Stroke(stroke))
+            val handle = Path().apply {
+                moveTo(w * 0.32f, h * 0.36f)
+                cubicTo(w * 0.32f, h * 0.04f, w * 0.68f, h * 0.04f, w * 0.68f, h * 0.36f)
+            }
+            drawPath(handle, accent, style = Stroke(stroke))
+        }
+        IconGlyph.SUN -> {
+            drawCircle(accent, w * 0.20f, Offset(w * 0.5f, h * 0.5f))
+            repeat(8) { index ->
+                val a = Math.toRadians(index * 45.0)
+                val cx = kotlin.math.cos(a).toFloat()
+                val cy = kotlin.math.sin(a).toFloat()
+                drawLine(
+                    ink,
+                    Offset(w * 0.5f + cx * w * 0.30f, h * 0.5f + cy * h * 0.30f),
+                    Offset(w * 0.5f + cx * w * 0.44f, h * 0.5f + cy * h * 0.44f),
+                    strokeWidth = stroke * 0.7f, cap = StrokeCap.Round
+                )
+            }
+        }
+        IconGlyph.MOON -> {
+            val crescent = Path().apply {
+                moveTo(w * 0.62f, h * 0.08f)
+                cubicTo(w * 0.18f, h * 0.16f, w * 0.16f, h * 0.82f, w * 0.64f, h * 0.92f)
+                cubicTo(w * 0.34f, h * 0.70f, w * 0.34f, h * 0.30f, w * 0.62f, h * 0.08f)
+                close()
+            }
+            drawPath(crescent, ink)
+            drawCircle(accent, w * 0.05f, Offset(w * 0.74f, h * 0.30f))
+            drawCircle(accent, w * 0.04f, Offset(w * 0.84f, h * 0.54f))
+        }
+        IconGlyph.BOOK -> {
+            drawRoundRect(ink, Offset(w * 0.12f, h * 0.14f), Size(w * 0.70f, h * 0.72f),
+                CornerRadius(w * 0.06f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.24f, h * 0.14f), Offset(w * 0.24f, h * 0.86f),
+                strokeWidth = stroke * 0.8f)
+            repeat(2) { index ->
+                drawLine(accent, Offset(w * 0.38f, h * (0.36f + index * 0.18f)),
+                    Offset(w * 0.70f, h * (0.36f + index * 0.18f)), strokeWidth = stroke * 0.5f)
+            }
+        }
+        IconGlyph.PERSON -> {
+            drawCircle(ink, w * 0.19f, Offset(w * 0.5f, h * 0.30f), style = Stroke(stroke))
+            val shoulders = Path().apply {
+                moveTo(w * 0.14f, h * 0.92f)
+                cubicTo(w * 0.16f, h * 0.60f, w * 0.84f, h * 0.60f, w * 0.86f, h * 0.92f)
+            }
+            drawPath(shoulders, ink, style = Stroke(stroke))
+        }
+        IconGlyph.FOOD -> {
+            drawCircle(ink, w * 0.36f, Offset(w * 0.5f, h * 0.56f), style = Stroke(stroke))
+            drawCircle(accent, w * 0.18f, Offset(w * 0.5f, h * 0.56f))
+            drawLine(ink, Offset(w * 0.14f, h * 0.16f), Offset(w * 0.34f, h * 0.36f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+            drawLine(ink, Offset(w * 0.86f, h * 0.16f), Offset(w * 0.66f, h * 0.36f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.FLIGHT -> {
+            val plane = Path().apply {
+                moveTo(w * 0.06f, h * 0.56f)
+                lineTo(w * 0.94f, h * 0.28f)
+                lineTo(w * 0.60f, h * 0.60f)
+                lineTo(w * 0.66f, h * 0.92f)
+                lineTo(w * 0.44f, h * 0.66f)
+                close()
+            }
+            drawPath(plane, ink)
+            drawCircle(accent, w * 0.06f, Offset(w * 0.72f, h * 0.36f))
+        }
+        IconGlyph.MAP -> {
+            val sheet = Path().apply {
+                moveTo(w * 0.06f, h * 0.22f)
+                lineTo(w * 0.36f, h * 0.12f)
+                lineTo(w * 0.66f, h * 0.24f)
+                lineTo(w * 0.94f, h * 0.14f)
+                lineTo(w * 0.94f, h * 0.80f)
+                lineTo(w * 0.66f, h * 0.90f)
+                lineTo(w * 0.36f, h * 0.78f)
+                lineTo(w * 0.06f, h * 0.88f)
+                close()
+            }
+            drawPath(sheet, ink, style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.36f, h * 0.14f), Offset(w * 0.36f, h * 0.78f),
+                strokeWidth = stroke * 0.6f)
+            drawLine(accent, Offset(w * 0.66f, h * 0.24f), Offset(w * 0.66f, h * 0.88f),
+                strokeWidth = stroke * 0.6f)
+        }
+        IconGlyph.GAME -> {
+            drawRoundRect(ink, Offset(w * 0.06f, h * 0.30f), Size(w * 0.88f, h * 0.42f),
+                CornerRadius(w * 0.16f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.26f, h * 0.51f), Offset(w * 0.40f, h * 0.51f),
+                strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.33f, h * 0.44f), Offset(w * 0.33f, h * 0.58f),
+                strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
+            drawCircle(accent, w * 0.055f, Offset(w * 0.70f, h * 0.44f))
+            drawCircle(accent, w * 0.055f, Offset(w * 0.80f, h * 0.56f))
+        }
+        IconGlyph.CONTACT, IconGlyph.PERSON -> {
+            drawCircle(ink, w * 0.19f, Offset(w * 0.5f, h * 0.30f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.14f, h * 0.92f)
+                    cubicTo(w * 0.16f, h * 0.60f, w * 0.84f, h * 0.60f, w * 0.86f, h * 0.92f)
+                },
+                ink, style = Stroke(stroke)
+            )
+        }
+        IconGlyph.PEOPLE -> {
+            drawCircle(accent, w * 0.14f, Offset(w * 0.32f, h * 0.32f), style = Stroke(stroke * 0.8f))
+            drawCircle(ink, w * 0.16f, Offset(w * 0.68f, h * 0.28f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.04f, h * 0.90f)
+                    cubicTo(w * 0.06f, h * 0.62f, w * 0.56f, h * 0.62f, w * 0.58f, h * 0.90f)
+                },
+                accent, style = Stroke(stroke * 0.8f)
+            )
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.46f, h * 0.90f)
+                    cubicTo(w * 0.48f, h * 0.58f, w * 0.94f, h * 0.58f, w * 0.96f, h * 0.90f)
+                },
+                ink, style = Stroke(stroke)
+            )
+        }
+        IconGlyph.WALLET -> {
+            drawRoundRect(ink, Offset(w * 0.08f, h * 0.28f), Size(w * 0.84f, h * 0.50f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawRoundRect(accent, Offset(w * 0.60f, h * 0.44f), Size(w * 0.28f, h * 0.18f),
+                CornerRadius(w * 0.05f))
+            drawCircle(ink, w * 0.04f, Offset(w * 0.74f, h * 0.53f))
+        }
+        IconGlyph.CHAT, IconGlyph.MESSAGE -> {
+            drawRoundRect(ink, Offset(0f, h * 0.10f), Size(w, h * 0.62f),
+                CornerRadius(w * 0.18f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.26f, h * 0.70f)
+                    lineTo(w * 0.20f, h)
+                    lineTo(w * 0.46f, h * 0.72f)
+                    close()
+                },
+                ink, style = Stroke(stroke)
+            )
+            repeat(3) { drawCircle(accent, w * 0.05f, Offset(w * (0.30f + it * 0.20f), h * 0.41f)) }
+        }
+        IconGlyph.VIDEO -> {
+            drawRoundRect(ink, Offset(w * 0.04f, h * 0.26f), Size(w * 0.62f, h * 0.48f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.70f, h * 0.50f)
+                    lineTo(w * 0.96f, h * 0.30f)
+                    lineTo(w * 0.96f, h * 0.70f)
+                    close()
+                },
+                accent
+            )
+        }
+        IconGlyph.VOICE -> {
+            drawRoundRect(ink, Offset(w * 0.38f, h * 0.08f), Size(w * 0.24f, h * 0.48f),
+                CornerRadius(w * 0.12f), style = Stroke(stroke))
+            drawArc(
+                accent, 0f, 180f, false,
+                topLeft = Offset(w * 0.24f, h * 0.34f), size = Size(w * 0.52f, h * 0.44f),
+                style = Stroke(stroke)
+            )
+            drawLine(ink, Offset(w * 0.5f, h * 0.80f), Offset(w * 0.5f, h * 0.94f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+        }
+        IconGlyph.SOS -> {
+            drawCircle(accent, w * 0.40f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
+            drawLine(ink, Offset(w * 0.34f, h * 0.34f), Offset(w * 0.66f, h * 0.66f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(ink, Offset(w * 0.66f, h * 0.34f), Offset(w * 0.34f, h * 0.66f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+        }
+        IconGlyph.DRINK -> {
+            val cup = Path().apply {
+                moveTo(w * 0.22f, h * 0.28f)
+                lineTo(w * 0.78f, h * 0.28f)
+                lineTo(w * 0.68f, h * 0.92f)
+                lineTo(w * 0.32f, h * 0.92f)
+                close()
+            }
+            drawPath(cup, ink, style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.26f, h * 0.46f), Offset(w * 0.74f, h * 0.46f),
+                strokeWidth = stroke * 0.7f)
+            drawLine(accent, Offset(w * 0.5f, h * 0.06f), Offset(w * 0.5f, h * 0.24f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.PILL -> {
+            drawRoundRect(ink, Offset(w * 0.14f, h * 0.36f), Size(w * 0.72f, h * 0.30f),
+                CornerRadius(h * 0.15f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.5f, h * 0.38f), Offset(w * 0.5f, h * 0.64f),
+                strokeWidth = stroke * 0.8f)
+        }
+        IconGlyph.RUN -> {
+            drawCircle(ink, w * 0.11f, Offset(w * 0.60f, h * 0.20f))
+            drawLine(ink, Offset(w * 0.54f, h * 0.34f), Offset(w * 0.40f, h * 0.58f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(ink, Offset(w * 0.40f, h * 0.58f), Offset(w * 0.58f, h * 0.72f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.58f, h * 0.72f), Offset(w * 0.46f, h * 0.94f),
+                strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.40f, h * 0.58f), Offset(w * 0.26f, h * 0.80f),
+                strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.54f, h * 0.40f), Offset(w * 0.76f, h * 0.52f),
+                strokeWidth = stroke * 0.8f, cap = StrokeCap.Round)
+        }
+        IconGlyph.CYCLE -> {
+            drawCircle(ink, w * 0.24f, Offset(w * 0.30f, h * 0.68f), style = Stroke(stroke))
+            drawCircle(ink, w * 0.24f, Offset(w * 0.70f, h * 0.68f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.30f, h * 0.68f), Offset(w * 0.48f, h * 0.34f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.48f, h * 0.34f), Offset(w * 0.70f, h * 0.68f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.WEIGHT -> {
+            drawRoundRect(ink, Offset(w * 0.16f, h * 0.44f), Size(w * 0.68f, h * 0.46f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawArc(
+                accent, 200f, 140f, false,
+                topLeft = Offset(w * 0.28f, h * 0.16f), size = Size(w * 0.44f, h * 0.44f),
+                style = Stroke(stroke * 0.8f)
+            )
+        }
+        IconGlyph.CAR -> {
+            val body = Path().apply {
+                moveTo(w * 0.08f, h * 0.70f)
+                lineTo(w * 0.16f, h * 0.46f)
+                lineTo(w * 0.34f, h * 0.32f)
+                lineTo(w * 0.68f, h * 0.32f)
+                lineTo(w * 0.84f, h * 0.46f)
+                lineTo(w * 0.92f, h * 0.70f)
+                close()
+            }
+            drawPath(body, ink, style = Stroke(stroke))
+            drawCircle(accent, w * 0.09f, Offset(w * 0.30f, h * 0.74f))
+            drawCircle(accent, w * 0.09f, Offset(w * 0.70f, h * 0.74f))
+        }
+        IconGlyph.SHOP -> {
+            val awning = Path().apply {
+                moveTo(w * 0.10f, h * 0.30f)
+                lineTo(w * 0.24f, h * 0.12f)
+                lineTo(w * 0.76f, h * 0.12f)
+                lineTo(w * 0.90f, h * 0.30f)
+                close()
+            }
+            drawPath(awning, accent)
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.16f, h * 0.34f)
+                    lineTo(w * 0.16f, h * 0.88f)
+                    lineTo(w * 0.84f, h * 0.88f)
+                    lineTo(w * 0.84f, h * 0.34f)
+                },
+                ink, style = Stroke(stroke)
+            )
+        }
+        IconGlyph.BANK -> {
+            val roof = Path().apply {
+                moveTo(w * 0.5f, h * 0.08f)
+                lineTo(w * 0.94f, h * 0.34f)
+                lineTo(w * 0.06f, h * 0.34f)
+                close()
+            }
+            drawPath(roof, ink)
+            repeat(3) { index ->
+                drawLine(accent, Offset(w * (0.28f + index * 0.22f), h * 0.42f),
+                    Offset(w * (0.28f + index * 0.22f), h * 0.82f), strokeWidth = stroke * 0.8f)
+            }
+            drawLine(ink, Offset(w * 0.10f, h * 0.88f), Offset(w * 0.90f, h * 0.88f),
+                strokeWidth = stroke)
+        }
+        IconGlyph.TICKET -> {
+            val stub = Path().apply {
+                moveTo(w * 0.08f, h * 0.32f)
+                lineTo(w * 0.92f, h * 0.32f)
+                lineTo(w * 0.92f, h * 0.64f)
+                lineTo(w * 0.08f, h * 0.64f)
+                close()
+            }
+            drawPath(stub, ink, style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.70f, h * 0.32f), Offset(w * 0.70f, h * 0.64f),
+                strokeWidth = stroke * 0.6f)
+            repeat(2) { index ->
+                drawLine(accent, Offset(w * 0.20f, h * (0.42f + index * 0.12f)),
+                    Offset(w * 0.52f, h * (0.42f + index * 0.12f)), strokeWidth = stroke * 0.5f)
+            }
+        }
+        IconGlyph.PIN -> {
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.5f, h * 0.94f)
+                    cubicTo(w * 0.10f, h * 0.58f, w * 0.14f, h * 0.10f, w * 0.5f, h * 0.10f)
+                    cubicTo(w * 0.86f, h * 0.10f, w * 0.90f, h * 0.58f, w * 0.5f, h * 0.94f)
+                    close()
+                },
+                ink
+            )
+            drawCircle(accent, w * 0.11f, Offset(w * 0.5f, h * 0.38f))
         }
         else -> {
             // A neutral rounded square with an accent dot, so an unmapped glyph still

@@ -529,7 +529,7 @@ object ChargingRenderer {
                     fill.color = if (lit) style.progressColor.toInt()
                     else withAlpha(style.sparkColor.toInt(), 55)
                     canvas.drawPath(tri, fill)
-                    stroke.color = withAlpha(style.trackColor, 150)
+                    stroke.color = withAlpha(style.trackColor.toInt(), 150)
                     stroke.strokeWidth = radius * 0.02f
                     canvas.drawPath(tri, stroke)
                 }
@@ -666,7 +666,7 @@ object ChargingRenderer {
                         170
                     )
                     canvas.drawPath(shard, fill)
-                    stroke.color = withAlpha(style.trackColor, 160)
+                    stroke.color = withAlpha(style.trackColor.toInt(), 160)
                     stroke.strokeWidth = radius * 0.02f
                     canvas.drawPath(shard, stroke)
                 }

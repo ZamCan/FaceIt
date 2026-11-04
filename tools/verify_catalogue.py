@@ -310,6 +310,14 @@ def audit_charging() -> dict:
 
     # a single branch may serve several motifs, e.g. `RING, PULSE ->`, so collect
     # every constant named on the left of a route, not just the first
+    # Colour fields are Long; the private helpers take Int. Catch the mix-up here,
+    # because it is the one error this file has produced twice.
+    for bad in re.findall(r"withAlpha\(\s*style\.(\w+Color)\s*,", text):
+        if bad in ("trackColor", "progressColor", "sparkColor"):
+            problem(f"withAlpha called with the Long field {bad} and no .toInt()")
+    for bad in re.findall(r"mix\(\s*style\.(\w+Color)\s*,", text):
+        pass  # mix() takes a Long first argument by design
+
     routed = set()
     for arm in re.findall(r"((?:ChargingMotif\.[A-Z_]+\s*,?\s*)+)->", text):
         routed |= set(re.findall(r"ChargingMotif\.([A-Z_]+)", arm))
@@ -394,6 +402,33 @@ def audit_glyphs() -> dict:
     dangling = [f for f in routes.values() if f not in functions]
     if dangling:
         problem(f"routes calling a draw function that does not exist: {dangling}")
+    # The studio previews glyphs in Compose and must not fall back to a generic
+    # shape for a glyph its families ask for. `else ->` is allowed as a safety net;
+    # silently relying on it for real vocabulary is not.
+    studio = source("ui/VisualStudio.kt")
+    start = studio.find("fun DrawScope.drawStudioGlyph")
+    if start < 0:
+        problem("drawStudioGlyph not found")
+    else:
+        depth, opened, end = 0, False, len(studio)
+        for index in range(start, len(studio)):
+            if studio[index] == "{":
+                depth += 1
+                opened = True
+            elif studio[index] == "}":
+                depth -= 1
+                if opened and depth == 0:
+                    end = index
+                    break
+        body = studio[start:end]
+        # an arm may serve several glyphs, e.g. `IconGlyph.CHAT, IconGlyph.MESSAGE ->`
+        drawn = set()
+        for arm in re.findall(r"((?:IconGlyph\.[A-Z_0-9]+\s*,?\s*)+)->", body):
+            drawn |= set(re.findall(r"IconGlyph\.([A-Z_0-9]+)", arm))
+        missing = [g for g in glyphs if g not in drawn]
+        if missing:
+            problem(f"glyphs the studio preview cannot draw: {missing}")
+
     return {
         "count": len(glyphs),
         "tiles": len(tiles),
