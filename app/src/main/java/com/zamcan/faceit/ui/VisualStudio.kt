@@ -1194,10 +1194,16 @@ private fun IconGrid(theme: FaceTheme, ink: Color, rows: Int = 2) {
                             Modifier
                                 .size(30.dp)
                                 .clip(tileShape(theme))
-                                .background(tileColor)
-                                .border(1.dp, Color.White.copy(alpha = .18f), tileShape(theme)),
+                                .background(tileBrush(theme, tileColor)),
                             contentAlignment = Alignment.Center
                         ) {
+                            // The finish is drawn, not just coloured: glass gets a
+                            // top highlight, stone a lit edge, jewel a facet line.
+                            // Without this all eight finishes look like the same
+                            // rounded square with a different corner radius.
+                            Canvas(Modifier.fillMaxSize()) {
+                                drawTileFinish(theme.iconTile, tileColor, accent)
+                            }
                             Canvas(Modifier.fillMaxSize().padding(7.dp)) {
                                 drawStudioGlyph(glyph, glyphColor, accent)
                             }
@@ -1218,6 +1224,93 @@ private fun tileShape(theme: FaceTheme): androidx.compose.ui.graphics.Shape = wh
     com.zamcan.faceit.graphics.IconTile.MATTE_SQUARE -> RoundedCornerShape(5.dp)
     com.zamcan.faceit.graphics.IconTile.JEWEL_OCTAGON -> RoundedCornerShape(4.dp)
     com.zamcan.faceit.graphics.IconTile.SATIN_ROUNDED -> RoundedCornerShape(20.dp)
+}
+
+/**
+ * The tile's base surface. Flat finishes stay flat; the glass and satin finishes get
+ * a directional wash so the tile catches light the way its name promises.
+ */
+private fun tileBrush(theme: FaceTheme, base: Color): Brush = when (theme.iconTile) {
+    com.zamcan.faceit.graphics.IconTile.GLASS_ROUNDED -> Brush.verticalGradient(
+        listOf(base.copy(alpha = .96f), base.copy(alpha = .76f))
+    )
+    com.zamcan.faceit.graphics.IconTile.FROSTED_ROUNDED -> Brush.verticalGradient(
+        listOf(base.copy(alpha = .90f), base.copy(alpha = .68f))
+    )
+    com.zamcan.faceit.graphics.IconTile.SATIN_ROUNDED -> Brush.verticalGradient(
+        listOf(base.copy(alpha = .92f), base.copy(alpha = .82f))
+    )
+    com.zamcan.faceit.graphics.IconTile.CERAMIC_SQUIRCLE -> Brush.verticalGradient(
+        listOf(Color.White.copy(alpha = .12f), Color.Transparent)
+    )
+    else -> Brush.verticalGradient(listOf(base, base))
+}
+
+/**
+ * Draws the material signature of a tile finish on top of its surface: a specular
+ * band for glass, a single lit edge for stone, a facet crease for jewel, a rim for
+ * ceramic, and nothing at all for matte. Small at 30 dp, but it is what makes eight
+ * themes look like eight materials rather than eight corner radii.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTileFinish(
+    tile: com.zamcan.faceit.graphics.IconTile,
+    base: Color,
+    accent: Color
+) {
+    val w = size.width
+    val h = size.height
+    val light = Color.White
+    when (tile) {
+        com.zamcan.faceit.graphics.IconTile.GLASS_ROUNDED -> {
+            drawRect(
+                Brush.verticalGradient(
+                    listOf(light.copy(alpha = .26f), light.copy(alpha = .02f)),
+                    startY = 0f,
+                    endY = h * 0.62f
+                ),
+                size = androidx.compose.ui.geometry.Size(w, h * 0.62f)
+            )
+            drawLine(
+                light.copy(alpha = .30f), Offset(0f, 0.8f), Offset(w, 0.8f),
+                strokeWidth = 1.2f
+            )
+        }
+        com.zamcan.faceit.graphics.IconTile.FROSTED_ROUNDED -> {
+            drawRect(
+                light.copy(alpha = .14f),
+                size = androidx.compose.ui.geometry.Size(w, h * 0.34f)
+            )
+        }
+        com.zamcan.faceit.graphics.IconTile.STONE_ROUNDED -> {
+            // one lit edge along the top, one shadow along the base
+            drawLine(light.copy(alpha = .22f), Offset(w * .12f, 0.9f), Offset(w * .88f, 0.9f),
+                strokeWidth = 1.6f)
+            drawLine(Color.Black.copy(alpha = .22f), Offset(w * .12f, h - 0.9f),
+                Offset(w * .88f, h - 0.9f), strokeWidth = 1.6f)
+        }
+        com.zamcan.faceit.graphics.IconTile.CERAMIC_SQUIRCLE -> {
+            drawCircle(
+                light.copy(alpha = .10f), radius = w * 0.58f,
+                center = Offset(w * 0.32f, h * 0.24f)
+            )
+        }
+        com.zamcan.faceit.graphics.IconTile.JEWEL_OCTAGON -> {
+            drawLine(accent.copy(alpha = .40f), Offset(0f, h), Offset(w, 0f), strokeWidth = 1.2f)
+            drawLine(light.copy(alpha = .18f), Offset(0f, h * 0.72f), Offset(w * 0.28f, h),
+                strokeWidth = 1f)
+        }
+        com.zamcan.faceit.graphics.IconTile.SATIN_ROUNDED -> {
+            drawLine(
+                light.copy(alpha = .20f), Offset(w * 0.18f, h * 0.16f),
+                Offset(w * 0.82f, h * 0.16f), strokeWidth = h * 0.10f
+            )
+        }
+        com.zamcan.faceit.graphics.IconTile.PEBBLE_CIRCLE -> {
+            drawCircle(light.copy(alpha = .16f), radius = w * 0.30f,
+                center = Offset(w * 0.34f, h * 0.30f))
+        }
+        com.zamcan.faceit.graphics.IconTile.MATTE_SQUARE -> Unit
+    }
 }
 
 @Composable

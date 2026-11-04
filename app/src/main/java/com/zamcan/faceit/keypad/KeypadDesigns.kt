@@ -447,6 +447,23 @@ object KeypadDesigns {
             cornerRadiusDp = 24,
             pressDepthDp = 2,
             purpose = KeypadPurpose.PASSCODE
+        ),
+        KeypadDesign(
+            id = "ivory_speed",
+            name = "Ivory Speed",
+            family = "Light",
+            description = "Wide ivory keys with airy spacing for one-thumb use.",
+            geometry = KeyGeometry.SCULPTED_CAP,
+            material = KeyMaterial.MATTE_CERAMIC,
+            keySurface = 0xFFF3EDE2,
+            legend = 0xFF241F19,
+            accent = 0xFF6B4A28,
+            boardBackground = 0xFFF9F5EC,
+            keyGapDp = 14,
+            keyHeightDp = 56,
+            cornerRadiusDp = 20,
+            pressDepthDp = 2,
+            purpose = KeypadPurpose.SPEED_DIAL_STYLE
         )
     )
 

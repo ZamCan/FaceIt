@@ -359,6 +359,12 @@ def audit_keypads() -> dict:
     ids = [e.get("id", "").strip('"') for e in entries]
     if len(ids) != len(set(ids)):
         problem(f"duplicate keypad ids: {sorted({i for i in ids if ids.count(i) > 1})}")
+
+    purposes = enum_constants("KeypadPurpose", text)
+    used = {e.get("purpose", "").replace("KeypadPurpose.", "") for e in entries}
+    for purpose in purposes:
+        if purpose not in used:
+            problem(f"no keypad for purpose {purpose}: the gallery would show an empty shelf")
     return {"count": len(entries), "ids": ids}
 
 
@@ -379,14 +385,31 @@ def audit_writing() -> dict:
             problem(f"writing style {label}: unknown tone {tone}")
         if surface not in surfaces:
             problem(f"writing style {label}: unknown surface {surface}")
+        # the typographic bands WritingStylesTest enforces, checked before the build
+        try:
+            spacing = float(args[5].rstrip("f"))
+            leading = float(args[6].rstrip("f"))
+            scale = float(args[7].rstrip("f"))
+        except (IndexError, ValueError):
+            problem(f"writing style {label}: could not read its type metrics")
+        else:
+            if not -0.02 <= spacing <= 0.16:
+                problem(f"writing style {label}: letter spacing {spacing} outside -0.02..0.16")
+            if not 1.1 <= leading <= 1.8:
+                problem(f"writing style {label}: line height {leading} outside 1.1..1.8")
+            if not 0.9 <= scale <= 1.4:
+                problem(f"writing style {label}: scale {scale} outside 0.9..1.4")
     ids = [a[0].strip('"') for a in entries if a]
     if len(ids) != len(set(ids)):
         problem(f"duplicate writing ids: {sorted({i for i in ids if ids.count(i) > 1})}")
     by_surface: dict[str, int] = {}
     for args in entries:
         if len(args) > 3:
-            by_surface[args[3].replace("WritingSurface.", "")] = by_surface.get(
-                args[3].replace("WritingSurface.", ""), 0) + 1
+            key = args[3].replace("WritingSurface.", "")
+            by_surface[key] = by_surface.get(key, 0) + 1
+    for surface in surfaces:
+        if by_surface.get(surface, 0) == 0:
+            problem(f"no writing style for surface {surface}")
     return {"count": len(entries), "surfaces": by_surface, "tones": tones}
 
 

@@ -22,9 +22,11 @@ class DisplayFrameTest {
                 setOf("SOFT_DRAPE", "VEIL_FRAME", "LAYERED_FOLD", "OPEN_ARCH", "TWIN_CURVE")
             )
         )
-        assertTrue(shapes.map { it.name }.toSet().containsAll(
-            setOf("PLEAT", "CORNER_TAB", "DOCK_BAND", "RIBBON")
-        ))
+        assertTrue(
+            shapes.map { it.name }.toSet().containsAll(
+                setOf("PLEAT", "CORNER_TAB", "DOCK_BAND", "RIBBON")
+            )
+        )
     }
 
     @Test

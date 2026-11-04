@@ -168,7 +168,7 @@ object WritingStyles {
         ),
         WritingStyle(
             "wide_heading", "Wide heading", WritingTone.QUIET, WritingSurface.HEADING, sans,
-            0.20f, 1.15f, 1.0f, false, true, "Gallery"
+            0.14f, 1.15f, 1.0f, false, true, "Gallery"
         ),
         WritingStyle(
             "mono_heading", "Mono heading", WritingTone.RETRO, WritingSurface.HEADING, mono,
