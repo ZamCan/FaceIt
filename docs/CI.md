@@ -236,3 +236,54 @@ table reappears.
 **Status: not yet executed by CI.** The GitHub credential for this session expired
 before the commit could be pushed, so this gate is written, run locally (PASS on
 all checks) and reviewed, but no CI run has exercised it.
+
+## Runs 16-22 — the catalogue expansion, and what it cost
+
+The product owner asked for as many resources as possible at premium quality. Every
+catalogue grew. This is the record of how it went, including the parts that went
+wrong, because the run log is only useful if it is honest.
+
+| Run | Commit | Result | What it caught |
+|---|---|---|---|
+| 16 | 366bc2a | failure | `withAlpha(style.trackColor, ...)` passed a Long where an Int was wanted — twice |
+| 17 | 83187e2 | failure | three test failures: `wide_heading` at 0.20em tracking, no keypad with the quick-dial purpose, and an assertion I had broken with a bad patch |
+| 18 | 408a297 | failure | the frame test asserted ten shapes; there are nine and an off state |
+| 19 | 59bae3f | **success** | 129 tests / 0 / 0 / 0, 18 classes; Lint 0 errors, 4 warnings |
+| 20 | 89a9c9c | failure | a test asserted more charging styles than themes, which stopped being true at 42 vs 66 |
+| 21 | 2e73b26 | **success** | the same test, rewritten as a ratio that cannot go stale |
+| 22 | 34c961b | **success** | 52 writing styles, 36 keypads, all floors held |
+
+**Every one of those failures passed the local checkers first.** That is the lesson
+of this stretch, and the reason `tools/verify_catalogue.py` now checks constructor
+arity, id uniqueness, cross-references, renderer coverage, contrast, resource
+presence and entry position — not just that the file parses.
+
+Three defects in existing work came out of it, all fixed:
+
+1. **The studio could not draw 39 of the 52 glyphs.** It fell back to a generic
+   rounded square, so the per-family icon vocabularies would have rendered as four
+   themes of identical tiles. All 68 glyphs now draw in both the canvas and the
+   Compose renderer, and the audit fails if one does not.
+2. **All eight icon tile finishes looked identical** apart from corner radius. Each
+   now draws its own material signature in the studio.
+3. **Three widget finishes had date lines below the contrast floor** they claimed:
+   Warm Paper 4.37:1, Warm Ceramic and Pearl Shell 4.20:1, against a 4.5:1 promise.
+   Lightened, the generator's preview colours corrected to match, and the three
+   preview cards re-rendered.
+
+### Current volume
+
+66 complete themes across ten families (61 of the 100 shipped wallpapers
+are now paired with a theme, up from 16), 68 glyphs, 12 tile finishes, 9 drape
+shapes plus off, 58 charging styles across 33 motifs, 36 keypads, 52 writing styles,
+15 widget finishes with generated previews. Roughly 476 studio cards.
+
+### What is still not verified
+
+- No physical-device review of any of it. Ten frame shapes, twelve tile finishes and
+  the per-family icon vocabularies have only been seen as code and as generated art.
+- The six new widget finishes have preview cards that match their Kotlin colours by
+  construction, but nobody has placed one on a real home screen.
+- Seven of the fifteen widget finishes still have no theme pointing at them.
+- CI success is not device certification; the release gates in
+  `PERSONALISATION_ENGINES.md` are unchanged.
