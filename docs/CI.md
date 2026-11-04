@@ -252,7 +252,10 @@ wrong, because the run log is only useful if it is honest.
 | 20 | 89a9c9c | failure | a test asserted more charging styles than themes, which stopped being true at 42 vs 66 |
 | 21 | 2e73b26 | **success** | the same test, rewritten as a ratio that cannot go stale |
 | 22 | 34c961b | **success** | 52 writing styles, 36 keypads, all floors held |
-| 23 | a02b30b | **success** | this documentation pass; 129 tests / 0 / 0 / 0, Lint 0 errors / 4 warnings, 40.8 MB APK |
+| 23 | a02b30b | **success** | documentation pass; 129 tests / 0 / 0 / 0, Lint 0 errors / 4 warnings, 40.8 MB APK |
+| 24 | 1388c9a | **success** | widget finishes 15 -> 21, every one reachable from a theme |
+| 25 | 8321f3e | **success** | drape shapes 9 -> 13 |
+| 26 | d835376 | **success** | themes 66 -> 105; all 100 shipped wallpapers now paired. Verified from the uploaded XML: 129 tests / 0 failures / 0 errors / 0 skipped across 18 classes, Lint 0 errors / 4 warnings |
 
 **Every one of those failures passed the local checkers first.** That is the lesson
 of this stretch, and the reason `tools/verify_catalogue.py` now checks constructor
