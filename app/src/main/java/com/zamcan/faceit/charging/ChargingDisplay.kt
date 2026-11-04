@@ -252,29 +252,6 @@ object ChargingStyles {
             0xFF2E2430, 0xFFCBA8D8, 0xFFF0C8B8,
             "A slow satin sheen travelling around a thin ring."
         ),
-    )
-
-    fun find(id: String?): ChargingStyle = all.firstOrNull { it.id == id } ?: all.first()
-}
-
-/**
- * Draws one charging frame.
- *
- * [progress] is 0f..1f. Nothing is time-animated inside this function: the caller
- * supplies a phase for motifs that need movement, so the widget can step it and
- * the app can animate it. That keeps a widget from running a free-running loop.
- */
-object ChargingRenderer {
-
-    fun draw(
-        canvas: Canvas,
-        bounds: RectF,
-        style: ChargingStyle,
-        progress: Float,
-        phase: Float = 0f,
-        background: Long = style.trackColor,
-        textColor: Long = 0xFFFFFFFF,
-        percentLabel: String? = null,
         ChargingStyle(
             "stair_gold", "Stair gold", ChargingMotif.STAIR,
             0xFF241C10, 0xFFDFBE7C, 0xFF8FC8A8,
@@ -354,7 +331,30 @@ object ChargingRenderer {
             "ice_prism", "Ice prism", ChargingMotif.PRISM,
             0xFF101A22, 0xFF9FD8F0, 0xFFF0C8A0,
             "Cold light through a clear prism."
-        )
+        ),
+    )
+
+    fun find(id: String?): ChargingStyle = all.firstOrNull { it.id == id } ?: all.first()
+}
+
+/**
+ * Draws one charging frame.
+ *
+ * [progress] is 0f..1f. Nothing is time-animated inside this function: the caller
+ * supplies a phase for motifs that need movement, so the widget can step it and
+ * the app can animate it. That keeps a widget from running a free-running loop.
+ */
+object ChargingRenderer {
+
+    fun draw(
+        canvas: Canvas,
+        bounds: RectF,
+        style: ChargingStyle,
+        progress: Float,
+        phase: Float = 0f,
+        background: Long = style.trackColor,
+        textColor: Long = 0xFFFFFFFF,
+        percentLabel: String? = null,
     ) {
         val p = progress.coerceIn(0f, 1f)
         val fill = Paint(Paint.ANTI_ALIAS_FLAG)

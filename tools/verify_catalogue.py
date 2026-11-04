@@ -216,6 +216,30 @@ def contrast(a: int, b: int) -> float:
 
 
 # ------------------------------------------------------------------ catalogues
+def audit_catalogue_shape(text: str, class_name: str, object_name: str) -> None:
+    """Catch an entry list that has been spliced into the wrong place.
+
+    This happened for real: a scripted insert put sixteen ChargingStyle entries
+    inside the renderer's `fun draw(` parameter list. Every entry was individually
+    valid and the parenthesis counts balanced, so only the compiler noticed. The
+    check here is positional: entries must sit inside the catalogue object, before
+    it hands out a lookup.
+    """
+    start = text.find(f"object {object_name} {{")
+    if start < 0:
+        problem(f"object {object_name} not found")
+        return
+    marker = text.find("fun find(", start)
+    end = marker if marker > 0 else text.find("\n}", start)
+    body = text[start:end]
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(class_name + "(") and not line.startswith("        " + class_name + "("):
+            problem(f"{class_name} entry outside the catalogue list in {object_name}: {stripped[:50]}")
+    if body.count("(") != body.count(")"):
+        problem(f"unbalanced parentheses inside object {object_name}")
+
+
 def audit_themes() -> dict:
     text = source("themes/FaceThemes.kt")
     fields = data_class_fields("FaceTheme", text)
@@ -279,6 +303,7 @@ def audit_themes() -> dict:
 
 def audit_charging() -> dict:
     text = source("charging/ChargingDisplay.kt")
+    audit_catalogue_shape(text, "ChargingStyle", "ChargingStyles")
     fields = data_class_fields("ChargingStyle", "\n".join(
         (SRC / p).read_text() for p in
         ["charging/ChargingDisplay.kt"] if (SRC / p).exists()
