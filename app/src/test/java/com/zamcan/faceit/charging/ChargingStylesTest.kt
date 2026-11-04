@@ -14,13 +14,16 @@ class ChargingStylesTest {
         // The catalogue must not be a one-per-theme list: whatever the theme count,
         // the user needs alternatives to choose between. That is the real guarantee,
         // and it does not need to be rewritten every time the theme gallery grows.
-        val perTheme = ChargingStyles.all.size.toFloat() / FaceThemes.all.size
+        // Not a ratio: an animation catalogue does not need to grow linearly with
+        // the theme gallery. What matters is that there is a real choice on offer and
+        // that the themes spread across it instead of piling onto one or two.
+        val defaults = FaceThemes.all.map { it.chargingStyleId }
+        assertTrue("themes lean on too few defaults", defaults.toSet().size >= 20)
+        val mostUsed = defaults.groupingBy { it }.eachCount().values.max()
         assertTrue(
-            "only ${"%.2f".format(perTheme)} styles per theme",
-            perTheme >= 0.6f
+            "one charging style is the default for $mostUsed themes",
+            mostUsed <= maxOf(4, FaceThemes.all.size / 7)
         )
-        val defaults = FaceThemes.all.map { it.chargingStyleId }.toSet()
-        assertTrue("themes lean on too few defaults", defaults.size >= 10)
     }
 
     @Test

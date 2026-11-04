@@ -526,13 +526,23 @@ def audit_widget_finishes() -> dict:
 def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: dict) -> None:
     if not themes:
         return
-    # A theme count that outgrows the charging catalogue turns the animation picker
-    # into a list with no real choice in it. This is a ratio, not a fixed number, so
-    # it stays true as either catalogue grows.
+    # The charging picker must offer the user a real choice. An earlier version of
+    # this check demanded 0.6 styles per theme, which is a bad proxy: it forces the
+    # animation catalogue to grow linearly with the theme gallery, and would push us
+    # to add styles nobody chose just to satisfy arithmetic. What actually matters is
+    # that the catalogue is large in absolute terms and that its entries are spread
+    # across the themes rather than piled onto two or three.
     if charging.get("count"):
-        ratio = charging["count"] / themes["count"]
-        if ratio < 0.6:
-            problem(f"only {ratio:.2f} charging styles per theme; the picker has no room to choose")
+        if charging["count"] < 30:
+            problem(f"only {charging['count']} charging styles; the picker has no choice in it")
+        from collections import Counter
+        spread = Counter(themes.get("charging", []))
+        most_used, count = spread.most_common(1)[0]
+        ceiling = max(4, int(themes["count"] * 0.15))
+        if count > ceiling:
+            problem(f"charging style {most_used} is the default for {count} themes (ceiling {ceiling})")
+        if len(spread) < 20:
+            problem(f"themes use only {len(spread)} distinct charging styles")
     defaults = len(set(themes.get("charging", [])))
     if defaults < 10:
         problem(f"themes use only {defaults} distinct charging defaults")
