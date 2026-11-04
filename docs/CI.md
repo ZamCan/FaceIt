@@ -252,6 +252,7 @@ wrong, because the run log is only useful if it is honest.
 | 20 | 89a9c9c | failure | a test asserted more charging styles than themes, which stopped being true at 42 vs 66 |
 | 21 | 2e73b26 | **success** | the same test, rewritten as a ratio that cannot go stale |
 | 22 | 34c961b | **success** | 52 writing styles, 36 keypads, all floors held |
+| 23 | a02b30b | **success** | this documentation pass; 129 tests / 0 / 0 / 0, Lint 0 errors / 4 warnings, 40.8 MB APK |
 
 **Every one of those failures passed the local checkers first.** That is the lesson
 of this stretch, and the reason `tools/verify_catalogue.py` now checks constructor
