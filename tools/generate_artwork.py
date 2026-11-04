@@ -1736,6 +1736,12 @@ def render_widget_previews() -> list[tuple[str, Image.Image]]:
         ("clay", hexc("EFE3D6"), hexc("26201A"), hexc("8A5B3F"), "CLAY CERAMIC"),
         ("ivory", hexc("F7F3EA"), hexc("201D18"), hexc("4A6F63"), "IVORY CERAMIC"),
         ("lilac", hexc("33283F"), hexc("F7F1FF"), hexc("C0A0F0"), "LILAC SATIN"),
+        ("basalt", hexc("1A1C1F"), hexc("F2F5F8"), hexc("9EB8D0"), "BASALT GLASS"),
+        ("saffron", hexc("2A2010"), hexc("FFF6E4"), hexc("E8C27A"), "SAFFRON GLAZE"),
+        ("ocean", hexc("0E2430"), hexc("F0FAFC"), hexc("8FD8E8"), "OCEAN GLASS"),
+        ("sandstone", hexc("F0E4D4"), hexc("26201A"), hexc("7A5A38"), "SANDSTONE"),
+        ("fern", hexc("F1F5EA"), hexc("1E2A20"), hexc("3F6B50"), "FERN CERAMIC"),
+        ("mauve", hexc("3A2C38"), hexc("FFF2F8"), hexc("D8A8C8"), "MAUVE SATIN"),
     ]:
         W, H = 1440, 810
         # backdrop: a darkened version of the finish, so the widget reads as a card
@@ -1962,7 +1968,7 @@ def main() -> int:
 
     wallpapers = [e for e in manifest_entries if e["type"] == "wallpaper"]
     print(f"Face It artwork pack: {len(wallpapers)} wallpapers, "
-          f"{len(OBJECTS_PLAN)} objects, {len(TEXTURES_PLAN)} textures, 15 widget previews")
+          f"{len(OBJECTS_PLAN)} objects, {len(TEXTURES_PLAN)} textures, 21 widget previews")
     print(f"wallpaper bytes: {total_bytes / 1e6:.1f} MB "
           f"(mean {total_bytes / max(1, len(wallpapers)) / 1024:.0f} KB)")
     return 0

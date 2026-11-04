@@ -207,6 +207,66 @@ object FaceItClockWidgetStyles {
             date = 0xC0A0F0.toInt(),
             previewRes = R.drawable.faceit_widget_preview_lilac,
             detail = "Lilac satin with a pearl date line."
+        ),
+        FaceItClockStyle(
+            id = "Basalt",
+            label = "Basalt Glass",
+            family = "Glazed",
+            background = 0xE61A1C1F.toInt(),
+            time = 0x00F2F5F8.toInt(),
+            date = 0x009EB8D0.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_basalt,
+            detail = "Cool volcanic glass with a pale blue date line."
+        ),
+        FaceItClockStyle(
+            id = "Saffron",
+            label = "Saffron Glaze",
+            family = "Glazed",
+            background = 0xE62A2010.toInt(),
+            time = 0x00FFF6E4.toInt(),
+            date = 0x00E8C27A.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_saffron,
+            detail = "Warm saffron glass with a gold date line."
+        ),
+        FaceItClockStyle(
+            id = "Ocean",
+            label = "Ocean Glass",
+            family = "Glazed",
+            background = 0xE60E2430.toInt(),
+            time = 0x00F0FAFC.toInt(),
+            date = 0x008FD8E8.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_ocean,
+            detail = "Deep water glass with a foam date line."
+        ),
+        FaceItClockStyle(
+            id = "Sandstone",
+            label = "Sandstone",
+            family = "Ceramic",
+            background = 0xEAF0E4D4.toInt(),
+            time = 0x0026201A.toInt(),
+            date = 0x007A5A38.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_sandstone,
+            detail = "Warm sandstone with dark numerals and a clay line."
+        ),
+        FaceItClockStyle(
+            id = "Fern",
+            label = "Fern Ceramic",
+            family = "Ceramic",
+            background = 0xEAF1F5EA.toInt(),
+            time = 0x001E2A20.toInt(),
+            date = 0x003F6B50.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_fern,
+            detail = "Pale fern ceramic with a forest green date line."
+        ),
+        FaceItClockStyle(
+            id = "Mauve",
+            label = "Mauve Satin",
+            family = "Satin",
+            background = 0xE83A2C38.toInt(),
+            time = 0x00FFF2F8.toInt(),
+            date = 0x00D8A8C8.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_mauve,
+            detail = "Muted mauve satin with a rose date line."
         )
     )
 

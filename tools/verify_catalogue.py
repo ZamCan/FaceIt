@@ -536,6 +536,13 @@ def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: 
     defaults = len(set(themes.get("charging", [])))
     if defaults < 10:
         problem(f"themes use only {defaults} distinct charging defaults")
+
+    # a widget finish no theme points at is artwork the user can only reach by
+    # opening the widget picker blind; every finish should be reachable from a theme
+    finishes = set(audit_widget_finishes()["ids"])
+    unreachable = sorted(f for f in finishes if f not in set(themes.get("widgets", [])))
+    if unreachable:
+        problem(f"widget finishes no theme uses: {unreachable}")
     index = json.loads((ASSETS / "artwork_index.json").read_text(encoding="utf-8"))
     wallpapers = {w["id"] for w in index["wallpapers"]}
     unknown = sorted({w for w in themes["wallpapers"] if w not in wallpapers})
