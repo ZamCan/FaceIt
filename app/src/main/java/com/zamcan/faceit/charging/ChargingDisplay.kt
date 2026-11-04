@@ -25,7 +25,8 @@ import android.graphics.Shader
 enum class ChargingMotif {
     RING, PULSE, FILL, SPARK, PETALS, CAT, MOON, LANTERN, PITCH, AURORA, PAPER, WAVE,
     HEART, BUTTERFLY, STARFIELD, ORBIT, GARDEN,
-    CROWN, JEWEL, LEAF, COLUMN, RUNWAY, TIDE, PORTAL, SHATTER
+    CROWN, JEWEL, LEAF, COLUMN, RUNWAY, TIDE, PORTAL, SHATTER,
+    STAIR, HOURGLASS, TUMBLER, MANDALA, CHEVRON, COIL, PRISM, BEACON
 }
 
 data class ChargingStyle(
@@ -273,7 +274,87 @@ object ChargingRenderer {
         phase: Float = 0f,
         background: Long = style.trackColor,
         textColor: Long = 0xFFFFFFFF,
-        percentLabel: String? = null
+        percentLabel: String? = null,
+        ChargingStyle(
+            "stair_gold", "Stair gold", ChargingMotif.STAIR,
+            0xFF241C10, 0xFFDFBE7C, 0xFF8FC8A8,
+            "Steps light one by one toward the top."
+        ),
+        ChargingStyle(
+            "hour_charge", "Hour charge", ChargingMotif.HOURGLASS,
+            0xFF1C1720, 0xFFC9A2F0, 0xFF9FE0C8,
+            "Sand falls into the lower half as the charge grows."
+        ),
+        ChargingStyle(
+            "tumbler", "Tumbler", ChargingMotif.TUMBLER,
+            0xFF14202A, 0xFF5FC8D8, 0xFFF0D8A0,
+            "A glass fills evenly with a lit rim."
+        ),
+        ChargingStyle(
+            "mandala", "Mandala", ChargingMotif.MANDALA,
+            0xFF1A1420, 0xFFD8A8F0, 0xFFF0C88A,
+            "Rings and spokes draw themselves in order."
+        ),
+        ChargingStyle(
+            "chevron", "Chevron", ChargingMotif.CHEVRON,
+            0xFF161A1E, 0xFF9FC8E8, 0xFFF0C080,
+            "Chevrons march upward with the level."
+        ),
+        ChargingStyle(
+            "coil", "Coil", ChargingMotif.COIL,
+            0xFF1B1618, 0xFFE0A8B8, 0xFFA8D8C8,
+            "A spring tightens as the charge climbs."
+        ),
+        ChargingStyle(
+            "prism", "Prism", ChargingMotif.PRISM,
+            0xFF12161C, 0xFFA8C0E8, 0xFFF0C8A0,
+            "White light splits through the prism at every step."
+        ),
+        ChargingStyle(
+            "beacon", "Beacon", ChargingMotif.BEACON,
+            0xFF0E1418, 0xFF8FD8D0, 0xFFF0C88A,
+            "Two beams sweep from a lit base."
+        ),
+        ChargingStyle(
+            "silk_ivory", "Silk ivory", ChargingMotif.PULSE,
+            0xFFF2EADF, 0xFF8A6A3F, 0xFF2F6F62,
+            "Ivory silk with a brown ink ring."
+        ),
+        ChargingStyle(
+            "graphite_ring", "Graphite ring", ChargingMotif.RING,
+            0xFF1E2024, 0xFFD8DCE4, 0xFF9FA8BF,
+            "Graphite with a single bright ring."
+        ),
+        ChargingStyle(
+            "jade_fill", "Jade fill", ChargingMotif.FILL,
+            0xFF0E201A, 0xFF6FD8B4, 0xFFE0E8A8,
+            "Jade liquid rising behind the number."
+        ),
+        ChargingStyle(
+            "marigold", "Marigold", ChargingMotif.PETALS,
+            0xFF2A1C0E, 0xFFF0B860, 0xFFF0E0A8,
+            "Marigold petals, warm and even."
+        ),
+        ChargingStyle(
+            "pearl_stair", "Pearl stair", ChargingMotif.STAIR,
+            0xFFF2EFEA, 0xFF7A6A5A, 0xFF3F6B60,
+            "Pearl steps with a stone ink."
+        ),
+        ChargingStyle(
+            "orchid_hour", "Orchid hour", ChargingMotif.HOURGLASS,
+            0xFF2A1830, 0xFFE0A8F0, 0xFF9FE0C8,
+            "Orchid sand in a dark glass."
+        ),
+        ChargingStyle(
+            "copper_coil", "Copper coil", ChargingMotif.COIL,
+            0xFF2A1A12, 0xFFE8A878, 0xFF9FC8B8,
+            "Burnished copper winding tight."
+        ),
+        ChargingStyle(
+            "ice_prism", "Ice prism", ChargingMotif.PRISM,
+            0xFF101A22, 0xFF9FD8F0, 0xFFF0C8A0,
+            "Cold light through a clear prism."
+        )
     ) {
         val p = progress.coerceIn(0f, 1f)
         val fill = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -474,6 +555,203 @@ object ChargingRenderer {
                 }
             }
 
+
+
+            ChargingMotif.STAIR -> {
+                val steps = 5
+                val stepW = (radius * 1.7f) / steps
+                val stepH = (radius * 1.5f) / steps
+                for (i in 0 until steps) {
+                    val lit = p >= (i + 1) / steps.toFloat()
+                    val left = centreX - radius * 0.85f + i * stepW
+                    val topY = centreY + radius * 0.75f - (i + 1) * stepH
+                    fill.color = if (lit) style.progressColor.toInt()
+                    else withAlpha(style.sparkColor.toInt(), 55)
+                    canvas.drawRect(RectF(left, topY, left + stepW * 0.92f, centreY + radius * 0.78f), fill)
+                }
+                stroke.color = withAlpha(style.trackColor.toInt(), 140)
+                stroke.strokeWidth = radius * 0.03f
+                canvas.drawLine(
+                    centreX - radius * 0.9f, centreY + radius * 0.82f,
+                    centreX + radius * 0.9f, centreY + radius * 0.82f, stroke
+                )
+            }
+
+            ChargingMotif.HOURGLASS -> {
+                val glass = Path().apply {
+                    moveTo(centreX - radius * 0.55f, centreY - radius * 0.80f)
+                    lineTo(centreX + radius * 0.55f, centreY - radius * 0.80f)
+                    lineTo(centreX + radius * 0.10f, centreY)
+                    lineTo(centreX + radius * 0.55f, centreY + radius * 0.80f)
+                    lineTo(centreX - radius * 0.55f, centreY + radius * 0.80f)
+                    lineTo(centreX - radius * 0.10f, centreY)
+                    close()
+                }
+                stroke.color = mix(style.trackColor, Color.WHITE, 0.14f)
+                stroke.strokeWidth = radius * 0.05f
+                canvas.drawPath(glass, stroke)
+                canvas.save()
+                canvas.clipPath(glass)
+                val drained = (p * 2f).coerceAtMost(1f)
+                fill.color = withAlpha(style.progressColor.toInt(), 210)
+                val lowerTop = centreY + radius * 0.80f - radius * 0.80f * drained
+                canvas.drawRect(
+                    RectF(centreX - radius, lowerTop, centreX + radius, centreY + radius * 0.82f), fill
+                )
+                fill.color = withAlpha(style.sparkColor.toInt(), 160)
+                val upperBottom = centreY - radius * 0.80f + radius * 0.80f * drained
+                canvas.drawRect(
+                    RectF(centreX - radius, centreY - radius * 0.82f, centreX + radius, upperBottom), fill
+                )
+                canvas.restore()
+            }
+
+            ChargingMotif.TUMBLER -> {
+                val glass = RectF(
+                    centreX - radius * 0.52f, centreY - radius * 0.72f,
+                    centreX + radius * 0.52f, centreY + radius * 0.72f
+                )
+                stroke.color = mix(style.trackColor, Color.WHITE, 0.16f)
+                stroke.strokeWidth = radius * 0.05f
+                canvas.drawRoundRect(glass, radius * 0.10f, radius * 0.10f, stroke)
+                val level = glass.bottom - glass.height() * p
+                fill.color = withAlpha(style.progressColor.toInt(), 205)
+                canvas.drawRect(RectF(glass.left, level, glass.right, glass.bottom), fill)
+                fill.color = withAlpha(style.sparkColor.toInt(), 190)
+                canvas.drawRect(RectF(glass.left, level, glass.right, level + radius * 0.055f), fill)
+            }
+
+            ChargingMotif.MANDALA -> {
+                val rings = 4
+                val spokes = 12
+                for (i in 0 until rings) {
+                    val r = radius * (0.30f + i * 0.22f)
+                    stroke.color = if (p >= (i + 1) / rings.toFloat()) style.progressColor.toInt()
+                    else withAlpha(style.sparkColor.toInt(), 60)
+                    stroke.strokeWidth = radius * 0.03f
+                    canvas.drawCircle(centreX, centreY, r, stroke)
+                }
+                for (i in 0 until spokes) {
+                    val a = Math.toRadians(i * (360.0 / spokes))
+                    val reach = radius * (0.28f + 0.62f * p)
+                    stroke.color = withAlpha(style.sparkColor.toInt(), 150)
+                    stroke.strokeWidth = radius * 0.02f
+                    canvas.drawLine(
+                        centreX + (radius * 0.18f * kotlin.math.cos(a)).toFloat(),
+                        centreY + (radius * 0.18f * kotlin.math.sin(a)).toFloat(),
+                        centreX + (reach * kotlin.math.cos(a)).toFloat(),
+                        centreY + (reach * kotlin.math.sin(a)).toFloat(),
+                        stroke
+                    )
+                }
+                fill.color = withAlpha(style.progressColor.toInt(), 200)
+                canvas.drawCircle(centreX, centreY, radius * 0.12f, fill)
+            }
+
+            ChargingMotif.CHEVRON -> {
+                val count = 5
+                for (i in 0 until count) {
+                    val t = i / count.toFloat()
+                    val y = centreY + radius * 0.62f - radius * 1.24f * t
+                    val lit = p >= (i + 1) / count.toFloat() - 0.001f
+                    val chevron = Path().apply {
+                        moveTo(centreX - radius * 0.62f, y + radius * 0.20f)
+                        lineTo(centreX, y)
+                        lineTo(centreX + radius * 0.62f, y + radius * 0.20f)
+                    }
+                    stroke.color = if (lit) style.progressColor.toInt()
+                    else withAlpha(style.sparkColor.toInt(), 70)
+                    stroke.strokeWidth = radius * 0.09f
+                    canvas.drawPath(chevron, stroke)
+                }
+            }
+
+            ChargingMotif.COIL -> {
+                val turns = 5
+                val coil = Path().apply {
+                    moveTo(centreX - radius * 0.62f, centreY + radius * 0.62f)
+                    for (i in 0 until turns) {
+                        val y = centreY + radius * 0.62f - radius * (1.24f / turns) * (i + 0.5f)
+                        cubicTo(
+                            centreX - radius * 0.62f, y - radius * 0.14f,
+                            centreX + radius * 0.62f, y - radius * 0.14f,
+                            centreX + radius * 0.62f, y
+                        )
+                    }
+                }
+                stroke.color = withAlpha(style.sparkColor.toInt(), 80)
+                stroke.strokeWidth = radius * 0.10f
+                canvas.drawPath(coil, stroke)
+                canvas.save()
+                canvas.clipRect(
+                    RectF(
+                        centreX - radius, centreY + radius * 0.64f - radius * 1.30f * p,
+                        centreX + radius, centreY + radius * 0.68f
+                    )
+                )
+                stroke.color = style.progressColor.toInt()
+                canvas.drawPath(coil, stroke)
+                canvas.restore()
+            }
+
+            ChargingMotif.PRISM -> {
+                val prism = Path().apply {
+                    moveTo(centreX, centreY - radius * 0.62f)
+                    lineTo(centreX + radius * 0.70f, centreY + radius * 0.52f)
+                    lineTo(centreX - radius * 0.70f, centreY + radius * 0.52f)
+                    close()
+                }
+                stroke.color = mix(style.trackColor, Color.WHITE, 0.18f)
+                stroke.strokeWidth = radius * 0.05f
+                canvas.drawPath(prism, stroke)
+                canvas.save()
+                canvas.clipPath(prism)
+                fill.color = withAlpha(style.progressColor.toInt(), 190)
+                canvas.drawRect(
+                    RectF(
+                        centreX - radius, centreY + radius * 0.52f - radius * 1.2f * p,
+                        centreX + radius, centreY + radius * 0.54f
+                    ),
+                    fill
+                )
+                canvas.restore()
+                for (i in 0 until 3) {
+                    stroke.color = withAlpha(
+                        when (i) {
+                            0 -> style.progressColor.toInt()
+                            1 -> style.sparkColor.toInt()
+                            else -> Color.WHITE
+                        },
+                        150
+                    )
+                    stroke.strokeWidth = radius * 0.03f
+                    canvas.drawLine(
+                        centreX + radius * 0.30f, centreY + radius * 0.10f,
+                        centreX + radius * (0.86f + 0.06f * i), centreY + radius * (0.02f + 0.22f * i),
+                        stroke
+                    )
+                }
+            }
+
+            ChargingMotif.BEACON -> {
+                fill.color = withAlpha(style.trackColor.toInt(), 200)
+                canvas.drawCircle(centreX, centreY + radius * 0.52f, radius * 0.30f, fill)
+                fill.color = withAlpha(style.progressColor.toInt(), 220)
+                canvas.drawCircle(centreX, centreY + radius * 0.52f, radius * 0.22f * (0.4f + 0.6f * p), fill)
+                val sweep = 360f * p
+                for (side in -1..1) {
+                    val a0 = (sweep * side) - 90f
+                    stroke.color = withAlpha(style.sparkColor.toInt(), 120)
+                    stroke.strokeWidth = radius * 0.10f
+                    canvas.drawArc(
+                        RectF(
+                            centreX - radius * 0.62f, centreY - radius * 0.10f,
+                            centreX + radius * 0.62f, centreY + radius * 1.06f
+                        ),
+                        a0, 22f, true, stroke
+                    )
+                }
+            }
 
             ChargingMotif.CROWN -> {
                 val points = 5

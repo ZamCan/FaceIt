@@ -1039,7 +1039,7 @@ object FaceThemes {
             iconTileColor = 0xFF17241F,
             iconGlyphColor = 0xFFF1FAF3,
             widgetStyleId = "Sage",
-            chargingStyleId = "pine_fill",
+            chargingStyleId = "stair_gold",
             veilStyle = VeilStyle.DOCK_BAND,
             veilColor = 0xFFA8D8A0,
             isDark = true
@@ -1063,7 +1063,7 @@ object FaceThemes {
             iconTileColor = 0xFF23241E,
             iconGlyphColor = 0xFFFAF7EF,
             widgetStyleId = "Clay",
-            chargingStyleId = "crown_gold",
+            chargingStyleId = "chevron",
             veilStyle = VeilStyle.OPEN_ARCH,
             veilColor = 0xFFD8CF9E,
             isDark = true
@@ -1135,7 +1135,7 @@ object FaceThemes {
             iconTileColor = 0xFFF0F4F8,
             iconGlyphColor = 0xFF15202B,
             widgetStyleId = "Ivory",
-            chargingStyleId = "paper_gold",
+            chargingStyleId = "prism",
             veilStyle = VeilStyle.CORNER_TAB,
             veilColor = 0xFF1F6FB0,
             isDark = false
@@ -1159,7 +1159,7 @@ object FaceThemes {
             iconTileColor = 0xFF13262A,
             iconGlyphColor = 0xFFEFFCFA,
             widgetStyleId = "Mint",
-            chargingStyleId = "jewel_charge",
+            chargingStyleId = "ice_prism",
             veilStyle = VeilStyle.RIBBON,
             veilColor = 0xFF76DCCB,
             isDark = true
@@ -1183,7 +1183,7 @@ object FaceThemes {
             iconTileColor = 0xFF241F14,
             iconGlyphColor = 0xFFFDF8EC,
             widgetStyleId = "Obsidian",
-            chargingStyleId = "gold_fill",
+            chargingStyleId = "mandala",
             veilStyle = VeilStyle.DOCK_BAND,
             veilColor = 0xFFC9A46A,
             isDark = true
@@ -1207,7 +1207,7 @@ object FaceThemes {
             iconTileColor = 0xFF2A1F28,
             iconGlyphColor = 0xFFFBF2F6,
             widgetStyleId = "Orchid",
-            chargingStyleId = "pearl_ring",
+            chargingStyleId = "coil",
             veilStyle = VeilStyle.TWIN_CURVE,
             veilColor = 0xFFE0C27A,
             isDark = true
@@ -1255,7 +1255,7 @@ object FaceThemes {
             iconTileColor = 0xFF12251A,
             iconGlyphColor = 0xFFEFFCF4,
             widgetStyleId = "Sage",
-            chargingStyleId = "pine_fill",
+            chargingStyleId = "marigold",
             veilStyle = VeilStyle.SOFT_DRAPE,
             veilColor = 0xFF6FD8A8,
             isDark = true
@@ -1279,7 +1279,7 @@ object FaceThemes {
             iconTileColor = 0xFF2A211C,
             iconGlyphColor = 0xFFFFF7F2,
             widgetStyleId = "Ivory",
-            chargingStyleId = "silk_rose",
+            chargingStyleId = "jade_fill",
             veilStyle = VeilStyle.LAYERED_FOLD,
             veilColor = 0xFFE8C0A0,
             isDark = true
@@ -1375,7 +1375,7 @@ object FaceThemes {
             iconTileColor = 0xFF2E2119,
             iconGlyphColor = 0xFFFFF6EE,
             widgetStyleId = "Espresso",
-            chargingStyleId = "coral_pulse",
+            chargingStyleId = "silk_ivory",
             veilStyle = VeilStyle.RIBBON,
             veilColor = 0xFFD9603C,
             isDark = true
@@ -1495,7 +1495,7 @@ object FaceThemes {
             iconTileColor = 0xFF16291F,
             iconGlyphColor = 0xFFF2FBF6,
             widgetStyleId = "Sage",
-            chargingStyleId = "pine_fill",
+            chargingStyleId = "tumbler",
             veilStyle = VeilStyle.TWIN_CURVE,
             veilColor = 0xFFA8DBC0,
             isDark = true
@@ -1591,7 +1591,7 @@ object FaceThemes {
             iconTileColor = 0xFF161D26,
             iconGlyphColor = 0xFFF0F6FD,
             widgetStyleId = "Obsidian",
-            chargingStyleId = "midnight_orbit",
+            chargingStyleId = "beacon",
             veilStyle = VeilStyle.CORNER_TAB,
             veilColor = 0xFF91B9F4,
             isDark = true
