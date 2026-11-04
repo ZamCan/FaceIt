@@ -27,9 +27,11 @@ class FaceThemesTest {
 
     @Test
     fun catalogueIsWideEnoughToBeACatalogue() {
-        assertTrue("expected at least 12 themes", FaceThemes.all.size >= 12)
+        assertTrue("expected at least 36 themes", FaceThemes.all.size >= 36)
         assertTrue("expected a Ladies family", FaceThemes.families.contains("Ladies"))
         assertTrue("expected at least one light theme", FaceThemes.all.any { !it.isDark })
+        assertTrue("expected several light themes", FaceThemes.all.count { !it.isDark } >= 5)
+        assertTrue("expected at least five families", FaceThemes.families.size >= 6)
     }
 
     @Test

@@ -37,11 +37,11 @@ class StudioCatalogueTest {
 
     @Test
     fun theCollectionIsActuallyLarge() {
-        // A catalogue, not a sampler. This number is a floor, not a target: it exists
-        // so an accidental deletion of a whole generator shows up as a failure.
+        // A catalogue, not a sampler. These floors exist so a whole generator being
+        // lost shows up as a failure rather than as a quietly smaller app.
         assertTrue(
             "only ${TopicCatalogue.styles.size} styles",
-            TopicCatalogue.styles.size >= 95
+            TopicCatalogue.styles.size >= 240
         )
     }
 

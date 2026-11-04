@@ -12,6 +12,12 @@ import org.junit.Test
 class KeypadDesignsTest {
 
     @Test
+    fun thereAreEnoughDesignsToBeACatalogue() {
+        assertTrue("only ${KeypadDesigns.all.size} keypads", KeypadDesigns.all.size >= 20)
+        assertTrue("expected several families", KeypadDesigns.families.size >= 5)
+    }
+
+    @Test
     fun designsHaveUniqueIds() {
         val ids = KeypadDesigns.all.map { it.id }
         assertEquals(ids.size, ids.toSet().size)
@@ -63,6 +69,27 @@ class KeypadDesignsTest {
 
     @Test
     fun thereIsALightPadForLightThemes() {
-        assertTrue(KeypadDesigns.all.any { it.boardBackground == 0xFFF2EDE4L })
+        // Light themes need a light board or the pad fights the wallpaper. There
+        // are now several, and every one of them must keep dark legends.
+        val light = KeypadDesigns.all.filter { design ->
+            com.zamcan.faceit.themes.ThemeContrast.ratio(design.boardBackground, 0xFFFFFFFFL) < 1.6
+        }
+        assertTrue("no light keypad board", light.size >= 3)
+        light.forEach { design ->
+            assertTrue(
+                "${design.name}: legend ${design.legendContrast} on a light board",
+                design.legendContrast >= 4.5
+            )
+        }
+    }
+
+    @Test
+    fun everyPurposeIsRepresentedSoTheGalleryHasNoEmptyShelf() {
+        KeypadPurpose.entries.forEach { purpose ->
+            assertTrue(
+                "no keypad for $purpose",
+                KeypadDesigns.all.any { it.purpose == purpose }
+            )
+        }
     }
 }

@@ -147,6 +147,66 @@ object FaceItClockWidgetStyles {
             date = 0x9BD6B5.toInt(),
             previewRes = R.drawable.faceit_widget_preview_sage,
             detail = "Sage satin with a soft green date line."
+        ),
+        FaceItClockStyle(
+            id = "Slate",
+            label = "Slate Glaze",
+            family = "Glazed",
+            background = 0xE61B1F26.toInt(),
+            time = 0xEDF1F7.toInt(),
+            date = 0x8FB0D8.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_slate,
+            detail = "Cool slate glass with a blue date line."
+        ),
+        FaceItClockStyle(
+            id = "Espresso",
+            label = "Espresso Glaze",
+            family = "Glazed",
+            background = 0xE62A1D16.toInt(),
+            time = 0xFBF0E4.toInt(),
+            date = 0xD8A878.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_espresso,
+            detail = "Deep coffee glass with a caramel date line."
+        ),
+        FaceItClockStyle(
+            id = "Orchid",
+            label = "Orchid Glaze",
+            family = "Glazed",
+            background = 0xE62A1730.toInt(),
+            time = 0xFBF0FF.toInt(),
+            date = 0xD8A0F0.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_orchid,
+            detail = "Orchid glass with a lilac date line."
+        ),
+        FaceItClockStyle(
+            id = "Clay",
+            label = "Clay Ceramic",
+            family = "Ceramic",
+            background = 0xEAEFE3D6.toInt(),
+            time = 0x26201A.toInt(),
+            date = 0x8A5B3F.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_clay,
+            detail = "Unpainted clay with a terracotta date line."
+        ),
+        FaceItClockStyle(
+            id = "Ivory",
+            label = "Ivory Ceramic",
+            family = "Ceramic",
+            background = 0xECF7F3EA.toInt(),
+            time = 0x201D18.toInt(),
+            date = 0x4A6F63.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_ivory,
+            detail = "Ivory ceramic with teal ink. The lightest finish."
+        ),
+        FaceItClockStyle(
+            id = "Lilac",
+            label = "Lilac Satin",
+            family = "Satin",
+            background = 0xE833283F.toInt(),
+            time = 0xF7F1FF.toInt(),
+            date = 0xC0A0F0.toInt(),
+            previewRes = R.drawable.faceit_widget_preview_lilac,
+            detail = "Lilac satin with a pearl date line."
         )
     )
 

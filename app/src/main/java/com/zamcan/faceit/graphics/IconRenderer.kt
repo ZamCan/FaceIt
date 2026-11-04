@@ -28,7 +28,13 @@ enum class IconGlyph {
     // objects and pastimes
     BOOK, GIFT, RING, COFFEE, BAG, SUN, MOON, MAP,
     // kit and controls
-    CHARGE, GAME, CONTACT, WALLET, SEARCH, HOME
+    CHARGE, GAME, CONTACT, WALLET, SEARCH, HOME,
+    // life and people
+    PERSON, PEOPLE, CHAT, VIDEO, VOICE, SOS,
+    // food, drink and health
+    FOOD, DRINK, PILL, RUN, CYCLE, WEIGHT,
+    // travel and money
+    FLIGHT, CAR, SHOP, BANK, TICKET, PIN
 }
 
 /** How the tile behind the glyph is finished. */
@@ -114,6 +120,24 @@ object IconRenderer {
             IconGlyph.WALLET -> drawWallet(canvas, glyphBox, paint, accent)
             IconGlyph.SEARCH -> drawSearch(canvas, glyphBox, paint, accent)
             IconGlyph.HOME -> drawHome(canvas, glyphBox, paint, accent)
+            IconGlyph.PERSON -> drawPerson(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.PEOPLE -> drawPeople(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.CHAT -> drawChat(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.VIDEO -> drawVideo(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.VOICE -> drawVoice(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.SOS -> drawSos(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.FOOD -> drawFood(canvas, glyphBox, paint, accent)
+            IconGlyph.DRINK -> drawDrink(canvas, glyphBox, paint, accent)
+            IconGlyph.PILL -> drawPill(canvas, glyphBox, fill, accent)
+            IconGlyph.RUN -> drawRun(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.CYCLE -> drawCycle(canvas, glyphBox, paint, accent)
+            IconGlyph.WEIGHT -> drawWeight(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.FLIGHT -> drawFlight(canvas, glyphBox, fill, accent)
+            IconGlyph.CAR -> drawCar(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.SHOP -> drawShop(canvas, glyphBox, paint, accent)
+            IconGlyph.BANK -> drawBank(canvas, glyphBox, paint, accent)
+            IconGlyph.TICKET -> drawTicket(canvas, glyphBox, paint, accent, fill)
+            IconGlyph.PIN -> drawPin(canvas, glyphBox, paint, fill, accent)
         }
     }
 
@@ -768,6 +792,298 @@ object IconRenderer {
             RectF(box.centerX() - w * 0.10f, box.top + w * 0.64f, box.centerX() + w * 0.10f, box.bottom - w * 0.04f),
             w * 0.04f, w * 0.04f, accent
         )
+    }
+
+
+    // ------------------------------------------------------------ life
+
+    private fun drawPerson(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.centerX(), box.top + w * 0.26f, w * 0.19f, fill)
+        canvas.drawCircle(box.centerX(), box.top + w * 0.26f, w * 0.19f, stroke)
+        canvas.drawArc(
+            RectF(box.left + w * 0.12f, box.top + w * 0.46f, box.right - w * 0.12f, box.bottom + w * 0.34f),
+            180f, 180f, true, fill
+        )
+        canvas.drawArc(
+            RectF(box.left + w * 0.12f, box.top + w * 0.46f, box.right - w * 0.12f, box.bottom + w * 0.34f),
+            180f, 180f, true, stroke
+        )
+        canvas.drawCircle(box.centerX(), box.top + w * 0.26f, w * 0.06f, accent)
+    }
+
+    private fun drawPeople(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        // a pair, offset: one behind and quieter, one in front and lit
+        canvas.drawCircle(box.left + w * 0.30f, box.top + w * 0.32f, w * 0.15f, fill)
+        canvas.drawCircle(box.left + w * 0.30f, box.top + w * 0.32f, w * 0.15f, stroke)
+        canvas.drawArc(
+            RectF(box.left - w * 0.02f, box.top + w * 0.50f, box.left + w * 0.62f, box.bottom + w * 0.28f),
+            180f, 180f, true, fill
+        )
+        canvas.drawCircle(box.right - w * 0.28f, box.top + w * 0.24f, w * 0.18f, fill)
+        canvas.drawCircle(box.right - w * 0.28f, box.top + w * 0.24f, w * 0.18f, stroke)
+        canvas.drawArc(
+            RectF(box.left + w * 0.34f, box.top + w * 0.44f, box.right + w * 0.04f, box.bottom + w * 0.34f),
+            180f, 180f, true, accent
+        )
+    }
+
+    private fun drawChat(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawRoundRect(
+            RectF(box.left, box.top + w * 0.10f, box.right - w * 0.10f, box.top + w * 0.62f),
+            w * 0.20f, w * 0.20f, stroke
+        )
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.24f, box.top + w * 0.44f, box.right, box.bottom - w * 0.06f),
+            w * 0.20f, w * 0.20f, fill
+        )
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.24f, box.top + w * 0.44f, box.right, box.bottom - w * 0.06f),
+            w * 0.20f, w * 0.20f, stroke
+        )
+        canvas.drawCircle(box.left + w * 0.72f, box.top + w * 0.70f, w * 0.055f, accent)
+    }
+
+    private fun drawVideo(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawRoundRect(
+            RectF(box.left, box.top + w * 0.26f, box.left + w * 0.68f, box.bottom - w * 0.18f),
+            w * 0.16f, w * 0.16f, fill
+        )
+        canvas.drawRoundRect(
+            RectF(box.left, box.top + w * 0.26f, box.left + w * 0.68f, box.bottom - w * 0.18f),
+            w * 0.16f, w * 0.16f, stroke
+        )
+        val lens = Path().apply {
+            moveTo(box.left + w * 0.72f, box.top + w * 0.42f)
+            lineTo(box.right, box.top + w * 0.24f)
+            lineTo(box.right, box.bottom - w * 0.16f)
+            lineTo(box.left + w * 0.72f, box.bottom - w * 0.34f)
+            close()
+        }
+        canvas.drawPath(lens, accent)
+    }
+
+    private fun drawVoice(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawRoundRect(
+            RectF(box.centerX() - w * 0.14f, box.top, box.centerX() + w * 0.14f, box.top + w * 0.54f),
+            w * 0.14f, w * 0.14f, fill
+        )
+        canvas.drawArc(
+            RectF(box.centerX() - w * 0.34f, box.top + w * 0.16f, box.centerX() + w * 0.34f, box.top + w * 0.80f),
+            0f, 180f, false, stroke
+        )
+        canvas.drawLine(box.centerX(), box.top + w * 0.80f, box.centerX(), box.bottom, stroke)
+        canvas.drawLine(box.centerX() - w * 0.20f, box.bottom, box.centerX() + w * 0.20f, box.bottom, stroke)
+        canvas.drawCircle(box.centerX(), box.top + w * 0.20f, w * 0.05f, accent)
+    }
+
+    private fun drawSos(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.centerX(), box.centerY(), w * 0.46f, fill)
+        canvas.drawCircle(box.centerX(), box.centerY(), w * 0.46f, stroke)
+        // three short marks: a distress pattern, not a copy of any SOS glyph
+        repeat(3) { i ->
+            canvas.drawLine(
+                box.centerX() - w * 0.20f + i * w * 0.20f, box.centerY() - w * 0.14f,
+                box.centerX() - w * 0.20f + i * w * 0.20f, box.centerY() + w * 0.14f,
+                accent
+            )
+        }
+    }
+
+    // ------------------------------------------------------------ food and health
+
+    private fun drawFood(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawArc(
+            RectF(box.left, box.top + w * 0.10f, box.right, box.top + w * 0.78f),
+            0f, 180f, false, stroke
+        )
+        canvas.drawLine(box.left, box.top + w * 0.44f, box.right, box.top + w * 0.44f, stroke)
+        canvas.drawLine(box.left, box.top, box.left, box.top + w * 0.90f, accent)
+        canvas.drawLine(box.right - w * 0.02f, box.top, box.right - w * 0.02f, box.top + w * 0.90f, accent)
+        canvas.drawLine(box.right - w * 0.20f, box.top, box.right - w * 0.20f, box.top + w * 0.90f, accent)
+    }
+
+    private fun drawDrink(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint) {
+        val w = box.width()
+        val cup = Path().apply {
+            moveTo(box.left + w * 0.22f, box.top + w * 0.24f)
+            lineTo(box.right - w * 0.22f, box.top + w * 0.24f)
+            lineTo(box.centerX(), box.bottom - w * 0.02f)
+            close()
+        }
+        canvas.drawPath(cup, stroke)
+        canvas.drawLine(box.left + w * 0.30f, box.top + w * 0.10f, box.right - w * 0.30f, box.top + w * 0.10f, accent)
+    }
+
+    private fun drawPill(canvas: Canvas, box: RectF, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.save()
+        canvas.rotate(-38f, box.centerX(), box.centerY())
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.06f, box.centerY() - w * 0.20f, box.right - w * 0.06f, box.centerY() + w * 0.20f),
+            w * 0.20f, w * 0.20f, fill
+        )
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.06f, box.centerY() - w * 0.20f, box.centerX(), box.centerY() + w * 0.20f),
+            w * 0.20f, w * 0.20f, accent
+        )
+        canvas.restore()
+    }
+
+    private fun drawRun(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.left + w * 0.66f, box.top + w * 0.14f, w * 0.12f, fill)
+        val stride = Path().apply {
+            moveTo(box.centerX(), box.top + w * 0.30f)
+            lineTo(box.left + w * 0.30f, box.top + w * 0.54f)
+            lineTo(box.left + w * 0.44f, box.bottom - w * 0.02f)
+        }
+        canvas.drawPath(stride, stroke)
+        val leg = Path().apply {
+            moveTo(box.centerX(), box.top + w * 0.30f)
+            lineTo(box.right - w * 0.18f, box.top + w * 0.60f)
+        }
+        canvas.drawPath(leg, stroke)
+        canvas.drawLine(box.centerX(), box.top + w * 0.30f, box.left + w * 0.66f, box.top + w * 0.26f, accent)
+    }
+
+    private fun drawCycle(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.left + w * 0.26f, box.bottom - w * 0.26f, w * 0.22f, stroke)
+        canvas.drawCircle(box.right - w * 0.26f, box.bottom - w * 0.26f, w * 0.22f, stroke)
+        val frame = Path().apply {
+            moveTo(box.left + w * 0.26f, box.bottom - w * 0.26f)
+            lineTo(box.centerX() - w * 0.04f, box.top + w * 0.38f)
+            lineTo(box.right - w * 0.26f, box.bottom - w * 0.26f)
+        }
+        canvas.drawPath(frame, accent)
+        canvas.drawLine(box.centerX() - w * 0.04f, box.top + w * 0.38f, box.left + w * 0.40f, box.top + w * 0.38f, stroke)
+    }
+
+    private fun drawWeight(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.08f, box.top + w * 0.30f, box.right - w * 0.08f, box.bottom - w * 0.04f),
+            w * 0.18f, w * 0.18f, fill
+        )
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.08f, box.top + w * 0.30f, box.right - w * 0.08f, box.bottom - w * 0.04f),
+            w * 0.18f, w * 0.18f, stroke
+        )
+        canvas.drawArc(
+            RectF(box.centerX() - w * 0.16f, box.top + w * 0.14f, box.centerX() + w * 0.16f, box.top + w * 0.44f),
+            180f, 180f, false, stroke
+        )
+        canvas.drawLine(box.centerX(), box.top + w * 0.46f, box.centerX() + w * 0.10f, box.top + w * 0.34f, accent)
+    }
+
+    // ------------------------------------------------------------ travel and money
+
+    private fun drawFlight(canvas: Canvas, box: RectF, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.save()
+        canvas.rotate(-20f, box.centerX(), box.centerY())
+        val plane = Path().apply {
+            moveTo(box.centerX(), box.top + w * 0.02f)
+            lineTo(box.centerX() + w * 0.10f, box.top + w * 0.44f)
+            lineTo(box.right - w * 0.02f, box.centerY() + w * 0.10f)
+            lineTo(box.right - w * 0.02f, box.centerY() + w * 0.22f)
+            lineTo(box.centerX() + w * 0.10f, box.centerY() + w * 0.30f)
+            lineTo(box.centerX() + w * 0.16f, box.bottom - w * 0.04f)
+            lineTo(box.centerX() + w * 0.02f, box.bottom - w * 0.04f)
+            lineTo(box.centerX() - w * 0.06f, box.centerY() + w * 0.30f)
+            close()
+        }
+        canvas.drawPath(plane, fill)
+        canvas.drawCircle(box.centerX() + w * 0.02f, box.top + w * 0.24f, w * 0.06f, accent)
+        canvas.restore()
+    }
+
+    private fun drawCar(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = Path().apply {
+            moveTo(box.left + w * 0.04f, box.top + w * 0.68f)
+            lineTo(box.left + w * 0.16f, box.top + w * 0.40f)
+            lineTo(box.left + w * 0.34f, box.top + w * 0.24f)
+            lineTo(box.right - w * 0.34f, box.top + w * 0.24f)
+            lineTo(box.right - w * 0.16f, box.top + w * 0.40f)
+            lineTo(box.right - w * 0.04f, box.top + w * 0.68f)
+            close()
+        }
+        canvas.drawPath(body, fill)
+        canvas.drawPath(body, stroke)
+        canvas.drawCircle(box.left + w * 0.28f, box.bottom - w * 0.12f, w * 0.13f, stroke)
+        canvas.drawCircle(box.right - w * 0.28f, box.bottom - w * 0.12f, w * 0.13f, stroke)
+        canvas.drawCircle(box.left + w * 0.28f, box.bottom - w * 0.12f, w * 0.05f, accent)
+        canvas.drawCircle(box.right - w * 0.28f, box.bottom - w * 0.12f, w * 0.05f, accent)
+    }
+
+    private fun drawShop(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint) {
+        val w = box.width()
+        // awning: three scallops, so it reads as a shopfront rather than a box
+        val awning = Path().apply {
+            moveTo(box.left, box.top + w * 0.30f)
+            lineTo(box.right, box.top + w * 0.30f)
+            lineTo(box.right, box.top + w * 0.46f)
+            cubicTo(box.right - w * 0.18f, box.top + w * 0.60f, box.right - w * 0.32f, box.top + w * 0.46f, box.centerX(), box.top + w * 0.52f)
+            cubicTo(box.left + w * 0.32f, box.top + w * 0.46f, box.left + w * 0.18f, box.top + w * 0.60f, box.left, box.top + w * 0.46f)
+            close()
+        }
+        canvas.drawPath(awning, accent)
+        canvas.drawRoundRect(
+            RectF(box.left + w * 0.12f, box.top + w * 0.52f, box.right - w * 0.12f, box.bottom),
+            w * 0.05f, w * 0.05f, stroke
+        )
+        canvas.drawLine(box.centerX(), box.top + w * 0.52f, box.centerX(), box.bottom, stroke)
+    }
+
+    private fun drawBank(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint) {
+        val w = box.width()
+        val pediment = Path().apply {
+            moveTo(box.left + w * 0.04f, box.top + w * 0.30f)
+            lineTo(box.centerX(), box.top + w * 0.04f)
+            lineTo(box.right - w * 0.04f, box.top + w * 0.30f)
+            close()
+        }
+        canvas.drawPath(pediment, stroke)
+        canvas.drawLine(box.left, box.top + w * 0.34f, box.right, box.top + w * 0.34f, stroke)
+        repeat(4) { i ->
+            val x = box.left + w * (0.18f + i * 0.215f)
+            canvas.drawLine(x, box.top + w * 0.40f, x, box.bottom - w * 0.10f, accent)
+        }
+        canvas.drawLine(box.left, box.bottom - w * 0.04f, box.right, box.bottom - w * 0.04f, stroke)
+    }
+
+    private fun drawTicket(canvas: Canvas, box: RectF, stroke: Paint, accent: Paint, fill: Paint) {
+        val w = box.width()
+        canvas.drawRoundRect(
+            RectF(box.left, box.top + w * 0.22f, box.right, box.bottom - w * 0.22f),
+            w * 0.12f, w * 0.12f, stroke
+        )
+        // tear line with two notches
+        canvas.drawLine(box.left + w * 0.62f, box.top + w * 0.22f, box.left + w * 0.62f, box.bottom - w * 0.22f, stroke)
+        canvas.drawCircle(box.left + w * 0.62f, box.top + w * 0.22f, w * 0.06f, fill)
+        canvas.drawCircle(box.left + w * 0.62f, box.bottom - w * 0.22f, w * 0.06f, fill)
+        canvas.drawCircle(box.left + w * 0.30f, box.centerY(), w * 0.08f, accent)
+    }
+
+    private fun drawPin(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val drop = Path().apply {
+            moveTo(box.centerX(), box.bottom)
+            cubicTo(box.left + w * 0.04f, box.top + w * 0.58f, box.left + w * 0.16f, box.top, box.centerX(), box.top)
+            cubicTo(box.right - w * 0.16f, box.top, box.right - w * 0.04f, box.top + w * 0.58f, box.centerX(), box.bottom)
+            close()
+        }
+        canvas.drawPath(drop, fill)
+        canvas.drawPath(drop, stroke)
+        canvas.drawCircle(box.centerX(), box.top + w * 0.34f, w * 0.11f, accent)
     }
 
 }

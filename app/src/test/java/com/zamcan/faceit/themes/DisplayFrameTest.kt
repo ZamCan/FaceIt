@@ -12,13 +12,19 @@ import org.junit.Test
 class DisplayFrameTest {
 
     @Test
-    fun thereAreFiveShapesAndAnOffState() {
+    fun thereAreTenShapesAndAnOffState() {
         val shapes = VeilStyle.entries.filter { it != VeilStyle.NONE }
-        assertEquals(5, shapes.size)
-        assertEquals(
-            setOf("SOFT_DRAPE", "VEIL_FRAME", "LAYERED_FOLD", "OPEN_ARCH", "TWIN_CURVE"),
-            shapes.map { it.name }.toSet()
+        assertEquals(10, shapes.size)
+        // The original five came straight from the product-owner reference; the
+        // rest are the same abstract geometry in other arrangements.
+        assertTrue(
+            shapes.map { it.name }.toSet().containsAll(
+                setOf("SOFT_DRAPE", "VEIL_FRAME", "LAYERED_FOLD", "OPEN_ARCH", "TWIN_CURVE")
+            )
         )
+        assertTrue(shapes.map { it.name }.toSet().containsAll(
+            setOf("PLEAT", "CORNER_TAB", "DOCK_BAND", "RIBBON")
+        ))
     }
 
     @Test
@@ -31,7 +37,7 @@ class DisplayFrameTest {
 
     @Test
     fun everyShapeCanBeDrawnInEveryColour() {
-        // 5 shapes x 6 colours, all reachable through the resolver.
+        // 10 shapes x 6 colours, all reachable through the resolver.
         val theme = FaceThemes.find("midnight_cat")
         FrameColours.all.forEach { colour ->
             VeilStyle.entries.filter { it != VeilStyle.NONE }.forEach { shape ->

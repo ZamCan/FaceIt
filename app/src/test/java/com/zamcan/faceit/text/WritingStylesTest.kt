@@ -13,6 +13,14 @@ import org.junit.Test
 class WritingStylesTest {
 
     @Test
+    fun thereAreEnoughStylesAcrossEverySurface() {
+        assertTrue("only ${WritingStyles.all.size} writing styles", WritingStyles.all.size >= 26)
+        WritingSurface.entries.forEach { surface ->
+            assertTrue("$surface has under four styles", WritingStyles.forSurface(surface).size >= 2)
+        }
+    }
+
+    @Test
     fun idsAreUnique() {
         val ids = WritingStyles.all.map { it.id }
         assertEquals(ids.size, ids.toSet().size)

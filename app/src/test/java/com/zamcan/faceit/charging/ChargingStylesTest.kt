@@ -9,6 +9,17 @@ import org.junit.Test
 class ChargingStylesTest {
 
     @Test
+    fun thereAreEnoughStylesToCoverEveryThemeWithRoomToChoose() {
+        assertTrue("only ${ChargingStyles.all.size} styles", ChargingStyles.all.size >= 30)
+        // More styles than themes, so every theme keeps a distinct default and the
+        // user still has alternatives.
+        assertTrue(
+            "expected more charging styles than themes",
+            ChargingStyles.all.size >= FaceThemes.all.size
+        )
+    }
+
+    @Test
     fun stylesHaveUniqueIds() {
         val ids = ChargingStyles.all.map { it.id }
         assertEquals(ids.size, ids.toSet().size)

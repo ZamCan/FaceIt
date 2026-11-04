@@ -50,6 +50,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
@@ -279,7 +280,11 @@ internal object TopicCatalogue {
             VeilStyle.VEIL_FRAME to ("Veil frame" to "A band across the top and a rounded border around the grid."),
             VeilStyle.LAYERED_FOLD to ("Layered fold" to "Three folded bands, each catching a little more light."),
             VeilStyle.OPEN_ARCH to ("Open arch" to "A single arch over the grid with one lit point at its crown."),
-            VeilStyle.TWIN_CURVE to ("Twin curve" to "Two curves rising from the base, meeting under the dock.")
+            VeilStyle.TWIN_CURVE to ("Twin curve" to "Two curves rising from the base, meeting under the dock."),
+            VeilStyle.PLEAT to ("Pleat" to "Even folds of shading down both edges, fading before the labels."),
+            VeilStyle.CORNER_TAB to ("Corner tab" to "Four brackets holding the grid; every edge centre stays clear."),
+            VeilStyle.DOCK_BAND to ("Dock band" to "A soft band behind the dock with one thin lit rule above it."),
+            VeilStyle.RIBBON to ("Ribbon" to "A single diagonal ribbon of colour across the icons.")
         ).forEach { (shape, copy) ->
             add(
                 StudioStyle(
@@ -1033,6 +1038,81 @@ internal fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Mo
                 drawCircle(colour.copy(alpha = .34f), w * 0.024f, Offset(w * 0.5f, h * 0.070f))
                 drawCircle(colour.copy(alpha = .20f), w * 0.05f, Offset(w * 0.5f, h * 0.070f))
             }
+            VeilStyle.PLEAT -> {
+                val pleats = 6
+                val band = w * 0.20f
+                repeat(pleats) { i ->
+                    val alpha = 0.30f - i * 0.035f
+                    val xLeft = i * (band / pleats) + w * 0.012f
+                    val xRight = w - xLeft - w * 0.030f
+                    drawRect(
+                        colour.copy(alpha = alpha),
+                        topLeft = Offset(xLeft, 0f),
+                        size = Size(w * 0.022f, h * (0.86f - i * 0.05f))
+                    )
+                    drawRect(
+                        colour.copy(alpha = alpha * 0.8f),
+                        topLeft = Offset(xRight, h * (0.04f + i * 0.04f)),
+                        size = Size(w * 0.022f, h * (0.82f - i * 0.05f))
+                    )
+                }
+            }
+            VeilStyle.CORNER_TAB -> {
+                val inset = w * 0.045f
+                val arm = w * 0.16f
+                val thick = w * 0.016f
+                val tint = colour.copy(alpha = .55f)
+                // top-left, top-right, bottom-left, bottom-right, as two bars each
+                listOf(
+                    Offset(inset, inset) to Offset(1f, 1f),
+                    Offset(w - inset, inset) to Offset(-1f, 1f),
+                    Offset(inset, h - inset) to Offset(1f, -1f),
+                    Offset(w - inset, h - inset) to Offset(-1f, -1f)
+                ).forEach { (corner, dir) ->
+                    drawLine(
+                        tint, corner, Offset(corner.x + arm * dir.x, corner.y),
+                        strokeWidth = thick, cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        tint, corner, Offset(corner.x, corner.y + arm * dir.y),
+                        strokeWidth = thick, cap = StrokeCap.Round
+                    )
+                }
+            }
+            VeilStyle.DOCK_BAND -> {
+                val band = Path().apply {
+                    moveTo(0f, h * 0.80f)
+                    cubicTo(w * 0.30f, h * 0.76f, w * 0.70f, h * 0.76f, w, h * 0.80f)
+                    lineTo(w, h)
+                    lineTo(0f, h)
+                    close()
+                }
+                drawPath(band, colour.copy(alpha = .30f))
+                drawLine(
+                    colour.copy(alpha = .55f),
+                    Offset(w * 0.10f, h * 0.795f),
+                    Offset(w * 0.90f, h * 0.795f),
+                    strokeWidth = w * 0.006f,
+                    cap = StrokeCap.Round
+                )
+            }
+            VeilStyle.RIBBON -> {
+                val ribbon = Path().apply {
+                    moveTo(-w * 0.10f, h * 0.20f)
+                    lineTo(w * 0.55f, -h * 0.05f)
+                    lineTo(w * 1.10f, h * 0.72f)
+                    lineTo(w * 0.45f, h * 1.05f)
+                    close()
+                }
+                drawPath(ribbon, colour.copy(alpha = .18f))
+                drawLine(
+                    colour.copy(alpha = .40f),
+                    Offset(w * 0.04f, h * 0.13f),
+                    Offset(w * 0.96f, h * 0.83f),
+                    strokeWidth = w * 0.008f,
+                    cap = StrokeCap.Round
+                )
+            }
             VeilStyle.TWIN_CURVE -> {
                 val left = Path().apply {
                     moveTo(0f, h)
@@ -1056,14 +1136,51 @@ internal fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Mo
 // ---------------------------------------------------------------- stages
 // Each stage draws one category at phone scale using the real catalogues.
 
+/**
+ * Glyph set for a theme's app grid.
+ *
+ * The families are not decorative: a Ladies or Cute theme shows the cat, flower,
+ * heart and ring vocabulary; a Sport theme shows the pitch and running set; a
+ * Heritage theme shows the arch, bank and lantern set. Same renderer, different
+ * vocabulary, so forty themes do not all look like the same phone.
+ */
 @Composable
-private fun IconGrid(theme: FaceTheme, ink: Color, rows: Int = 2) {
-    val glyphs = remember(theme.id) {
-        listOf(
-            IconGlyph.CAT, IconGlyph.MESSAGE, IconGlyph.CAMERA, IconGlyph.HEART,
-            IconGlyph.MUSIC, IconGlyph.FLOWER, IconGlyph.GALLERY, IconGlyph.CALENDAR
+private fun glyphsFor(theme: FaceTheme): List<IconGlyph> = remember(theme.id) {
+    when (theme.family) {
+        "Ladies" -> listOf(
+            IconGlyph.HEART, IconGlyph.FLOWER, IconGlyph.CAT, IconGlyph.RING,
+            IconGlyph.GIFT, IconGlyph.CAMERA, IconGlyph.CHAT, IconGlyph.MUSIC
+        )
+        "Cute" -> listOf(
+            IconGlyph.CAT, IconGlyph.PAW, IconGlyph.BUTTERFLY, IconGlyph.STAR,
+            IconGlyph.HEART, IconGlyph.FOOD, IconGlyph.MUSIC, IconGlyph.CAMERA
+        )
+        "Sport" -> listOf(
+            IconGlyph.GAME, IconGlyph.RUN, IconGlyph.CYCLE, IconGlyph.WEIGHT,
+            IconGlyph.CLOCK, IconGlyph.TICKET, IconGlyph.CHARGE, IconGlyph.MAP
+        )
+        "Heritage" -> listOf(
+            IconGlyph.BANK, IconGlyph.BOOK, IconGlyph.MAP, IconGlyph.CLOCK,
+            IconGlyph.COFFEE, IconGlyph.PHONE, IconGlyph.MAIL, IconGlyph.FILES
+        )
+        "Nature" -> listOf(
+            IconGlyph.LEAF, IconGlyph.TREE, IconGlyph.FLOWER, IconGlyph.SUN,
+            IconGlyph.MOON, IconGlyph.WEATHER, IconGlyph.MAP, IconGlyph.BUTTERFLY
+        )
+        "Abstract" -> listOf(
+            IconGlyph.STAR, IconGlyph.SEARCH, IconGlyph.HOME, IconGlyph.SETTINGS,
+            IconGlyph.BROWSER, IconGlyph.CHARGE, IconGlyph.STAR, IconGlyph.PIN
+        )
+        else -> listOf(
+            IconGlyph.MESSAGE, IconGlyph.CAMERA, IconGlyph.MUSIC, IconGlyph.GALLERY,
+            IconGlyph.CALENDAR, IconGlyph.MAIL, IconGlyph.BROWSER, IconGlyph.CLOCK
         )
     }
+}
+
+@Composable
+private fun IconGrid(theme: FaceTheme, ink: Color, rows: Int = 2) {
+    val glyphs = glyphsFor(theme)
     val tileColor = Color(theme.iconTileColor)
     val glyphColor = Color(theme.iconGlyphColor)
     val accent = Color(theme.accent)

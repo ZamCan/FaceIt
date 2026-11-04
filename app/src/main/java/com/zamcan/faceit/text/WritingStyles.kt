@@ -121,6 +121,102 @@ object WritingStyles {
         WritingStyle(
             "signature_plain", "Sign-off", WritingTone.QUIET, WritingSurface.SIGNATURE, sans,
             0.02f, 1.2f, 1f, false, false, "Sent from my own phone, slowly."
+        ),
+        WritingStyle(
+            "romantic_sans", "Romantic sans", WritingTone.ELEGANT, WritingSurface.MESSAGE, sans,
+            0.03f, 1.6f, 1.02f, false, false, "saved you the last piece of cake"
+        ),
+        WritingStyle(
+            "tender_italic", "Tender", WritingTone.ELEGANT, WritingSurface.MESSAGE, sans,
+            0.02f, 1.55f, 1.0f, true, false, "come sit with me a while"
+        ),
+        WritingStyle(
+            "playful", "Playful", WritingTone.CUTE, WritingSurface.MESSAGE, sans,
+            0.05f, 1.45f, 1.06f, false, false, "guess who found the treat jar"
+        ),
+        WritingStyle(
+            "cheerful", "Cheerful", WritingTone.CUTE, WritingSurface.MESSAGE, sans,
+            0.04f, 1.5f, 1.05f, false, false, "good morning! the kettle is on"
+        ),
+        WritingStyle(
+            "formal", "Formal", WritingTone.CLASSIC, WritingSurface.MESSAGE, serif,
+            0.01f, 1.5f, 1.0f, false, false, "Please find the schedule attached."
+        ),
+        WritingStyle(
+            "press", "Press", WritingTone.CLASSIC, WritingSurface.MESSAGE, serif,
+            0f, 1.4f, 1.0f, false, false, "The committee met on Tuesday and agreed."
+        ),
+        WritingStyle(
+            "code_note", "Code note", WritingTone.RETRO, WritingSurface.MESSAGE, mono,
+            0f, 1.4f, 0.98f, false, false, "update dependencies; rerun the suite"
+        ),
+        WritingStyle(
+            "manifesto", "Manifesto", WritingTone.BOLD, WritingSurface.MESSAGE, sans,
+            0.01f, 1.25f, 1.1f, false, true, "We ship what we can stand behind."
+        ),
+        WritingStyle(
+            "gentle", "Gentle", WritingTone.QUIET, WritingSurface.MESSAGE, serif,
+            0.03f, 1.65f, 0.96f, true, false, "when you have a moment, no hurry"
+        ),
+        WritingStyle(
+            "big_caption", "Big caption", WritingTone.BOLD, WritingSurface.CAPTION, sans,
+            0.02f, 1.25f, 1.0f, false, true, "a very good afternoon"
+        ),
+        WritingStyle(
+            "quiet_caption", "Quiet caption", WritingTone.QUIET, WritingSurface.CAPTION, serif,
+            0.06f, 1.4f, 0.9f, true, false, "the light at half past four"
+        ),
+        WritingStyle(
+            "wide_heading", "Wide heading", WritingTone.QUIET, WritingSurface.HEADING, sans,
+            0.20f, 1.15f, 1.0f, false, true, "Gallery"
+        ),
+        WritingStyle(
+            "mono_heading", "Mono heading", WritingTone.RETRO, WritingSurface.HEADING, mono,
+            0.06f, 1.2f, 1.15f, false, false, "Archive"
+        ),
+        WritingStyle(
+            "signature_plain_alt", "Sign-off written", WritingTone.CLASSIC, WritingSurface.SIGNATURE, serif,
+            0.01f, 1.2f, 1f, true, false, "with love, always"
+        ),
+        WritingStyle(
+            "poetic", "Poetic", WritingTone.ELEGANT, WritingSurface.MESSAGE, serif,
+            0.02f, 1.7f, 1.02f, true, false, "the rain came late, and stayed for tea"
+        ),
+        WritingStyle(
+            "warm_bold", "Warm bold", WritingTone.BOLD, WritingSurface.MESSAGE, sans,
+            0.01f, 1.35f, 1.06f, false, false, "I made too much food. Come over."
+        ),
+        WritingStyle(
+            "cat_note", "Cat note", WritingTone.CUTE, WritingSurface.MESSAGE, sans,
+            0.04f, 1.45f, 1.02f, false, false, "she sat on the keyboard again, sorry"
+        ),
+        WritingStyle(
+            "ledger", "Ledger", WritingTone.RETRO, WritingSurface.MESSAGE, mono,
+            0.02f, 1.5f, 0.96f, false, false, "paid 40,000 for the parts, receipt filed"
+        ),
+        WritingStyle(
+            "after_dark", "After dark", WritingTone.QUIET, WritingSurface.MESSAGE, sans,
+            0.08f, 1.6f, 0.92f, false, false, "still awake? no reason."
+        ),
+        WritingStyle(
+            "letter_heading", "Letter heading", WritingTone.CLASSIC, WritingSurface.HEADING, serif,
+            0.10f, 1.15f, 1.05f, false, true, "Correspondence"
+        ),
+        WritingStyle(
+            "soft_heading", "Soft heading", WritingTone.ELEGANT, WritingSurface.HEADING, serif,
+            0.14f, 1.2f, 1f, true, false, "Evenings"
+        ),
+        WritingStyle(
+            "shout_caption", "Shout caption", WritingTone.BOLD, WritingSurface.CAPTION, sans,
+            0f, 1.2f, 1.04f, false, true, "we were here"
+        ),
+        WritingStyle(
+            "signature_mono", "Sign-off typed", WritingTone.RETRO, WritingSurface.SIGNATURE, mono,
+            0.02f, 1.15f, 0.95f, false, false, "-- sent from the studio"
+        ),
+        WritingStyle(
+            "signature_bold", "Sign-off bold", WritingTone.BOLD, WritingSurface.SIGNATURE, sans,
+            0.01f, 1.1f, 1f, false, true, "Yours, properly."
         )
     )
 
