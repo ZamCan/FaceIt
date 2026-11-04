@@ -1,6 +1,7 @@
 package com.zamcan.faceit.ui
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -49,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -56,6 +60,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.zamcan.faceit.charging.ChargingMotif
 import com.zamcan.faceit.charging.ChargingStyles
 import com.zamcan.faceit.graphics.IconGlyph
@@ -66,13 +73,15 @@ import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.themes.FrameColours
 import com.zamcan.faceit.themes.VeilStyle
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
+import com.zamcan.faceit.ui.LocalMotionPolicy
 import com.zamcan.faceit.widget.FaceItClockWidgetStyles
+import com.zamcan.faceit.launcher.FaceItHomeActivity
 import kotlinx.coroutines.delay
 
 /**
  * Visual studio — the single home for every look in Face It.
  *
- * Nine categories, one shared [StudioStyle] model, one device preview. The
+ * Eleven categories, one shared [StudioStyle] model, one device preview. The
  * catalogue is composed from the real engines rather than hand-written cards:
  * themes come from [FaceThemes], icons from [IconGlyph], keypads from
  * [KeypadDesigns], charging from [ChargingStyles], writing from [WritingStyles]
@@ -174,7 +183,7 @@ internal object TopicCatalogue {
         accent = theme.accent,
         surface = theme.surface,
         ink = theme.textPrimary,
-        capability = "In-app launcher concept",
+        capability = "Optional Android Home launcher",
         glyph = IconGlyph.HOME,
         appliesForReal = false
     )
@@ -352,9 +361,54 @@ internal object TopicCatalogue {
 
     fun find(id: String?): StudioStyle? = styles.firstOrNull { it.id == id }
 
-    fun themeFor(style: StudioStyle): FaceTheme? =
-        FaceThemes.all.firstOrNull { it.id == style.id.removePrefix("feminine-") }
+    fun themeFor(style: StudioStyle): FaceTheme? {
+        val themeId = when (style.category) {
+            StudioCategory.THEMES -> style.id
+            StudioCategory.FEMININE -> style.id.removePrefix("feminine-")
+            StudioCategory.ICONS -> style.id.removePrefix("icons-")
+            StudioCategory.APPS -> style.id.removePrefix("apps-")
+            else -> return null
+        }
+        return FaceThemes.find(themeId)
+    }
 }
+
+/**
+ * The charging canvas is the only continuously animated shelf in the studio.
+ * Keep its eligibility and phase arithmetic deterministic so lifecycle and
+ * reduced-motion regressions can be covered without an Android device.
+ */
+internal fun shouldAnimateChargingPreview(
+    category: StudioCategory,
+    isResumed: Boolean,
+    animationsEnabled: Boolean
+): Boolean = category == StudioCategory.CHARGING && isResumed && animationsEnabled
+
+internal fun nextChargingPreviewPhase(current: Float): Float =
+    (current + 0.018f) % 1f
+
+/** Resolve the frame without overriding an explicit user choice of None. */
+internal fun resolveStudioFrame(
+    theme: FaceTheme,
+    frameColourId: String,
+    shapeOverride: VeilStyle?
+): com.zamcan.faceit.themes.ResolvedFrame {
+    val themeFrame = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
+    if (shapeOverride == null) return themeFrame
+    return themeFrame.copy(
+        style = if (frameColourId == FrameColours.NONE_ID) VeilStyle.NONE else shapeOverride
+    )
+}
+
+/** A preview choice is still a user choice; only real widget instances own their own style. */
+internal fun shouldPersistStudioSelection(style: StudioStyle): Boolean = !style.appliesForReal
+
+/** Resolve stale or cross-category ids safely after catalogue changes or app upgrades. */
+internal fun resolveSelectedStyleId(category: StudioCategory, storedId: String?): String =
+    TopicCatalogue.find(storedId)
+        ?.takeIf { it.category == category }
+        ?.id
+        ?: TopicCatalogue.byCategory(category).first().id
 
 /** Persisted studio choices: one selected style per category, plus the frame colour. */
 internal class StudioPreferences(context: Context) {
@@ -389,21 +443,45 @@ internal fun VisualStudioScreen(
     val colors = LocalFaceItColors.current
     var category by remember { mutableStateOf(StudioCategory.THEMES) }
     var selectedId by remember(category) {
-        mutableStateOf(prefs.selected(category) ?: TopicCatalogue.byCategory(category).first().id)
+        mutableStateOf(resolveSelectedStyleId(category, prefs.selected(category)))
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
     var chargingPhase by remember { mutableFloatStateOf(0f) }
+
+    val motionPolicy = LocalMotionPolicy.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var studioResumed by remember(lifecycleOwner) {
+        mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> studioResumed = true
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP,
+                Lifecycle.Event.ON_DESTROY -> studioResumed = false
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val styles = remember(category) { TopicCatalogue.byCategory(category) }
     val selected = TopicCatalogue.find(selectedId) ?: styles.first()
     val theme = remember(selected.id) { TopicCatalogue.themeFor(selected) } ?: FaceThemes.find(selectedThemeId)
 
-    LaunchedEffect(category) {
-        // One modest animation, only while the charging category is open. Everything
-        // else in the studio is static, so browsing costs no battery.
-        while (category == StudioCategory.CHARGING) {
-            delay(70)
-            chargingPhase = (chargingPhase + 0.018f) % 1f
+    LaunchedEffect(category, studioResumed, motionPolicy.animationsEnabled) {
+        // Animate only while this screen is resumed and Android's motion policy
+        // allows it. Leaving the app, opening another screen, battery saver,
+        // reduced system animation or thermal pressure suspends the ticker.
+        if (shouldAnimateChargingPreview(category, studioResumed, motionPolicy.animationsEnabled)) {
+            while (true) {
+                delay(70)
+                chargingPhase = nextChargingPreviewPhase(chargingPhase)
+            }
+        } else {
+            chargingPhase = 0f
         }
     }
 
@@ -512,13 +590,18 @@ internal fun VisualStudioScreen(
                     selected.appliesForReal -> "Add the widget to see this finish"
                     category == StudioCategory.CHARGING -> "Previewing the animation above"
                     category == StudioCategory.WRITING -> "Apply in the SMS composer"
+                    category == StudioCategory.APPS -> "Open Face It Home"
                     else -> "Apply ${selected.title}"
                 },
                 enabled = !selected.appliesForReal && category != StudioCategory.CHARGING,
                 alreadyApplied = appliedStyleId(category) == selected.id
             ) {
                 prefs.select(category, selected.id)
-                onStyleChosen(selected)
+                if (category == StudioCategory.APPS) {
+                    context.startActivity(Intent(context, FaceItHomeActivity::class.java))
+                } else {
+                    onStyleChosen(selected)
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -540,7 +623,7 @@ internal fun VisualStudioScreen(
                     active = style.id == selected.id,
                     onClick = {
                         selectedId = style.id
-                        if (!style.appliesForReal && style.category != StudioCategory.CHARGING) {
+                        if (shouldPersistStudioSelection(style)) {
                             prefs.select(style.category, style.id)
                         }
                     }
@@ -563,14 +646,16 @@ internal fun VisualStudioScreen(
                         "Appearance presets for a number pad. Face It does not place calls and does not replace your phone's dialler."
                     StudioCategory.WRITING ->
                         "Real font families, tracking, leading and slant — the words stay ordinary text, so they remain searchable and readable by screen readers."
+                    StudioCategory.APPS ->
+                        "Face It Home is an optional Android launcher. It becomes your Home screen only after you choose Set as Home and accept Android's role prompt. Open Home settings to switch back at any time."
                     StudioCategory.CONTROLS ->
                         "An in-app concept. Android's own quick settings are controlled by the system and cannot be reskinned by an ordinary app."
                     StudioCategory.CHARGING ->
                         "Previewed in-app. Android does not let an ordinary app replace the system charging screen."
                     StudioCategory.DISPLAY ->
                         "Screen treatment previews. Wallpaper application is the one display change Face It performs for real, and only when you ask."
-                    StudioCategory.ICONS, StudioCategory.APPS ->
-                        "An in-app icon family and grid. Launchers control whether third-party icon packs or grids can be applied."
+                    StudioCategory.ICONS ->
+                        "An in-app icon family preview. Android launchers control whether third-party icon packs can be applied."
                 },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -607,7 +692,8 @@ private fun ApplyButton(
 ) {
     val colors = LocalFaceItColors.current
     Surface(
-        onClick = { if (enabled) onClick() },
+        onClick = onClick,
+        enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         color = when {
             !enabled -> colors.cardRaised
@@ -678,26 +764,35 @@ private fun FrameSwatch(id: String, argb: Long, active: Boolean, onPick: (String
     val isNone = id == "None"
     Box(
         Modifier
-            .size(if (active) 40.dp else 34.dp)
-            .clip(CircleShape)
-            .background(if (isNone) colors.card else Color(argb))
-            .border(
-                if (active) 2.dp else 1.dp,
-                if (active) colors.violet else colors.border,
-                CircleShape
-            )
+            // A 48 dp target stays comfortable even when the visible swatch is smaller.
+            .size(48.dp)
+            .toggleable(value = active, role = Role.RadioButton) { onPick(id) }
             .semantics { contentDescription = if (isNone) "No frame" else "$id frame" },
         contentAlignment = Alignment.Center
     ) {
-        if (isNone) {
-            Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else if (active) {
-            Icon(
-                Icons.Rounded.Check,
-                contentDescription = null,
-                tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
-                modifier = Modifier.size(18.dp)
-            )
+        Box(
+            Modifier
+                .padding(4.dp)
+                .size(if (active) 40.dp else 34.dp)
+                .clip(CircleShape)
+                .background(if (isNone) colors.card else Color(argb))
+                .border(
+                    if (active) 2.dp else 1.dp,
+                    if (active) colors.violet else colors.border,
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isNone) {
+                Text("—", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (active) {
+                Icon(
+                    Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = if (argb and 0xFFFFFF > 0xBBBBBB) Color(0xFF241D24) else Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
@@ -819,18 +914,9 @@ private fun HomeStage(
     shapeOverride: VeilStyle?,
     onFrameTap: () -> Unit
 ) {
-    val base = com.zamcan.faceit.themes.DisplayFrameResolver.resolve(frameColourId, theme)
-    // On the Display page the card itself picks the shape; the colour still comes
-    // from the frame bar, and an untouched bar falls back to Onyx so the shape is
-    // actually visible rather than silently transparent.
-    val resolved = if (shapeOverride == null) {
-        base
-    } else {
-        com.zamcan.faceit.themes.ResolvedFrame(
-            style = shapeOverride,
-            colour = if (base.colour == theme.veilColor && frameColourId == "None") 0xFF29232B else base.colour
-        )
-    }
+    // A shape card selects geometry; the colour bar independently decides
+    // whether that geometry is visible. "None" always means no frame.
+    val resolved = resolveStudioFrame(theme, frameColourId, shapeOverride)
     Column(Modifier.fillMaxSize().padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("9:41", color = ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -885,7 +971,7 @@ private fun HomeStage(
  * hid the content would be a mask, and a mask is the one thing this must not be.
  */
 @Composable
-private fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Modifier) {
+internal fun DrapeFrame(style: VeilStyle, colour: Color, modifier: Modifier = Modifier) {
     Canvas(modifier) {
         val w = size.width
         val h = size.height

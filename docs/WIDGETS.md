@@ -12,11 +12,11 @@ The first native home-screen widget is a configurable time and date surface host
 
 ## Available finishes
 
-- Obsidian Glass.
-- Warm Ceramic.
-- Pearl Mint.
+- **Glazed:** Obsidian Glass, Midnight Silk, Noir, Pearl Mint.
+- **Ceramic:** Warm Ceramic, Warm Paper, Pearl Shell.
+- **Satin:** Rose Satin, Sage Satin.
 
-Each widget instance stores its own selected style. Both time and date are rendered by Android TextClock views, so the widget stays current without a FaceIt timer, wake lock or periodic app-side refresh.
+The original persisted IDs — `Obsidian`, `Ceramic` and `Mint` — remain unchanged so already-placed widgets keep their finish after an update. Each widget instance stores its own selected style. Both time and date are rendered by Android TextClock views, so the widget stays current without a FaceIt timer, wake lock or periodic app-side refresh.
 
 ## Resource and platform rules
 
@@ -26,4 +26,4 @@ Each widget instance stores its own selected style. Both time and date are rende
 - Each widget ID has independent style preferences.
 - Launcher placement and resizing remain controlled by the Android launcher.
 
-This is the first real widget integration, not the complete future Widget Studio. The Style Studio may preview the three installed clock finishes, but it does not silently change existing widget instances. Additional calendar, photo, battery and shortcut widgets require their own tested native providers and configuration flows.
+This is the first real widget integration, not the complete future Widget Studio. The Style Studio may preview all nine installed clock finishes, but it does not silently change existing widget instances. Additional calendar, photo, battery and shortcut widgets require their own tested native providers and configuration flows.

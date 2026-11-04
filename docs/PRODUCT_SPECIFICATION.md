@@ -103,9 +103,9 @@ Sacred-site content must not receive unrelated or inappropriate overlays automat
 Face It brings the following visual surfaces together in one Style Studio. Users can browse coherent design families, preview them on a device canvas, save local Face It style choices and move between related studios without losing their composition.
 
 - **Themes:** light/dark-compatible material and colour presets, with independent palette and finish choices.
-- **Widgets:** native Android AppWidget designs with per-instance configuration. The current real integration is the clock widget with Obsidian Glass, Warm Ceramic and Pearl Mint finishes; additional widget families require their own providers and configuration flows.
+- **Widgets:** native Android AppWidget designs with per-instance configuration. The current real integration is the clock widget with nine finishes across Glazed, Ceramic and Satin families; additional widget families require their own providers and configuration flows.
 - **Icons:** carefully art-directed icon families and app-symbol previews. Universal replacement of arbitrary installed app icons is not promised; launcher support or user-pinned shortcuts must be used where genuinely supported.
-- **Apps and home presentation:** visual app-grid concepts, including an optional Niqab-inspired draped display frame. The frame is a user-selectable visual design, with independent colour choices (Onyx, Rose, Plum, Pearl, Sage and Sand). It is an in-app concept until a separately implemented and user-selected launcher integration exists; it does not replace the phone's home app or system UI.
+- **Apps and home presentation:** Face It Home is an implemented, optional Android HOME-role activity. After the user explicitly approves Android's **Set as Home** prompt, it presents installed launchable apps in a themed grid over the selected bundled wallpaper, with an optional Niqab-inspired draped display frame and independently selected colour (Onyx, Rose, Plum, Pearl, Sage or Sand). It does not take over by installation, reskin Samsung One UI or another third-party launcher, or replace icons in other launchers. Users must retain a clear route to Android Home settings so they can switch back. Physical-device validation remains outstanding.
 - **Keyboard designs:** selectable visual designs and isolated pressable demos inside Face It only. Never register an InputMethodService or claim to change a third-party keyboard.
 - **Controls:** quick-control panel concepts. Android Quick Settings remain owned by the operating system; Face It must not claim to reskin or intercept them.
 - **Charging:** charging-screen and energy-animation concepts with bounded, reduced-motion-aware previews. A preview is not a system charging overlay; background launch restrictions and manufacturer charging screens must be respected.
@@ -115,7 +115,7 @@ Face It brings the following visual surfaces together in one Style Studio. Users
 
 Include a dedicated, optional feminine design collection without forcing it on any user or reducing it to a single palette. It may include elegant pastel and saturated colourways, cute animal and cat artwork, playful but polished icon families, floral and jewellery-inspired details, soft glass, pearl, satin and ceramic materials. Users can mix these with other visual universes.
 
-Niqab-inspired display frames are an optional respectful design family, not a default or a restriction. Users can select a frame style, choose its colour independently and combine it with different wallpapers, app-grid previews, widgets and icon treatments. Keep the visual treatment refined and culturally respectful; do not imply that the frame is an Android system feature unless a real launcher implementation is later built and explicitly selected.
+Niqab-inspired display frames are an optional respectful design family, not a default or a restriction. Users can select a frame style, choose its colour independently and combine it with different wallpapers, app-grid presentations, widgets and icon treatments. The frame is available in Face It Home when the user explicitly selects that launcher; elsewhere it remains an in-app preview. Keep the visual treatment refined and culturally respectful.
 
 ## 5. Wallpaper and offline artwork library
 
@@ -172,7 +172,7 @@ On-demand interactive objects, 360-degree rotation, material and lighting contro
 Private local artwork and saved compositions, protected by genuine device authentication or app authentication. A decorative lock screen alone is not security.
 
 ### Optional advanced integrations
-Launcher, SMS client, sound experiences and other device integrations are independent opt-ins. Each requires separate feasibility, permission and platform-policy review. FaceIt does not claim arbitrary control over Android system buttons, volume keys, notification shade or third-party applications.
+Face It Home's optional Android HOME-role integration is implemented and user-consented. Further launcher capabilities, a full default dialer, an SMS client, sound experiences and other device integrations remain separate opt-ins requiring their own feasibility, permission and platform-policy review. FaceIt does not claim arbitrary control over Android system buttons, volume keys, notification shade or third-party applications.
 
 ## 7. Dialer keypad visual requirements
 
@@ -265,7 +265,7 @@ a card cannot advertise a colour the renderer cannot draw.
 | Themes | 12 | `themes/FaceThemes.kt` | In-app palette |
 | Feminine | subset of the above | `FaceThemes` (family Ladies/Cute) | In-app palette |
 | Icons | 12 families × 34 glyphs | `graphics/IconRenderer.kt` | In-app only |
-| Apps | 12 grids | `FaceThemes` + `DisplayFrameResolver` | In-app only |
+| Apps | 12 grids | `FaceThemes` + `DisplayFrameResolver` + `FaceItHomeActivity` | Optional Android HOME-role launcher; explicit user opt-in |
 | Widgets | 9 | `widget/FaceItClockWidgetStyles.kt` | **Yes — real AppWidget** |
 | Keyboards | 10 designs | `keyboard/KeyboardDesignCatalogue.kt` | In-app only |
 | Keypad | 8 | `keypad/KeypadDesigns.kt` | In-app only |
@@ -277,11 +277,12 @@ a card cannot advertise a colour the renderer cannot draw.
 ### Honest boundaries
 
 - Themes change Face It's own surfaces; they do not recolour Android or other apps.
-- The clock widget is the only appearance feature with a genuine system
-  integration. Each placed widget stores the finish it was created with.
-- Keyboard, keypad, controls, icons and charging are visual designs and previews.
-  There is no `InputMethodService`, no launcher replacement, no quick-settings
-  reskin and no charging-screen overlay.
+- The clock widget and optional Face It Home launcher are the two
+  genuine Android integrations in this style system. Each placed widget stores
+  the finish it was created with; Face It Home becomes the default launcher only
+  after the user explicitly approves Android's HOME role.
+- Keyboard, keypad, controls, icon families and charging remain visual designs/previews; there is no `InputMethodService`, quick-settings reskin or charging-screen overlay.
+- Face It Home is the one real launcher integration: an optional Android HOME-role activity, explicitly selected by the user. It presents its own app grid and does not replace third-party launcher icons or system UI.
 - Writing styles use real font families with tracking, leading and slant. No
   Unicode look-alike substitution: text stays searchable and screen-reader legible.
 

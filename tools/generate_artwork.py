@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "app" / "src" / "main" / "assets"
@@ -1666,89 +1666,129 @@ def render_texture(name: str, roughness: float, grain: float) -> Image.Image:
 
 
 # -------------------------------------------------------------------- widget views
-def render_widget_previews() -> list[tuple[str, Image.Image]]:
-    """Widget-picker previews so the launcher shows the real finish.
+def _seven_segment(draw, x, y, w, h, digit, colour, off_colour, thickness):
+    """Draw one numeral from seven rounded segments.
 
-    Revised: the first version drew three grey skeleton bars that looked like a
-    placeholder and shipped two of them unreferenced. These are real compositions
-    at 2x for a 480x270 widget: the actual time, the actual date line, a material
-    ground, and a lit edge in the finish's own accent. Text is drawn with a real
-    font when one is available, and falls back to a geometric fallback otherwise,
-    so the generator still runs on a machine without DejaVu.
+    Numerals are drawn as geometry rather than text on purpose: the generator must
+    produce identical output on any machine, and a pixel-for-pixel preview that
+    depends on a system font would drift between CI runners. Segments read clearly
+    at picker size and look deliberate rather than defaulted.
     """
-    from PIL import ImageFont
+    t = thickness
+    half = h / 2.0
+    pad = t * 0.55
+    segs = {
+        "a": (x + pad, y, w - pad * 2, t),
+        "g": (x + pad, y + half - t / 2, w - pad * 2, t),
+        "d": (x + pad, y + h - t, w - pad * 2, t),
+        "f": (x, y + pad, t, half - pad * 2),
+        "b": (x + w - t, y + pad, t, half - pad * 2),
+        "e": (x, y + half + pad * 0.6, t, half - pad * 2.2),
+        "c": (x + w - t, y + half + pad * 0.6, t, half - pad * 2.2),
+    }
+    lit = {
+        0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc",
+        5: "afgcd", 6: "afgecd", 7: "abc", 8: "abcdefg", 9: "abcdfg",
+    }[digit]
+    for name, (sx, sy, sw, sh) in segs.items():
+        on = name in lit
+        draw.rounded_rectangle(
+            (sx, sy, sx + sw, sy + sh),
+            radius=min(sw, sh) / 2.0,
+            fill=(*colour, 255) if on else (*off_colour, 26),
+        )
 
-    def font(size: int, bold: bool = False):
-        candidates = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf" % ("-Bold" if bold else ""),
-            "/usr/share/fonts/dejavu/DejaVuSans%s.ttf" % ("-Bold" if bold else ""),
-        ]
-        for path in candidates:
-            try:
-                return ImageFont.truetype(path, size)
-            except OSError:
-                continue
-        return ImageFont.load_default(size)
 
-    finishes = [
-        # id, background, time, date, family
-        ("obsidian", hexc("22252D"), hexc("F4F0FA"), hexc("A78BFA"), "glazed"),
-        ("midnight", hexc("101524"), hexc("F0F4FF"), hexc("7FD4C8"), "glazed"),
-        ("noir", hexc("121214"), hexc("FFFFFF"), hexc("9E9AA8"), "glazed"),
-        ("mint", hexc("233737"), hexc("F2FAF6"), hexc("76DCCB"), "glazed"),
-        ("ceramic", hexc("E7E0D3"), hexc("292A2D"), hexc("78664D"), "ceramic"),
-        ("paper", hexc("F5F0E7"), hexc("221F1A"), hexc("8A6A46"), "ceramic"),
-        ("pearl", hexc("F6ECEE"), hexc("2A2027"), hexc("9A6079"), "ceramic"),
-        ("satin", hexc("3A2731"), hexc("FFF1F5"), hexc("F0A8C0"), "satin"),
-        ("sage", hexc("23322C"), hexc("F0F8F2"), hexc("9BD6B5"), "satin"),
-    ]
+def _clock_face(image, origin, radius, colour):
+    """A small analogue dial: the mark that says 'clock' at any size."""
+    from PIL import ImageDraw
+    draw = ImageDraw.Draw(image, "RGBA")
+    cx, cy = origin
+    draw.ellipse((cx - radius, cy - radius, cx + radius, cy + radius),
+                 outline=(*colour, 210), width=3)
+    draw.line((cx, cy, cx, cy - radius * 0.58), fill=(*colour, 235), width=4)
+    draw.line((cx, cy, cx + radius * 0.42, cy + radius * 0.22), fill=(*colour, 235), width=3)
+    draw.ellipse((cx - 4, cy - 4, cx + 4, cy + 4), fill=(*colour, 255))
 
+
+def render_widget_previews() -> list[tuple[str, Image.Image]]:
+    """Widget-picker previews: the real finishes, drawn as the widget itself.
+
+    Each image is the widget card the user will actually get from RemoteViews —
+    a large time, a date line and the finish's own colours — composited on a soft
+    backdrop so the rounded corners and edge highlight read in the picker. One per
+    finish in FaceItClockWidgetStyles.kt; colours must match that file.
+    """
     previews = []
-    scale = 2  # 2x for a 480x270 widget target
-    w, h = 480 * scale, 270 * scale
-    for style, background, time_colour, date_colour, family in finishes:
-        image = Image.new("RGB", (w, h), background)
+    for style, background, time_colour, date_colour, label in [
+        ("obsidian", hexc("22252D"), hexc("F4F0FA"), hexc("A78BFA"), "OBSIDIAN GLASS"),
+        ("midnight", hexc("101524"), hexc("F0F4FF"), hexc("7FD4C8"), "MIDNIGHT SILK"),
+        ("noir", hexc("121214"), hexc("FFFFFF"), hexc("9E9AA8"), "NOIR"),
+        ("mint", hexc("233737"), hexc("F2FAF6"), hexc("76DCCB"), "PEARL MINT"),
+        ("ceramic", hexc("E7E0D3"), hexc("292A2D"), hexc("78664D"), "WARM CERAMIC"),
+        ("paper", hexc("F5F0E7"), hexc("221F1A"), hexc("8A6A46"), "WARM PAPER"),
+        ("pearl", hexc("F6ECEE"), hexc("2A2027"), hexc("9A6079"), "PEARL SHELL"),
+        ("satin", hexc("3A2731"), hexc("FFF1F5"), hexc("F0A8C0"), "ROSE SATIN"),
+        ("sage", hexc("23322C"), hexc("F0F8F2"), hexc("9BD6B5"), "SAGE SATIN"),
+    ]:
+        W, H = 1440, 810
+        # backdrop: a darkened version of the finish, so the widget reads as a card
+        backdrop = tuple(int(c * 0.34) for c in background)
+        image = Image.new("RGB", (W, H), backdrop)
         draw = ImageDraw.Draw(image, "RGBA")
 
-        # material ground: a soft vertical light plus a corner sheen. The widget is
-        # translucent on the home screen, so a hint of depth matters more than a
-        # flat fill would.
-        top = mix(background, (255, 255, 255), 0.06 if family != "ceramic" else 0.0)
-        bottom = shade(background, -0.10)
-        ground = Image.new("RGB", (w, h))
-        gd = ImageDraw.Draw(ground)
-        for y in range(h):
-            t = y / (h - 1)
-            gd.line([(0, y), (w, y)], fill=mix(top, bottom, t))
-        image.paste(ground)
-        draw = ImageDraw.Draw(image, "RGBA")
+        # A vertical gradient backdrop, darker at the base. No stray highlights:
+        # the card must be the brightest thing in the frame.
+        for row in range(H):
+            shade = 0.20 + 0.26 * (row / H)
+            draw.line((0, row, W, row),
+                      fill=tuple(min(255, int(c * shade)) for c in background))
 
-        sheen = Image.new("L", (w, h), 0)
-        ImageDraw.Draw(sheen).ellipse((-w * 0.25, -h * 1.15, w * 0.85, h * 0.55), fill=46)
-        image.paste(Image.new("RGB", (w, h), mix(background, (255, 255, 255), 0.5)),
-                    (0, 0), sheen.filter(ImageFilter.GaussianBlur(radius=w * 0.05)))
-        draw = ImageDraw.Draw(image, "RGBA")
+        # the widget card
+        card = (72, 114, W - 72, H - 102)
+        draw.rounded_rectangle((card[0] + 6, card[1] + 14, card[2] + 6, card[3] + 14),
+                               radius=80, fill=(0, 0, 0, 90))
+        draw.rounded_rectangle(card, radius=80, fill=(*background, 255))
+        draw.rounded_rectangle(card, radius=80, outline=(255, 255, 255, 44), width=2)
+        # a single specular edge across the top of the card
+        draw.rounded_rectangle((card[0] + 10, card[1] + 8, card[2] - 10, card[1] + 40),
+                               radius=18, fill=(255, 255, 255, 20))
 
-        pad = int(w * 0.065)
-        # small live-dot + label, so the preview reads as a widget and not a poster
-        dot_r = int(w * 0.008)
-        draw.ellipse((pad, pad + dot_r, pad + dot_r * 2, pad + dot_r * 3), fill=(*date_colour, 210))
-        draw.text((pad + dot_r * 3 + int(w * 0.012), pad), "FACE IT", font=font(int(h * 0.072), bold=True),
-                  fill=(*date_colour, 225))
+        _clock_face(image, (card[0] + 118, card[1] + 128), 40, time_colour)
 
-        # the time itself, optically centred on the upper two thirds
-        draw.text((pad, int(h * 0.20)), "09:41", font=font(int(h * 0.44), bold=False),
-                  fill=(*time_colour, 255))
-        draw.text((pad + int(w * 0.005), int(h * 0.735)), "MONDAY, 3 NOVEMBER",
-                  font=font(int(h * 0.078), bold=True), fill=(*date_colour, 235))
+        # the time, in segments, at a size that dominates the card
+        digits = [0, 9, 4, 1]
+        dw, dh, gap, thick = 88, 172, 26, 22
+        total = dw * 4 + gap * 3 + 34
+        x = card[0] + 78
+        y = card[1] + 210
+        for index, digit in enumerate(digits):
+            _seven_segment(draw, x, y, dw, dh, digit, time_colour, background, thick)
+            x += dw + gap
+            if index == 1:
+                # the colon sits in a gap of its own, vertically centred on the digits
+                colon = x + 12
+                for dy in (dh * 0.30, dh * 0.66):
+                    draw.ellipse((colon - 9, y + dy - 9, colon + 9, y + dy + 9),
+                                 fill=(*time_colour, 235))
+                x += 46
+        # date line and finish name, in the finish's own date colour
+        body_font = ImageFont.load_default(size=34)
+        label_font = ImageFont.load_default(size=26)
+        draw.text((card[0] + 80, card[1] + 430), "MONDAY \u00b7 3 NOVEMBER",
+                  font=body_font, fill=(*date_colour, 255))
+        draw.line((card[0] + 80, card[3] - 120, card[2] - 80, card[3] - 120),
+                  fill=(*date_colour, 70), width=2)
+        draw.text((card[0] + 80, card[3] - 88), label,
+                  font=label_font, fill=(*date_colour, 210))
+        # a small face-it mark, bottom right
+        draw.ellipse((card[2] - 136, card[3] - 104, card[2] - 80, card[3] - 48),
+                     outline=(*date_colour, 190), width=4)
+        draw.ellipse((card[2] - 118, card[3] - 86, card[2] - 98, card[3] - 66),
+                     fill=(*date_colour, 220))
 
-        # a lit edge in the finish's accent: the one material cue that survives at
-        # widget size on a busy wallpaper
-        draw.rounded_rectangle((0, 0, w - 1, h - 1), radius=int(w * 0.045),
-                               outline=(*date_colour, 60), width=max(2, int(w * 0.004)))
-        draw.rounded_rectangle((pad, h - int(h * 0.085), pad + int(w * 0.22), h - int(h * 0.065)),
-                               radius=int(h * 0.010), fill=(*date_colour, 70))
-        previews.append((f"faceit_widget_preview_{style}.png", image.resize((480, 270), Image.LANCZOS)))
+        previews.append((f"faceit_widget_preview_{style}.png",
+                         image.resize((720, 405), Image.LANCZOS)))
     return previews
 
 
@@ -1916,7 +1956,7 @@ def main() -> int:
 
     wallpapers = [e for e in manifest_entries if e["type"] == "wallpaper"]
     print(f"Face It artwork pack: {len(wallpapers)} wallpapers, "
-          f"{len(OBJECTS_PLAN)} objects, {len(TEXTURES_PLAN)} textures, 3 widget previews")
+          f"{len(OBJECTS_PLAN)} objects, {len(TEXTURES_PLAN)} textures, 9 widget previews")
     print(f"wallpaper bytes: {total_bytes / 1e6:.1f} MB "
           f"(mean {total_bytes / max(1, len(wallpapers)) / 1024:.0f} KB)")
     return 0

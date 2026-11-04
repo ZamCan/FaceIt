@@ -30,7 +30,7 @@ three Compose findings were listed as `7 warnings` in the report I had already
 downloaded, and I summarised the dependency ones only. Recording the mistake rather
 than quietly editing the table.
 
-Run 13 (current head, `2bbef5e`): `https://github.com/ZamCan/FaceIt/actions/runs/41462203203`.
+Run 13 (previous head, `2bbef5e`): `https://github.com/ZamCan/FaceIt/actions/runs/41462203203`.
 Run 12, its immediate predecessor, produced identical numbers.
 Artifacts: `FaceIt-debug-apk` (30.2 MB), `FaceIt-reports` (JUnit XML, HTML test
 report, Lint HTML + TXT). This is the run the numbers below come from.
@@ -99,3 +99,37 @@ Locally, the same two cheap gates run without a JDK:
 python3 tools/verify_sources.py
 python3 tools/validate_artwork_pack.py --release
 ```
+
+## Run 14 — style studio consolidation and the launcher integration
+
+- Head: `3402220bf4f40a0cd8622c999535e61676f3dfb7` on `main`.
+- Actions run: `41672292134` (workflow run #173); job *Content gate, build, unit tests and Lint*: **success**.
+- Result: **success**. 112 tests, 0 failures, 0 errors, 0 skipped, 16 suites.
+  Lint 0 errors / 4 warnings (all four `GradleDependency` dependency-version notices).
+  Debug APK artifact: 30,588,168 bytes (about 30.6 MB).
+- Artifacts: `FaceIt-debug-apk` (ID `13249590121`, SHA-256
+  `9e54fa178d11a55405ec739863bca8e89b56a54e82d02070fe0cf561f77c557a`) and
+  `FaceIt-reports` (ID `13249510373`, SHA-256
+  `23ab813580d00fe0134d5382799bf382cf3883cd4e3c6c4222abb115356055ab`).
+- This run proves the launcher and style-studio sources compile and pass the
+  repository's automated gates. It does **not** prove the HOME role, app grid,
+  wallpaper, frame or widget works on a physical Samsung device.
+- Two Lint warnings were introduced and removed inside this run: the widget picker
+  previews had lost their only reference and were reported as `UnusedResources`.
+  Rather than delete honest artwork, the generator now renders all nine finishes and
+  each style declares its own `previewRes` again.
+- Six CI-only failures were found and fixed across this work. They are listed
+  rather than summarised, because each one is a hole in the local checks:
+  1. `IconRenderer` routed 22 glyphs through a `stroke` paint that does not exist in
+     that file (it is called `paint`).
+  2. `PersonalisationScreens` used `Surface` without importing it. `verify_sources.py`
+     does not check imports; the compiler does.
+  3. `appliedStyleFor` was deleted along with the helper it sat beside.
+  4. Android `Color.WHITE` is an `Int` where the charging renderer takes `Long`, and
+     `Path.addOval` needs an explicit `Path.Direction`.
+  5. One test passed an `Int` where the contrast helper takes `Long`.
+  6. The Display shelf was generated but never concatenated into the catalogue, so
+     `everyCategoryIsPopulated` failed — the test did its job.
+- Also fixed on `main` while integrating: the launcher imported `matchParentSize` as
+  a top-level function (it is a `BoxScope` member) and used `sp` unimported. Both
+  broke `compileDebugKotlin` on `main` before this run.

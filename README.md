@@ -9,7 +9,7 @@ FaceIt is a native Android personalisation platform by ZamCan. It lets people bu
 - **Compose, don't impose:** independent visual layers can be combined without fixed category-bound themes.
 - **User-controlled:** each personalisation feature is optional and reversible.
 - **Verified build:** the content gate, unit tests, Lint and the debug APK are run by GitHub Actions on every push; see [docs/CI.md](docs/CI.md) for the run-by-run record. Nothing is described as release-ready without a device pass.
-- **Offline-first:** imported artwork is stored privately on-device. The curated pack ships 100 original generated wallpapers plus objects, material tiles and widget previews in `app/src/main/assets/`, and nothing is downloaded at runtime.
+- **Offline-first:** imported artwork is stored privately on-device. The bundled pack includes 100 original generated wallpapers, 100 thumbnails, 10 object renders and 8 material textures in `app/src/main/assets/`; core browsing needs no runtime download.
 - **Resource-aware:** inactive features must not keep unnecessary rendering or background work alive.
 - **Real functionality:** controls are exposed only when their behaviour is implemented.
 - **Privacy-first:** local processing by default.
@@ -20,9 +20,10 @@ FaceIt is a native Android personalisation platform by ZamCan. It lets people bu
 
 The current main branch includes:
 - Native Kotlin and Jetpack Compose application.
-- Local composition preferences and a unified Style Studio with selectable in-app themes (including an optional feminine collection), widgets, icons, app-grid concepts, keyboard styles, controls, charging previews and display treatments.
+- Local composition preferences and a unified Style Studio with selectable in-app themes (including an optional feminine collection), widgets, icon families, app-grid concepts, keyboard styles, controls, charging previews and display treatments.
+- Optional **Face It Home** Android launcher: a user-consented HOME-role activity with an installed-app grid, selected bundled wallpaper, selected theme and optional draped display frame. It does not activate until the user explicitly chooses **Set as Home** and approves Android's prompt.
 - Face It theme palettes persist locally and actively recolour the app's own interface; Android system UI remains under OS control.
-- Optional Niqab-inspired draped app/display frame preview with six independently selectable colours.
+- Optional Niqab-inspired draped app/display frame with six independently selectable colours; available as a preview and inside Face It Home when that launcher is explicitly selected.
 - Device image import for PNG, JPEG and WebP into private app storage.
 - Independent background and main-object image assignments.
 - Live procedural composition preview with category-specific backgrounds and object/material rendering.
@@ -39,7 +40,7 @@ The current main branch includes:
 
 The keyboard feature is a design gallery inside Face It. There is no `InputMethodService` in the manifest, no system-keyboard enable step, and selecting a design never changes Gboard, Samsung Keyboard or any third-party keyboard. Design preferences (selected design and favourites) persist on the device, and a returning user's previous appearance choice is migrated rather than reset.
 
-The in-app dialer keypad is not yet a replacement for the phone's default dialler. The current wallpaper composition renderer provides a procedural foundation; curated photographic artwork and refined production-grade object assets are still required.
+The in-app dialer keypad is not yet a replacement for the phone's default dialler. Face It Home is an optional launcher, not a universal icon-pack mechanism or a reskin of Samsung One UI. The current wallpaper composition renderer provides a procedural foundation; the bundled 100-wallpaper baseline is original vector-derived artwork, not a photographic collection, and continued high-end art direction plus physical-device review remain necessary.
 
 ## Important implementation boundaries
 
@@ -47,8 +48,7 @@ Keyboard Designs are in-app visual presets. A real system text-entry keyboard wo
 
 ## Planned capabilities
 
-- At least 100 bundled, rights-verified PNG wallpapers — shipped: 100, all original generated artwork recorded in `content/artwork/manifest.json`.
-- Expanded curated heritage architecture, football, professional, nature, city and design collections.
+- Expanded and further art-directed heritage architecture, football, professional, nature, city and design collections beyond the current 100-wallpaper generated baseline.
 - Native widget studio and deeper widget configuration.
 - Supported icon personalisation.
 - Optional default-dialer integration, subject to Android role and telephony requirements.

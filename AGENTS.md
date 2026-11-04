@@ -213,7 +213,7 @@ Do not simulate 3D with a static image while claiming interactive 3D. Do not mak
 
 ## 7. Wallpaper, artwork and internal asset library
 
-The long-term curated collection target is **at least 100 distinct, high-quality portrait PNG wallpapers**. The 100-wallpaper collection is a release target, not an existing accomplishment. Do not invent counts or pass low-quality placeholders as finished artwork.
+The repository now contains a **100-wallpaper bundled offline baseline**: 100 distinct 1080×2400 PNG masters, 100 thumbnails, 10 transparent object renders and 8 material textures. The release validator checks the manifest, file presence, dimensions, hashes and provenance metadata; the artwork contact sheet has been reviewed collection by collection. This baseline is real and bundled, but it is not a substitute for continued art direction or full-screen review on physical phones. Do not inflate the count, call vector-derived art photography, or present unfinished future collections as shipped.
 
 ### Collection breadth
 
@@ -526,7 +526,7 @@ Work in this order unless a blocking defect requires a different sequence:
 - Native widget studio and widget configuration.
 - Dialer keypad studio and supported dialling integration.
 - Keyboard-design gallery, premium selectable visual presets and isolated pressable demonstrations.
-- Launcher-compatible icon personalisation and honest platform guidance.
+- Validate the optional Face It Home Android HOME-role integration on physical devices; continue launcher-compatible icon personalisation with honest platform guidance.
 - Supported control surfaces and shortcuts.
 
 **P3 — Private and communication tools**
@@ -534,7 +534,7 @@ Work in this order unless a blocking defect requires a different sequence:
 - SMS composer accuracy and safe handoff.
 
 **P4 — Content and advanced experiences**
-- Curated, provenance-verified 100+ PNG wallpaper collection.
+- Expand the shipped 100-wallpaper baseline with additional art-directed, provenance-verified PNG collections.
 - Object and material asset library.
 - On-demand 3D studio and carefully controlled advanced effects.
 - Additional curated visual universes and optional content packs.
@@ -577,7 +577,7 @@ At the end of each substantial task, report:
 Face It must earn trust at first glance and retain it through daily use. The icon, interface, artwork, widgets, keypad surfaces and every control must feel like parts of one carefully designed product. Beautiful appearance and real engineering are equally mandatory. Never ship a visual promise in place of a working capability.
 
 
-## 21. Unified personalisation studios — expanded product-owner direction
+## 23. Unified personalisation studios — expanded product-owner direction
 
 Face It must bring themes, native widgets, icon design, app presentation, keyboard appearances, controls, charging visuals and display treatments into one coherent Style Studio. Users should be able to explore related design families, preview the result on a device canvas and save local style choices. Do not turn this into a generic web dashboard or a list of disconnected feature cards.
 
@@ -590,8 +590,9 @@ Face It must bring themes, native widgets, icon design, app presentation, keyboa
 ### Feature truth and Android integration boundaries
 
 - Themes and palettes saved in Style Studio are Face It presets unless a supported Android setting integration is actually implemented.
-- Widgets must be real AppWidget providers. The existing clock widget supports Obsidian Glass, Warm Ceramic and Pearl Mint. Preview selection does not silently alter existing widget instances; Android owns placement and resize.
-- Icon families and app-grid designs are previews unless a supported launcher/icon-pack or pinned-shortcut integration is implemented. Never promise universal third-party launcher icon replacement.
+- Face It Home is a real but optional Android HOME-role integration. Its app grid and frame are active only when the user explicitly selects Face It as the default Home app; never silently request or assume the role. Test role acquisition, app enumeration, app launching, theme contrast, wallpaper loading and switching back to the prior launcher on physical devices.
+- Widgets must be real AppWidget providers. The existing clock widget supports nine finishes across Glazed, Ceramic and Satin families: Obsidian Glass, Midnight Silk, Noir, Pearl Mint, Warm Ceramic, Warm Paper, Pearl Shell, Rose Satin and Sage Satin. Preview selection does not silently alter existing widget instances; Android owns placement and resize.
+- **Face It Home is now an implemented, optional Android HOME-role integration.** It renders the user's selected bundled wallpaper, selected app-grid theme and optional draped display frame, and enumerates/launches installed launcher activities. It is not enabled by installation: users must explicitly choose **Set as Home** and approve Android's role prompt (or use Home settings on older/incompatible versions). Users must always be able to return to Android Home settings and choose another launcher. This does not replace icons inside Samsung One UI or other launchers, and it is not a universal icon-pack integration.
 - Keyboard designs remain in-app visual presets and isolated pressable demos only. Do not add an InputMethodService.
 - Quick Settings/control panel concepts must not claim to replace or reskin Android's system controls.
 - Charging animations may be previewed in-app. Do not claim a system charging overlay without a separately approved, permission-correct Android implementation; respect background-launch and manufacturer restrictions.

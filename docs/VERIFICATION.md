@@ -18,15 +18,14 @@ that evidence lives.
 | Identity generation | **Ran, passed** | `python3 brand/generate_mark.py` → master, Play Store, monochrome, preview sheet, adaptive vectors and 5 legacy densities written |
 | Icon visual review | **Inspected** | Preview sheet reviewed at 24/32/48/72/96 px and on light, dark, neutral, circle-mask and squircle-mask surfaces |
 | Keyboard palette contrast | **Verified numerically** | WCAG 2.1 ratios computed for all five palettes; Pearl Mint accent was raised from 2.78 to 4.27 after failing the 3.0 threshold |
-| Curated pack runtime wiring | **Unverified until compiled** | `assets/artwork_index.json` is emitted by the same tool as the PNGs, so ids, paths and dimensions cannot drift; the Kotlin that reads it has not been compiled |
-| Gradle unit tests (`testDebugUnitTest`) | **Ran in CI, passed** | GitHub Actions run 41461101080: 35 tests, 0 failures, 0 errors, 0 skipped. Per-suite table in `docs/CI.md` |
-| Debug APK build (`assembleDebug`) | **Ran in CI, passed** | Same run: `BUILD SUCCESSFUL`, 30.2 MB debug APK uploaded as an artifact |
-| Android Lint | **Ran in CI** | Same run: 0 errors, 4 warnings, all available-version notices. Earlier runs found real defects, all fixed — see `docs/CI.md` |
-| Physical-device testing | **Not run** | No device or emulator is attached to CI; nothing here has been rendered on a screen |
+| Curated pack runtime wiring | **Compiled in CI; device rendering pending** | `assets/artwork_index.json` is emitted by the same tool as the PNGs; Kotlin catalogue and gallery compile in run 173. Full gallery decode/render still needs physical-device review |
+| Optional Face It Home launcher | **Compiled in CI; device validation pending** | `FaceItHomeActivity` and manifest HOME intent/role wiring compile in run 173. Role request, app enumeration, app launch, wallpaper/frame rendering and switching back have not been exercised on a physical phone |
+| Gradle unit tests (`testDebugUnitTest`) | **Ran in CI, passed** | GitHub Actions run 41672292134 (run 173): 112 tests, 0 failures, 0 errors, 0 skipped. Per-suite output is in the run artifact |
+| Debug APK build (`assembleDebug`) | **Ran in CI, passed** | Run 173: build succeeded; debug APK artifact is 30,588,168 bytes (about 30.6 MB) |
+| Android Lint | **Ran in CI** | Run 173: 0 errors, 4 warnings, all available-version dependency notices; see `docs/CI.md` |
+| Physical-device testing | **Not run** | No physical-device result is recorded; the launcher, wallpaper application, gallery decode path and widget still need hands-on review |
 
-The device row is still a release gate. Build, test and Lint are now observed
-facts from CI, not claims: see `docs/CI.md` for the run-by-run record. Nothing in this repository should be
-described as release-ready until they are executed and recorded here.
+The device row is still a release gate. Build, test and Lint are observed CI facts, not device certification: see `docs/CI.md` for the run-by-run record. Nothing in this repository should be described as release-ready until physical-device checks are executed and recorded here.
 
 ## Commands
 
@@ -74,6 +73,8 @@ or verify behaviour. A pass is necessary but not sufficient.
 
 ## Device checklist still outstanding
 
+- Face It Home: approve/decline the HOME role, verify default-home state after resume, enumerate installed apps, launch several apps, and switch back to Samsung One UI Home.
+- Face It Home visual review on Samsung One UI: selected wallpaper, app-grid contrast, draped frame visibility, font scaling, touch targets and rotation/process recreation.
 - Launcher icon mask on Samsung One UI and AOSP (circle, squircle, square).
 - Themed/monochrome icon rendering on Android 13+.
 - Monochrome layer legibility at notification and settings sizes.

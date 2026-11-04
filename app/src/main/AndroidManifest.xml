@@ -2,12 +2,30 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <queries>
+        <!-- Package visibility is limited to apps that explicitly expose a launcher entry. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/backup_rules"
         android:fullBackupContent="@xml/backup_rules" android:label="@string/app_name" android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true" android:theme="@style/Theme.FaceIt">
+        <activity
+            android:name=".launcher.FaceItHomeActivity"
+            android:exported="true"
+            android:label="Face It Home"
+            android:theme="@style/Theme.FaceIt">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
