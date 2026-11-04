@@ -12,9 +12,9 @@ import org.junit.Test
 class DisplayFrameTest {
 
     @Test
-    fun thereAreTenShapesAndAnOffState() {
+    fun thereAreNineShapesAndAnOffState() {
         val shapes = VeilStyle.entries.filter { it != VeilStyle.NONE }
-        assertEquals(10, shapes.size)
+        assertEquals(9, shapes.size)
         // The original five came straight from the product-owner reference; the
         // rest are the same abstract geometry in other arrangements.
         assertTrue(
