@@ -229,6 +229,62 @@ class Canvas:
             start, end, fill=(*fill, alpha), width=max(1, int(width * self.unit))
         )
 
+    # ---- depth and texture ---------------------------------------------
+    def grain(self, amount: float = 3.0, scale: int = 2) -> None:
+        """Fine tonal grain, added at supersample scale then averaged down.
+
+        The earlier revision rejected grain because per-output-pixel noise looked
+        like sand and destroyed PNG compression. Generating it at the supersampled
+        resolution and letting the LANCZOS downsample average 2x2 blocks keeps the
+        compressibility (the noise is genuinely lower-frequency afterwards) while
+        removing the flat, printed-look surfaces.
+        """
+        if amount <= 0:
+            return
+        rng = np.random.default_rng(self.rng.randrange(1 << 30))
+        noise = rng.normal(0.0, amount, (self.sh // scale, self.sw // scale)).astype(np.float32)
+        layer = Image.fromarray(np.clip(noise + 128, 0, 255).astype(np.uint8), "L")
+        layer = layer.resize((self.sw, self.sh), Image.BICUBIC)
+        arr = np.asarray(self.image).astype(np.float32)
+        offset = np.asarray(layer).astype(np.float32) - 128.0
+        arr += offset[:, :, None]
+        self.image = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
+        self.draw = ImageDraw.Draw(self.image, "RGBA")
+
+    def top_light(self, strength: float = 0.10) -> None:
+        """A soft overhead light: brighter at the top, falling to the bottom edge.
+
+        Cheap, and it is the single change that most stops a flat fill from
+        reading as a printed swatch rather than a lit surface.
+        """
+        arr = np.asarray(self.image).astype(np.float32)
+        ramp = np.linspace(1.0 + strength, 1.0 - strength, self.sh)[:, None, None]
+        self.image = Image.fromarray(np.clip(arr * ramp, 0, 255).astype(np.uint8), "RGB")
+        self.draw = ImageDraw.Draw(self.image, "RGBA")
+
+    def soft_shadow(self, region, colour=(0, 0, 0), alpha: int = 90, blur: float = 0.03) -> None:
+        """A blurred shadow behind a whole region, so a subject sits in space."""
+        x0, y0, x1, y1 = region
+        pad = blur
+        layer = Image.new("L", (int(self.sw * (x1 - x0 + pad * 2)) + 2,
+                                int(self.sh * (y1 - y0 + pad * 2)) + 2), 0)
+        ld = ImageDraw.Draw(layer)
+        ld.ellipse((0, 0, layer.width, layer.height), fill=alpha)
+        layer = layer.filter(ImageFilter.GaussianBlur(radius=max(1, int(blur * self.sw * 0.35))))
+        tint = Image.new("RGB", layer.size, colour)
+        self.image.paste(tint, (int(self.sw * (x0 - pad)), int(self.sh * (y0 - pad))), layer)
+        self.draw = ImageDraw.Draw(self.image, "RGBA")
+
+    def flecks(self, count: int, region=(0.0, 0.0, 1.0, 1.0), colour=(255, 255, 255),
+               alpha: int = 26, size: float = 0.0016) -> None:
+        """Sparse dust: a handful of specks that stop large fields looking empty."""
+        x0, y0, x1, y1 = region
+        for _ in range(count):
+            px = self.rng.uniform(x0, x1)
+            py = self.rng.uniform(y0, y1)
+            r = size * self.rng.uniform(0.4, 1.8)
+            self.circle((px, py), r, colour, alpha=int(alpha * self.rng.uniform(0.5, 1.0)))
+
     # ---- finishing -----------------------------------------------------
     def finish(self, palette: Palette, grain: float = 0.0, vignette: float = 0.26,
                glow: tuple[float, float] | None = None) -> Image.Image:
@@ -536,16 +592,29 @@ def r_isometric(c: Canvas, p: Palette, seed: int) -> None:
 
 
 def r_bands(c: Canvas, p: Palette, seed: int, shift: int = 0) -> None:
-    """Poster gradient bands: colour study built from hard-edged diagonal steps."""
+    """Poster gradient bands: a colour study in hard-edged diagonal steps.
+
+    Revised: the old version left a dead margin below the last band, so a fifth of
+    the frame was empty. The bands now run the full height with a slight
+    counter-rotation on alternate steps, and each step carries a lit top edge.
+    """
     c.vertical_gradient(p.base, shade(p.base, -0.20))
     tones = [p.base, mix(p.mid, p.base, 0.6), p.mid, mix(p.mid, p.light, 0.45), p.light, p.accent]
     tones = tones[shift:] + tones[:shift]
+    count = len(tones)
+    height = 1.0 / count
     for i, tone in enumerate(tones):
-        skew = 0.10 if shift == 0 else -0.07
-        y0 = 0.10 + i * 0.135
-        c.poly([(0.0, y0 + skew), (1.0, y0 - skew), (1.0, y0 - skew + 0.10),
-                (0.0, y0 + skew + 0.10)], tone, alpha=235)
-    band(c, 0.92, 1.0, p.accent, alpha=110)
+        skew = (0.10 if shift == 0 else -0.07) * (1 if i % 2 == 0 else -1)
+        y0 = i * height
+        quad = [(0.0, y0 + skew), (1.0, y0 - skew),
+                (1.0, y0 - skew + height + 0.004), (0.0, y0 + skew + height + 0.004)]
+        c.poly(quad, tone, alpha=238)
+        c.poly([(0.0, y0 + skew), (1.0, y0 - skew),
+                (1.0, y0 - skew + 0.006), (0.0, y0 + skew + 0.006)],
+               mix(tone, (255, 255, 255), 0.22), alpha=150)
+    # a single accent hairline, the sort of detail that makes a poster feel typeset
+    c.poly([(0.0, 0.965), (1.0, 0.955), (1.0, 0.972), (0.0, 0.982)], p.accent, alpha=200)
+    c.grain(3.2)
 
 
 def r_sphere(c: Canvas, p: Palette, seed: int) -> None:
@@ -583,22 +652,40 @@ def r_mountains(c: Canvas, p: Palette, seed: int) -> None:
 
 
 def r_dunes(c: Canvas, p: Palette, seed: int) -> None:
-    """Wind-carved dunes as solid overlapping silhouettes."""
+    """Wind-carved dunes as solid overlapping silhouettes.
+
+    Revised: the previous version appended (1.0, 1.0) and (0.0, 1.0) after a ridge
+    whose x range stopped at 12/13 of the width, which produced a hard vertical
+    seam down the right edge of the sand. The closing points now use the actual
+    last ridge x, and each ridge carries a lit crest and a shadowed foot so the
+    layers read as dunes rather than stacked cut-outs.
+    """
     c.vertical_gradient(mix(p.light, p.mid, 0.30), mix(p.mid, p.base, 0.30))
-    c.circle((0.26, 0.22), 0.060, mix(p.light, (255, 255, 255), 0.35))
-    for i in range(6):
-        t = i / 5
-        y = 0.40 + t * 0.52
-        tone = mix(p.mid, p.base, t * 0.85)
-        pts = [(0.0, y)]
-        for k in range(0, 13):
-            x = k / 12
-            pts.append((x, y + 0.06 * math.sin(x * 3.2 + i * 1.1) - 0.025 * math.cos(x * 7 + i)))
-        pts.append((1.0, 1.0))
-        pts.append((0.0, 1.0))
-        c.poly(pts, tone)
-        c.line((0.02, pts[1][1] + 0.004), (0.98, pts[-3][1] + 0.004),
-               mix(p.light, (255, 255, 255), 0.2), width=1.8, alpha=110)
+    # sun, low and slightly warm at the edge
+    c.radial((0.30, 0.20), 0.26, mix(p.light, (255, 255, 255), 0.30), alpha=70)
+    c.circle((0.30, 0.20), 0.055, mix(p.light, (255, 255, 255), 0.55))
+    steps = 7
+    for i in range(steps):
+        t = i / (steps - 1)
+        y = 0.36 + t * 0.60
+        tone = mix(p.mid, p.base, min(1.0, t * 0.92))
+        pts = []
+        samples = 40
+        for k in range(samples + 1):
+            x = k / samples
+            # two octaves, so ridges read as wind-worked rather than a sine wave
+            ridge = (0.055 * math.sin(x * 3.1 + i * 1.13)
+                     + 0.018 * math.sin(x * 7.4 + i * 2.3))
+            pts.append((x, y + ridge))
+        body = pts + [(1.0, 1.0), (0.0, 1.0)]
+        c.poly(body, tone)
+        # lit crest along the top edge, then a soft shadow just beneath it
+        c.poly(pts + [(1.0, pts[-1][1] + 0.006), (0.0, pts[0][1] + 0.006)],
+               mix(p.light, (255, 255, 255), 0.25), alpha=120)
+        c.poly([(x, y2 + 0.007) for x, y2 in pts] + [(1.0, pts[-1][1] + 0.030), (0.0, pts[0][1] + 0.030)],
+               shade(tone, -0.25), alpha=70)
+    c.grain(2.6)
+    c.flecks(60, region=(0.05, 0.30, 0.95, 0.85), colour=(255, 245, 225), alpha=30)
 
 
 def r_ocean(c: Canvas, p: Palette, seed: int) -> None:
@@ -967,23 +1054,36 @@ def r_speed(c: Canvas, p: Palette, seed: int) -> None:
 
 
 def r_terminal(c: Canvas, p: Palette, seed: int) -> None:
-    """Stacked bar rhythm: solid blocks, deliberately unreadable as glyphs."""
+    """Stacked bar rhythm: solid blocks, deliberately unreadable as glyphs.
+
+    Revised: bars used to float in an empty lower two-thirds. There is now a
+    platen edge, a scan glow under the bar field and a footer rule, so the
+    composition fills the frame the way a terminal screenshot would.
+    """
     c.vertical_gradient(p.base, shade(p.mid, -0.45))
-    y = 0.14
+    field_top, field_bottom = 0.10, 0.90
+    c.radial((0.5, 0.55), 0.70, mix(p.mid, p.base, 0.35), alpha=55)
+    y = field_top
     row = 0
-    while y < 0.88:
+    while y < field_bottom - 0.02:
         x = 0.16 + (row % 3) * 0.045
         while x < 0.86:
             length = 0.025 + (row * 7 % 9) / 9 * 0.075
             if x + length > 0.88:
                 break
             c.poly([(x, y), (x + length, y), (x + length, y + 0.016), (x, y + 0.016)],
-                   mix(p.mid, p.light, 0.25 + ((row + int(x * 10)) % 4) * 0.18))
+                   mix(p.mid, p.light, 0.22 + ((row + int(x * 10)) % 4) * 0.17))
             x += length + 0.018
-        y += 0.034
+        y += 0.030
         row += 1
-    c.poly([(0.12, 0.10), (0.14, 0.10), (0.14, 0.90), (0.12, 0.90)], p.accent, alpha=220)
+    # caret column and its bloom
+    c.radial((0.13, 0.5), 0.22, p.accent, alpha=40)
+    c.poly([(0.12, field_top), (0.14, field_top), (0.14, field_bottom), (0.12, field_bottom)],
+           p.accent, alpha=225)
     band(c, 0.92, 1.0, shade(p.base, -0.30))
+    c.poly([(0.10, 0.925), (0.90, 0.925), (0.90, 0.9275), (0.10, 0.9275)],
+           mix(p.accent, (255, 255, 255), 0.3), alpha=120)
+    c.grain(1.8)
 
 
 def r_mesh(c: Canvas, p: Palette, seed: int) -> None:
@@ -1567,29 +1667,87 @@ def render_texture(name: str, roughness: float, grain: float) -> Image.Image:
 
 # -------------------------------------------------------------------- widget views
 def render_widget_previews() -> list[tuple[str, Image.Image]]:
-    """Widget-picker previews so the launcher shows the real finishes."""
+    """Widget-picker previews so the launcher shows the real finish.
+
+    Revised: the first version drew three grey skeleton bars that looked like a
+    placeholder and shipped two of them unreferenced. These are real compositions
+    at 2x for a 480x270 widget: the actual time, the actual date line, a material
+    ground, and a lit edge in the finish's own accent. Text is drawn with a real
+    font when one is available, and falls back to a geometric fallback otherwise,
+    so the generator still runs on a machine without DejaVu.
+    """
+    from PIL import ImageFont
+
+    def font(size: int, bold: bool = False):
+        candidates = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf" % ("-Bold" if bold else ""),
+            "/usr/share/fonts/dejavu/DejaVuSans%s.ttf" % ("-Bold" if bold else ""),
+        ]
+        for path in candidates:
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                continue
+        return ImageFont.load_default(size)
+
+    finishes = [
+        # id, background, time, date, family
+        ("obsidian", hexc("22252D"), hexc("F4F0FA"), hexc("A78BFA"), "glazed"),
+        ("midnight", hexc("101524"), hexc("F0F4FF"), hexc("7FD4C8"), "glazed"),
+        ("noir", hexc("121214"), hexc("FFFFFF"), hexc("9E9AA8"), "glazed"),
+        ("mint", hexc("233737"), hexc("F2FAF6"), hexc("76DCCB"), "glazed"),
+        ("ceramic", hexc("E7E0D3"), hexc("292A2D"), hexc("78664D"), "ceramic"),
+        ("paper", hexc("F5F0E7"), hexc("221F1A"), hexc("8A6A46"), "ceramic"),
+        ("pearl", hexc("F6ECEE"), hexc("2A2027"), hexc("9A6079"), "ceramic"),
+        ("satin", hexc("3A2731"), hexc("FFF1F5"), hexc("F0A8C0"), "satin"),
+        ("sage", hexc("23322C"), hexc("F0F8F2"), hexc("9BD6B5"), "satin"),
+    ]
+
     previews = []
-    for style, background, time_colour, date_colour in [
-        ("obsidian", hexc("22252D"), hexc("F4F0FA"), hexc("A78BFA")),
-        ("ceramic", hexc("E7E0D3"), hexc("292A2D"), hexc("78664D")),
-        ("mint", hexc("233737"), hexc("F2FAF6"), hexc("76DCCB")),
-    ]:
-        image = Image.new("RGB", (480 * 2, 270 * 2), background)
+    scale = 2  # 2x for a 480x270 widget target
+    w, h = 480 * scale, 270 * scale
+    for style, background, time_colour, date_colour, family in finishes:
+        image = Image.new("RGB", (w, h), background)
         draw = ImageDraw.Draw(image, "RGBA")
-        draw.rounded_rectangle((0, 0, image.width - 1, image.height - 1), radius=56,
-                               fill=(*background, 255))
-        draw.ellipse((60, 40, 140, 120), fill=(*time_colour, 26))
-        # abstract clock hands rather than rendered numerals: the preview must not
-        # depend on a font that may be missing on the build machine
-        cx, cy, r = 100, 80, 34
-        draw.line((cx, cy, cx, cy - r * 0.62), fill=(*time_colour, 235), width=7)
-        draw.line((cx, cy, cx + r * 0.45, cy + r * 0.20), fill=(*time_colour, 235), width=5)
-        for i in range(3):
-            draw.rounded_rectangle(
-                (60, 150 + i * 34, 60 + (300 - i * 70), 150 + i * 34 + 12),
-                radius=6, fill=(*time_colour, 60 if i else 90)
-            )
-        draw.rounded_rectangle((60, 236, 260, 258), radius=11, fill=(*date_colour, 210))
+
+        # material ground: a soft vertical light plus a corner sheen. The widget is
+        # translucent on the home screen, so a hint of depth matters more than a
+        # flat fill would.
+        top = mix(background, (255, 255, 255), 0.06 if family != "ceramic" else 0.0)
+        bottom = shade(background, -0.10)
+        ground = Image.new("RGB", (w, h))
+        gd = ImageDraw.Draw(ground)
+        for y in range(h):
+            t = y / (h - 1)
+            gd.line([(0, y), (w, y)], fill=mix(top, bottom, t))
+        image.paste(ground)
+        draw = ImageDraw.Draw(image, "RGBA")
+
+        sheen = Image.new("L", (w, h), 0)
+        ImageDraw.Draw(sheen).ellipse((-w * 0.25, -h * 1.15, w * 0.85, h * 0.55), fill=46)
+        image.paste(Image.new("RGB", (w, h), mix(background, (255, 255, 255), 0.5)),
+                    (0, 0), sheen.filter(ImageFilter.GaussianBlur(radius=w * 0.05)))
+        draw = ImageDraw.Draw(image, "RGBA")
+
+        pad = int(w * 0.065)
+        # small live-dot + label, so the preview reads as a widget and not a poster
+        dot_r = int(w * 0.008)
+        draw.ellipse((pad, pad + dot_r, pad + dot_r * 2, pad + dot_r * 3), fill=(*date_colour, 210))
+        draw.text((pad + dot_r * 3 + int(w * 0.012), pad), "FACE IT", font=font(int(h * 0.072), bold=True),
+                  fill=(*date_colour, 225))
+
+        # the time itself, optically centred on the upper two thirds
+        draw.text((pad, int(h * 0.20)), "09:41", font=font(int(h * 0.44), bold=False),
+                  fill=(*time_colour, 255))
+        draw.text((pad + int(w * 0.005), int(h * 0.735)), "MONDAY, 3 NOVEMBER",
+                  font=font(int(h * 0.078), bold=True), fill=(*date_colour, 235))
+
+        # a lit edge in the finish's accent: the one material cue that survives at
+        # widget size on a busy wallpaper
+        draw.rounded_rectangle((0, 0, w - 1, h - 1), radius=int(w * 0.045),
+                               outline=(*date_colour, 60), width=max(2, int(w * 0.004)))
+        draw.rounded_rectangle((pad, h - int(h * 0.085), pad + int(w * 0.22), h - int(h * 0.065)),
+                               radius=int(h * 0.010), fill=(*date_colour, 70))
         previews.append((f"faceit_widget_preview_{style}.png", image.resize((480, 270), Image.LANCZOS)))
     return previews
 

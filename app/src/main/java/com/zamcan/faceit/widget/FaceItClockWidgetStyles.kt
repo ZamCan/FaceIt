@@ -1,5 +1,7 @@
 package com.zamcan.faceit.widget
 
+import com.zamcan.faceit.R
+
 /**
  * Clock widget finishes.
  *
@@ -26,7 +28,14 @@ data class FaceItClockStyle(
     val family: String,
     val background: Int,
     val time: Int,
-    val date: Int
+    val date: Int,
+    /**
+     * Bundled preview for the launcher picker and the config screen.
+     *
+     * Every finish ships one, and every one is referenced: an unused drawable is
+     * both dead weight in the APK and, in the config screen, a blank card.
+     */
+    val previewRes: Int
 ) {
     /** Time-on-background contrast, kept at or above AAA for a glanceable widget. */
     val timeContrast: Double
@@ -51,41 +60,50 @@ object FaceItClockWidgetStyles {
         // ---- Glazed: deep surfaces, luminous numerals
         FaceItClockStyle(
             "Obsidian", "Obsidian Glass", "Glazed",
-            0xE622252D.toInt(), 0xFFF4F0FA.toInt(), 0xFFA78BFA.toInt()
+            0xE622252D.toInt(), 0xFFF4F0FA.toInt(), 0xFFA78BFA.toInt(),
+            R.drawable.faceit_widget_preview_obsidian
         ),
         FaceItClockStyle(
             "Midnight", "Midnight Silk", "Glazed",
-            0xE6101524.toInt(), 0xFFF0F4FF.toInt(), 0xFF7FD4C8.toInt()
+            0xE6101524.toInt(), 0xFFF0F4FF.toInt(), 0xFF7FD4C8.toInt(),
+            R.drawable.faceit_widget_preview_midnight
         ),
         FaceItClockStyle(
             "Noir", "Noir", "Glazed",
-            0xF0121214.toInt(), 0xFFFFFFFF.toInt(), 0xFF9E9AA8.toInt()
+            0xF0121214.toInt(), 0xFFFFFFFF.toInt(), 0xFF9E9AA8.toInt(),
+            R.drawable.faceit_widget_preview_noir
         ),
         FaceItClockStyle(
             "Mint", "Pearl Mint", "Glazed",
-            0xE6233737.toInt(), 0xFFF2FAF6.toInt(), 0xFF76DCCB.toInt()
+            0xE6233737.toInt(), 0xFFF2FAF6.toInt(), 0xFF76DCCB.toInt(),
+            R.drawable.faceit_widget_preview_mint
         ),
         // ---- Ceramic: light, warm, made for daylight
         FaceItClockStyle(
             "Ceramic", "Warm Ceramic", "Ceramic",
-            0xEAE7E0D3.toInt(), 0xFF292A2D.toInt(), 0xFF78664D.toInt()
+            0xEAE7E0D3.toInt(), 0xFF292A2D.toInt(), 0xFF78664D.toInt(),
+            R.drawable.faceit_widget_preview_ceramic
         ),
         FaceItClockStyle(
             "Paper", "Warm Paper", "Ceramic",
-            0xECF5F0E7.toInt(), 0xFF221F1A.toInt(), 0xFF8A6A46.toInt()
+            0xECF5F0E7.toInt(), 0xFF221F1A.toInt(), 0xFF8A6A46.toInt(),
+            R.drawable.faceit_widget_preview_paper
         ),
         FaceItClockStyle(
             "Pearl", "Pearl Shell", "Ceramic",
-            0xECF6ECEE.toInt(), 0xFF2A2027.toInt(), 0xFF9A6079.toInt()
+            0xECF6ECEE.toInt(), 0xFF2A2027.toInt(), 0xFF9A6079.toInt(),
+            R.drawable.faceit_widget_preview_pearl
         ),
         // ---- Satin: soft mid-tones that survive a busy wallpaper
         FaceItClockStyle(
             "Satin", "Rose Satin", "Satin",
-            0xE83A2731.toInt(), 0xFFFFF1F5.toInt(), 0xFFF0A8C0.toInt()
+            0xE83A2731.toInt(), 0xFFFFF1F5.toInt(), 0xFFF0A8C0.toInt(),
+            R.drawable.faceit_widget_preview_satin
         ),
         FaceItClockStyle(
             "Sage", "Sage Satin", "Satin",
-            0xE823322C.toInt(), 0xFFF0F8F2.toInt(), 0xFF9BD6B5.toInt()
+            0xE823322C.toInt(), 0xFFF0F8F2.toInt(), 0xFF9BD6B5.toInt(),
+            R.drawable.faceit_widget_preview_sage
         )
     )
 

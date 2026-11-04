@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -391,7 +392,7 @@ internal fun VisualStudioScreen(
         mutableStateOf(prefs.selected(category) ?: TopicCatalogue.byCategory(category).first().id)
     }
     var frameColour by remember { mutableStateOf(prefs.frameColour()) }
-    var chargingPhase by remember { mutableStateOf(0f) }
+    var chargingPhase by remember { mutableFloatStateOf(0f) }
 
     val styles = remember(category) { TopicCatalogue.byCategory(category) }
     val selected = TopicCatalogue.find(selectedId) ?: styles.first()

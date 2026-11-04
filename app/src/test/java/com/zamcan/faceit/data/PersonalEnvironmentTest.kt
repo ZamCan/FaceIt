@@ -2,6 +2,7 @@ package com.zamcan.faceit.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PersonalEnvironmentTest {
@@ -48,4 +49,18 @@ class PersonalEnvironmentTest {
         assertEquals("Geometry", geometry.background)
     }
 
+
+    @Test
+    fun defaultCompositionIsStoneGuardian() {
+        // Rescued from a duplicate test class that shadowed this one: two classes with
+        // the same simple name in one module is a build smell, so the assertion lives
+        // here now and the duplicate is gone.
+        val v = PersonalEnvironment()
+        assertEquals("Football", v.background)
+        assertEquals("Lion sculpture", v.mainObject)
+        assertEquals("Natural stone", v.material)
+        assertEquals("Subtle", v.motion)
+        assertTrue(v.widgetsEnabled)
+        assertTrue(v.iconsEnabled)
+    }
 }

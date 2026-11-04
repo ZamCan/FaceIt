@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -108,50 +113,55 @@ private fun WidgetStyleConfig(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             FaceItClockWidgetStyles.all.filter { it.family == family }.forEach { style ->
-            val active = selected.id == style.id
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                color = Color(style.background),
-                border = BorderStroke(
-                    width = if (active) 2.dp else 1.dp,
-                    color = if (active) Color(style.date) else colors.border
-                ),
-                onClick = { selected = style }
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                val active = selected.id == style.id
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    color = colors.card,
+                    border = BorderStroke(
+                        width = if (active) 2.dp else 1.dp,
+                        color = if (active) Color(style.date) else colors.border
+                    ),
+                    onClick = { selected = style }
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = "09:41",
-                            color = Color(style.time),
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.SemiBold
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // The bundled 2x preview: what the finish actually looks like
+                        // with the real time and date, not a colour chip standing in
+                        // for it.
+                        Image(
+                            painter = painterResource(style.previewRes),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .width(132.dp)
+                                .height(74.dp)
+                                .clip(RoundedCornerShape(12.dp))
                         )
-                        Text(
-                            text = "Fri, 1 Nov",
-                            color = Color(style.date),
-                            fontSize = 12.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = style.label,
-                            color = Color(style.time).copy(alpha = .72f),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                    if (active) {
-                        Icon(
-                            imageVector = Icons.Rounded.Check,
-                            contentDescription = "Selected",
-                            tint = Color(style.date)
-                        )
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = style.label,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${style.family} finish",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (active) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = "Selected",
+                                tint = Color(style.date)
+                            )
+                        }
                     }
                 }
-            }
             }
         }
 
