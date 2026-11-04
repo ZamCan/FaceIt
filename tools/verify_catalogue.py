@@ -501,6 +501,16 @@ def audit_widget_finishes() -> dict:
 def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: dict) -> None:
     if not themes:
         return
+    # A theme count that outgrows the charging catalogue turns the animation picker
+    # into a list with no real choice in it. This is a ratio, not a fixed number, so
+    # it stays true as either catalogue grows.
+    if charging.get("count"):
+        ratio = charging["count"] / themes["count"]
+        if ratio < 0.6:
+            problem(f"only {ratio:.2f} charging styles per theme; the picker has no room to choose")
+    defaults = len(set(themes.get("charging", [])))
+    if defaults < 10:
+        problem(f"themes use only {defaults} distinct charging defaults")
     index = json.loads((ASSETS / "artwork_index.json").read_text(encoding="utf-8"))
     wallpapers = {w["id"] for w in index["wallpapers"]}
     unknown = sorted({w for w in themes["wallpapers"] if w not in wallpapers})

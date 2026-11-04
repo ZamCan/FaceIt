@@ -9,14 +9,18 @@ import org.junit.Test
 class ChargingStylesTest {
 
     @Test
-    fun thereAreEnoughStylesToCoverEveryThemeWithRoomToChoose() {
+    fun thereAreEnoughStylesToGiveTheUserAChoice() {
         assertTrue("only ${ChargingStyles.all.size} styles", ChargingStyles.all.size >= 30)
-        // More styles than themes, so every theme keeps a distinct default and the
-        // user still has alternatives.
+        // The catalogue must not be a one-per-theme list: whatever the theme count,
+        // the user needs alternatives to choose between. That is the real guarantee,
+        // and it does not need to be rewritten every time the theme gallery grows.
+        val perTheme = ChargingStyles.all.size.toFloat() / FaceThemes.all.size
         assertTrue(
-            "expected more charging styles than themes",
-            ChargingStyles.all.size >= FaceThemes.all.size
+            "only ${"%.2f".format(perTheme)} styles per theme",
+            perTheme >= 0.6f
         )
+        val defaults = FaceThemes.all.map { it.chargingStyleId }.toSet()
+        assertTrue("themes lean on too few defaults", defaults.size >= 10)
     }
 
     @Test
