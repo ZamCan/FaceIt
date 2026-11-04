@@ -554,6 +554,13 @@ def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: 
     if unlisted:
         problem(f"frame shapes missing from the display shelf: {unlisted}")
 
+    # every family the theme catalogue uses needs its own icon vocabulary, or the
+    # studio silently shows that whole family the same eight default icons
+    vocabularies = set(re.findall(r'^\s+"(\w+)" -> listOf\(', studio, re.M))
+    for family in themes.get("families", []):
+        if family not in vocabularies:
+            problem(f"theme family {family} has no icon vocabulary; it would show the default set")
+
     # every glyph vocabulary the studio names must exist
     used = set(re.findall(r"IconGlyph\.([A-Z_0-9]+)", studio))
     glyph_names = set(enum_constants("IconGlyph", source("graphics/IconRenderer.kt")))

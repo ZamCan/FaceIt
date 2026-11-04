@@ -34,13 +34,20 @@ enum class IconGlyph {
     // food, drink and health
     FOOD, DRINK, PILL, RUN, CYCLE, WEIGHT,
     // travel and money
-    FLIGHT, CAR, SHOP, BANK, TICKET, PIN
+    FLIGHT, CAR, SHOP, BANK, TICKET, PIN,
+    // added with the wider range: kitchen and larder, tools, and the two
+    // instruments a personal phone actually uses most
+    CHEF, BASKET, TOOLS, CALCULATOR, NOTE, LOCK, UNLOCK, KEY,
+    TROPHY, MEDAL, RULER, BRUSH, PENCIL, PLANE_TAIL, BICYCLE, GLOBE
 }
 
 /** How the tile behind the glyph is finished. */
 enum class IconTile {
     GLASS_ROUNDED, CERAMIC_SQUIRCLE, MATTE_SQUARE, PEBBLE_CIRCLE,
-    FROSTED_ROUNDED, STONE_ROUNDED, JEWEL_OCTAGON, SATIN_ROUNDED
+    FROSTED_ROUNDED, STONE_ROUNDED, JEWEL_OCTAGON, SATIN_ROUNDED,
+    // added with the wider theme range: a cut-corner plate for the heritage and
+    // business palettes, a tall pill, a soft arch and a faceted diamond
+    HEX_CUT, PILL_TALL, ARCH_SOFT, BRILLIANT
 }
 
 /**
@@ -138,7 +145,211 @@ object IconRenderer {
             IconGlyph.BANK -> drawBank(canvas, glyphBox, paint, accent)
             IconGlyph.TICKET -> drawTicket(canvas, glyphBox, paint, accent, fill)
             IconGlyph.PIN -> drawPin(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.CHEF -> drawChef(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.BASKET -> drawBasket(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.TOOLS -> drawTools(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.CALCULATOR -> drawCalculator(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.NOTE -> drawNote(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.LOCK -> drawLock(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.UNLOCK -> drawUnlock(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.KEY -> drawKey(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.TROPHY -> drawTrophy(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.MEDAL -> drawMedal(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.RULER -> drawRuler(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.BRUSH -> drawBrush(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.PENCIL -> drawPencil(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.PLANE_TAIL -> drawPlaneTail(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.BICYCLE -> drawBicycle(canvas, glyphBox, paint, fill, accent)
+            IconGlyph.GLOBE -> drawGlobe(canvas, glyphBox, paint, fill, accent)
         }
+    }
+
+
+    private fun drawChef(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.left + w * 0.32f, box.top + w * 0.30f, w * 0.16f, stroke)
+        canvas.drawCircle(box.left + w * 0.50f, box.top + w * 0.24f, w * 0.18f, stroke)
+        canvas.drawCircle(box.left + w * 0.68f, box.top + w * 0.30f, w * 0.16f, stroke)
+        val base = RectF(box.left + w * 0.18f, box.top + w * 0.44f, box.right - w * 0.18f, box.bottom - w * 0.06f)
+        canvas.drawRoundRect(base, w * 0.08f, w * 0.08f, stroke)
+        canvas.drawLine(base.left + w * 0.10f, base.centerY(), base.right - w * 0.10f, base.centerY(), accent)
+    }
+
+    private fun drawBasket(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = RectF(box.left + w * 0.08f, box.top + w * 0.40f, box.right - w * 0.08f, box.bottom - w * 0.08f)
+        canvas.drawRoundRect(body, w * 0.10f, w * 0.10f, stroke)
+        val handle = Path().apply {
+            moveTo(body.left + w * 0.10f, body.top)
+            cubicTo(body.left + w * 0.16f, box.top, body.right - w * 0.16f, box.top, body.right - w * 0.10f, body.top)
+        }
+        canvas.drawPath(handle, stroke)
+        canvas.drawLine(body.left + w * 0.10f, body.centerY(), body.right - w * 0.10f, body.centerY(), accent)
+    }
+
+    private fun drawTools(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawLine(box.left + w * 0.18f, box.bottom - w * 0.12f, box.right - w * 0.20f, box.top + w * 0.14f, stroke)
+        val head = RectF(box.right - w * 0.34f, box.top + w * 0.08f, box.right - w * 0.08f, box.top + w * 0.30f)
+        canvas.drawRoundRect(head, w * 0.04f, w * 0.04f, accent)
+        canvas.drawCircle(box.left + w * 0.24f, box.bottom - w * 0.20f, w * 0.11f, stroke)
+    }
+
+    private fun drawCalculator(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = RectF(box.left + w * 0.16f, box.top + w * 0.06f, box.right - w * 0.16f, box.bottom - w * 0.06f)
+        canvas.drawRoundRect(body, w * 0.08f, w * 0.08f, stroke)
+        val screen = RectF(body.left + w * 0.08f, body.top + w * 0.08f, body.right - w * 0.08f, body.top + w * 0.32f)
+        canvas.drawRect(screen, accent)
+        for (row in 0..2) {
+            for (col in 0..2) {
+                canvas.drawCircle(
+                    body.left + w * 0.18f + col * w * 0.16f,
+                    body.top + w * 0.46f + row * w * 0.16f,
+                    w * 0.045f,
+                    fill
+                )
+            }
+        }
+    }
+
+    private fun drawNote(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val page = RectF(box.left + w * 0.14f, box.top + w * 0.06f, box.right - w * 0.14f, box.bottom - w * 0.06f)
+        canvas.drawRoundRect(page, w * 0.06f, w * 0.06f, stroke)
+        for (i in 0..3) {
+            val y = page.top + w * 0.16f + i * w * 0.16f
+            canvas.drawLine(page.left + w * 0.08f, y, page.right - w * 0.10f, y, accent)
+        }
+    }
+
+    private fun drawLock(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = RectF(box.left + w * 0.20f, box.top + w * 0.42f, box.right - w * 0.20f, box.bottom - w * 0.06f)
+        canvas.drawRoundRect(body, w * 0.08f, w * 0.08f, stroke)
+        val shackle = Path().apply {
+            moveTo(body.left + w * 0.06f, body.top)
+            cubicTo(body.left + w * 0.06f, box.top + w * 0.06f, body.right - w * 0.06f, box.top + w * 0.06f, body.right - w * 0.06f, body.top)
+        }
+        canvas.drawPath(shackle, stroke)
+        canvas.drawCircle(body.centerX(), body.centerY(), w * 0.07f, accent)
+    }
+
+    private fun drawUnlock(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = RectF(box.left + w * 0.20f, box.top + w * 0.42f, box.right - w * 0.20f, box.bottom - w * 0.06f)
+        canvas.drawRoundRect(body, w * 0.08f, w * 0.08f, stroke)
+        val shackle = Path().apply {
+            moveTo(body.left + w * 0.06f, body.top)
+            cubicTo(body.left + w * 0.06f, box.top + w * 0.06f, box.right - w * 0.06f, box.top + w * 0.06f, body.right - w * 0.06f, box.top + w * 0.22f)
+        }
+        canvas.drawPath(shackle, stroke)
+        canvas.drawCircle(body.centerX(), body.centerY(), w * 0.07f, accent)
+    }
+
+    private fun drawKey(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.left + w * 0.30f, box.top + w * 0.36f, w * 0.18f, stroke)
+        canvas.drawLine(box.left + w * 0.42f, box.top + w * 0.50f, box.right - w * 0.12f, box.bottom - w * 0.10f, stroke)
+        canvas.drawLine(box.right - w * 0.30f, box.bottom - w * 0.28f, box.right - w * 0.18f, box.bottom - w * 0.40f, accent)
+    }
+
+    private fun drawTrophy(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val cup = Path().apply {
+            moveTo(box.left + w * 0.26f, box.top + w * 0.12f)
+            lineTo(box.right - w * 0.26f, box.top + w * 0.12f)
+            lineTo(box.right - w * 0.34f, box.top + w * 0.52f)
+            lineTo(box.left + w * 0.34f, box.top + w * 0.52f)
+            close()
+        }
+        canvas.drawPath(cup, fill)
+        canvas.drawLine(box.centerX(), box.top + w * 0.52f, box.centerX(), box.bottom - w * 0.18f, stroke)
+        canvas.drawLine(box.centerX() - w * 0.18f, box.bottom - w * 0.14f, box.centerX() + w * 0.18f, box.bottom - w * 0.14f, accent)
+    }
+
+    private fun drawMedal(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.centerX(), box.top + w * 0.42f, w * 0.22f, stroke)
+        canvas.drawCircle(box.centerX(), box.top + w * 0.42f, w * 0.12f, accent)
+        val ribbon = Path().apply {
+            moveTo(box.centerX() - w * 0.16f, box.top + w * 0.58f)
+            lineTo(box.centerX() - w * 0.24f, box.bottom - w * 0.06f)
+            lineTo(box.centerX(), box.bottom - w * 0.20f)
+            lineTo(box.centerX() + w * 0.24f, box.bottom - w * 0.06f)
+            lineTo(box.centerX() + w * 0.16f, box.top + w * 0.58f)
+        }
+        canvas.drawPath(ribbon, fill)
+    }
+
+    private fun drawRuler(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val body = RectF(box.left + w * 0.06f, box.top + w * 0.34f, box.right - w * 0.06f, box.top + w * 0.62f)
+        canvas.drawRoundRect(body, w * 0.04f, w * 0.04f, stroke)
+        for (i in 1..4) {
+            val x = body.left + body.width() * i / 5f
+            canvas.drawLine(x, body.top + w * 0.04f, x, body.centerY(), accent)
+        }
+    }
+
+    private fun drawBrush(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawLine(box.left + w * 0.20f, box.bottom - w * 0.14f, box.right - w * 0.44f, box.top + w * 0.20f, stroke)
+        val head = Path().apply {
+            moveTo(box.right - w * 0.50f, box.top + w * 0.22f)
+            lineTo(box.right - w * 0.10f, box.top + w * 0.08f)
+            lineTo(box.right - w * 0.06f, box.top + w * 0.46f)
+            close()
+        }
+        canvas.drawPath(head, accent)
+    }
+
+    private fun drawPencil(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val shaft = Path().apply {
+            moveTo(box.left + w * 0.22f, box.bottom - w * 0.10f)
+            lineTo(box.left + w * 0.32f, box.bottom - w * 0.18f)
+            lineTo(box.right - w * 0.18f, box.top + w * 0.22f)
+            lineTo(box.right - w * 0.30f, box.top + w * 0.10f)
+            close()
+        }
+        canvas.drawPath(shaft, fill)
+        canvas.drawLine(box.left + w * 0.22f, box.bottom - w * 0.10f, box.left + w * 0.14f, box.bottom - w * 0.02f, accent)
+    }
+
+    private fun drawPlaneTail(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        val fin = Path().apply {
+            moveTo(box.left + w * 0.30f, box.bottom - w * 0.10f)
+            lineTo(box.left + w * 0.58f, box.top + w * 0.10f)
+            lineTo(box.right - w * 0.10f, box.top + w * 0.34f)
+            close()
+        }
+        canvas.drawPath(fin, fill)
+        canvas.drawLine(box.left + w * 0.20f, box.bottom - w * 0.02f, box.right - w * 0.06f, box.bottom - w * 0.36f, accent)
+    }
+
+    private fun drawBicycle(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.left + w * 0.26f, box.top + w * 0.66f, w * 0.20f, stroke)
+        canvas.drawCircle(box.right - w * 0.24f, box.top + w * 0.66f, w * 0.20f, stroke)
+        val frame = Path().apply {
+            moveTo(box.left + w * 0.26f, box.top + w * 0.66f)
+            lineTo(box.centerX() - w * 0.04f, box.top + w * 0.34f)
+            lineTo(box.right - w * 0.24f, box.top + w * 0.66f)
+            lineTo(box.left + w * 0.26f, box.top + w * 0.66f)
+        }
+        canvas.drawPath(frame, accent)
+    }
+
+    private fun drawGlobe(canvas: Canvas, box: RectF, stroke: Paint, fill: Paint, accent: Paint) {
+        val w = box.width()
+        canvas.drawCircle(box.centerX(), box.centerY(), w * 0.38f, stroke)
+        canvas.drawOval(
+            RectF(box.centerX() - w * 0.16f, box.centerY() - w * 0.38f, box.centerX() + w * 0.16f, box.centerY() + w * 0.38f),
+            accent
+        )
+        canvas.drawLine(box.centerX() - w * 0.38f, box.centerY(), box.centerX() + w * 0.38f, box.centerY(), accent)
     }
 
     private fun drawTile(canvas: Canvas, box: RectF, tile: IconTile, colour: Int) {
@@ -151,6 +362,54 @@ object IconRenderer {
             IconTile.FROSTED_ROUNDED -> canvas.drawRoundRect(box, box.width() * 0.34f, box.height() * 0.34f, paint)
             IconTile.STONE_ROUNDED -> canvas.drawRoundRect(box, box.width() * 0.22f, box.height() * 0.22f, paint)
             IconTile.SATIN_ROUNDED -> canvas.drawRoundRect(box, box.width() * 0.42f, box.height() * 0.42f, paint)
+            IconTile.HEX_CUT -> {
+                // six-sided plate, cut from the middle of each side
+                val c = box.width() * 0.28f
+                val path = Path().apply {
+                    moveTo(box.left + c, box.top)
+                    lineTo(box.right - c, box.top)
+                    lineTo(box.right, box.centerY())
+                    lineTo(box.right - c, box.bottom)
+                    lineTo(box.left + c, box.bottom)
+                    lineTo(box.left, box.centerY())
+                    close()
+                }
+                canvas.drawPath(path, paint)
+            }
+            IconTile.PILL_TALL -> canvas.drawRoundRect(
+                box,
+                box.width() * 0.50f,
+                box.height() * 0.50f,
+                paint
+            )
+            IconTile.ARCH_SOFT -> {
+                // a rounded top and a flat base: the arch of the heritage wallpapers
+                val path = Path().apply {
+                    moveTo(box.left, box.bottom)
+                    lineTo(box.left, box.top + box.height() * 0.42f)
+                    cubicTo(
+                        box.left, box.top,
+                        box.right, box.top,
+                        box.right, box.top + box.height() * 0.42f
+                    )
+                    lineTo(box.right, box.bottom)
+                    close()
+                }
+                canvas.drawPath(path, paint)
+            }
+            IconTile.BRILLIANT -> {
+                // a brilliant cut: four points, slightly inset
+                val cx = box.centerX()
+                val cy = box.centerY()
+                val path = Path().apply {
+                    moveTo(cx, box.top)
+                    lineTo(box.right, cy)
+                    lineTo(cx, box.bottom)
+                    lineTo(box.left, cy)
+                    close()
+                }
+                canvas.drawPath(path, paint)
+            }
             IconTile.JEWEL_OCTAGON -> {
                 // A cut-corner tile: the shape reads as a set stone rather than a rounded square.
                 val c = box.width() * 0.24f

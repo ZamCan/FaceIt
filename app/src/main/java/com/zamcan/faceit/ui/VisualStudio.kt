@@ -1156,12 +1156,12 @@ private fun glyphsFor(theme: FaceTheme): List<IconGlyph> = remember(theme.id) {
             IconGlyph.HEART, IconGlyph.FOOD, IconGlyph.MUSIC, IconGlyph.CAMERA
         )
         "Sport" -> listOf(
-            IconGlyph.GAME, IconGlyph.RUN, IconGlyph.CYCLE, IconGlyph.WEIGHT,
-            IconGlyph.CLOCK, IconGlyph.TICKET, IconGlyph.CHARGE, IconGlyph.MAP
+            IconGlyph.GAME, IconGlyph.RUN, IconGlyph.BICYCLE, IconGlyph.WEIGHT,
+            IconGlyph.TROPHY, IconGlyph.MEDAL, IconGlyph.TICKET, IconGlyph.MAP
         )
         "Heritage" -> listOf(
             IconGlyph.BANK, IconGlyph.BOOK, IconGlyph.MAP, IconGlyph.CLOCK,
-            IconGlyph.COFFEE, IconGlyph.PHONE, IconGlyph.MAIL, IconGlyph.FILES
+            IconGlyph.COFFEE, IconGlyph.TOOLS, IconGlyph.MAIL, IconGlyph.GLOBE
         )
         "Nature" -> listOf(
             IconGlyph.LEAF, IconGlyph.TREE, IconGlyph.FLOWER, IconGlyph.SUN,
@@ -1169,7 +1169,23 @@ private fun glyphsFor(theme: FaceTheme): List<IconGlyph> = remember(theme.id) {
         )
         "Abstract" -> listOf(
             IconGlyph.STAR, IconGlyph.SEARCH, IconGlyph.HOME, IconGlyph.SETTINGS,
-            IconGlyph.BROWSER, IconGlyph.CHARGE, IconGlyph.STAR, IconGlyph.PIN
+            IconGlyph.BROWSER, IconGlyph.CHARGE, IconGlyph.RULER, IconGlyph.BRUSH
+        )
+        "Calm" -> listOf(
+            IconGlyph.LEAF, IconGlyph.MOON, IconGlyph.COFFEE, IconGlyph.BOOK,
+            IconGlyph.CAMERA, IconGlyph.MUSIC, IconGlyph.WEATHER, IconGlyph.CLOCK
+        )
+        "Science" -> listOf(
+            IconGlyph.PILL, IconGlyph.RULER, IconGlyph.NOTE, IconGlyph.PENCIL,
+            IconGlyph.FILES, IconGlyph.SEARCH, IconGlyph.CLOCK, IconGlyph.CHARGE
+        )
+        "Technology" -> listOf(
+            IconGlyph.CALCULATOR, IconGlyph.NOTE, IconGlyph.TOOLS, IconGlyph.LOCK,
+            IconGlyph.BROWSER, IconGlyph.FILES, IconGlyph.SEARCH, IconGlyph.CHARGE
+        )
+        "Business" -> listOf(
+            IconGlyph.BANK, IconGlyph.CALCULATOR, IconGlyph.NOTE, IconGlyph.PENCIL,
+            IconGlyph.MAIL, IconGlyph.CLOCK, IconGlyph.GLOBE, IconGlyph.KEY
         )
         else -> listOf(
             IconGlyph.MESSAGE, IconGlyph.CAMERA, IconGlyph.MUSIC, IconGlyph.GALLERY,
@@ -1224,6 +1240,10 @@ private fun tileShape(theme: FaceTheme): androidx.compose.ui.graphics.Shape = wh
     com.zamcan.faceit.graphics.IconTile.MATTE_SQUARE -> RoundedCornerShape(5.dp)
     com.zamcan.faceit.graphics.IconTile.JEWEL_OCTAGON -> RoundedCornerShape(4.dp)
     com.zamcan.faceit.graphics.IconTile.SATIN_ROUNDED -> RoundedCornerShape(20.dp)
+    com.zamcan.faceit.graphics.IconTile.HEX_CUT -> RoundedCornerShape(6.dp)
+    com.zamcan.faceit.graphics.IconTile.PILL_TALL -> RoundedCornerShape(percent = 50)
+    com.zamcan.faceit.graphics.IconTile.ARCH_SOFT -> RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
+    com.zamcan.faceit.graphics.IconTile.BRILLIANT -> RoundedCornerShape(2.dp)
 }
 
 /**
@@ -1242,6 +1262,10 @@ private fun tileBrush(theme: FaceTheme, base: Color): Brush = when (theme.iconTi
     )
     com.zamcan.faceit.graphics.IconTile.CERAMIC_SQUIRCLE -> Brush.verticalGradient(
         listOf(Color.White.copy(alpha = .12f), Color.Transparent)
+    )
+    com.zamcan.faceit.graphics.IconTile.BRILLIANT,
+    com.zamcan.faceit.graphics.IconTile.HEX_CUT -> Brush.verticalGradient(
+        listOf(base.copy(alpha = .94f), base.copy(alpha = .74f))
     )
     else -> Brush.verticalGradient(listOf(base, base))
 }
@@ -1310,6 +1334,26 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTileFinish(
                 center = Offset(w * 0.34f, h * 0.30f))
         }
         com.zamcan.faceit.graphics.IconTile.MATTE_SQUARE -> Unit
+        com.zamcan.faceit.graphics.IconTile.HEX_CUT -> {
+            drawLine(light.copy(alpha = .24f), Offset(0f, h * 0.5f), Offset(w * 0.5f, 0f),
+                strokeWidth = 1.4f)
+            drawLine(light.copy(alpha = .24f), Offset(w * 0.5f, 0f), Offset(w, h * 0.5f),
+                strokeWidth = 1.4f)
+        }
+        com.zamcan.faceit.graphics.IconTile.PILL_TALL -> {
+            drawCircle(light.copy(alpha = .16f), radius = w * 0.26f,
+                center = Offset(w * 0.5f, h * 0.28f))
+        }
+        com.zamcan.faceit.graphics.IconTile.ARCH_SOFT -> {
+            drawLine(accent.copy(alpha = .35f), Offset(w * 0.5f, 0f), Offset(w * 0.5f, h * 0.34f),
+                strokeWidth = 1.2f)
+        }
+        com.zamcan.faceit.graphics.IconTile.BRILLIANT -> {
+            drawLine(light.copy(alpha = .26f), Offset(0f, h * 0.5f), Offset(w, h * 0.5f),
+                strokeWidth = 1.2f)
+            drawLine(light.copy(alpha = .18f), Offset(w * 0.5f, 0f), Offset(w * 0.5f, h),
+                strokeWidth = 1f)
+        }
     }
 }
 
@@ -2244,6 +2288,168 @@ internal fun DrawScope.drawStudioGlyph(glyph: IconGlyph, ink: Color, accent: Col
                 ink
             )
             drawCircle(accent, w * 0.11f, Offset(w * 0.5f, h * 0.38f))
+        }
+        IconGlyph.CHEF -> {
+            drawCircle(ink, w * 0.15f, Offset(w * 0.32f, h * 0.30f), style = Stroke(stroke * 0.8f))
+            drawCircle(ink, w * 0.17f, Offset(w * 0.50f, h * 0.24f), style = Stroke(stroke * 0.8f))
+            drawCircle(ink, w * 0.15f, Offset(w * 0.68f, h * 0.30f), style = Stroke(stroke * 0.8f))
+            drawRoundRect(ink, Offset(w * 0.18f, h * 0.44f), Size(w * 0.64f, h * 0.48f),
+                CornerRadius(w * 0.08f), style = Stroke(stroke))
+            drawLine(accent, Offset(w * 0.28f, h * 0.66f), Offset(w * 0.72f, h * 0.66f),
+                strokeWidth = stroke * 0.7f)
+        }
+        IconGlyph.BASKET -> {
+            drawRoundRect(ink, Offset(w * 0.08f, h * 0.40f), Size(w * 0.84f, h * 0.52f),
+                CornerRadius(w * 0.10f), style = Stroke(stroke))
+            drawArc(accent, 180f, 180f, false,
+                topLeft = Offset(w * 0.20f, h * 0.06f), size = Size(w * 0.60f, h * 0.60f),
+                style = Stroke(stroke * 0.8f))
+            drawLine(accent, Offset(w * 0.18f, h * 0.66f), Offset(w * 0.82f, h * 0.66f),
+                strokeWidth = stroke * 0.6f)
+        }
+        IconGlyph.TOOLS -> {
+            drawLine(ink, Offset(w * 0.18f, h * 0.88f), Offset(w * 0.82f, h * 0.16f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawRoundRect(accent, Offset(w * 0.66f, h * 0.08f), Size(w * 0.26f, h * 0.20f),
+                CornerRadius(w * 0.04f))
+            drawCircle(ink, w * 0.13f, Offset(w * 0.18f, h * 0.84f), style = Stroke(stroke))
+        }
+        IconGlyph.CALCULATOR -> {
+            drawRoundRect(ink, Offset(w * 0.16f, h * 0.06f), Size(w * 0.68f, h * 0.88f),
+                CornerRadius(w * 0.08f), style = Stroke(stroke))
+            drawRoundRect(accent, Offset(w * 0.24f, h * 0.14f), Size(w * 0.52f, h * 0.22f),
+                CornerRadius(w * 0.03f))
+            repeat(3) { row ->
+                repeat(3) { col ->
+                    drawCircle(ink, w * 0.045f,
+                        Offset(w * (0.30f + col * 0.20f), h * (0.50f + row * 0.16f)))
+                }
+            }
+        }
+        IconGlyph.NOTE -> {
+            drawRoundRect(ink, Offset(w * 0.14f, h * 0.06f), Size(w * 0.72f, h * 0.88f),
+                CornerRadius(w * 0.06f), style = Stroke(stroke))
+            repeat(4) { index ->
+                drawLine(accent, Offset(w * 0.24f, h * (0.24f + index * 0.16f)),
+                    Offset(w * 0.74f, h * (0.24f + index * 0.16f)), strokeWidth = stroke * 0.5f)
+            }
+        }
+        IconGlyph.LOCK -> {
+            drawRoundRect(ink, Offset(w * 0.20f, h * 0.42f), Size(w * 0.60f, h * 0.52f),
+                CornerRadius(w * 0.08f), style = Stroke(stroke))
+            drawArc(ink, 180f, 180f, false,
+                topLeft = Offset(w * 0.28f, h * 0.10f), size = Size(w * 0.44f, h * 0.50f),
+                style = Stroke(stroke))
+            drawCircle(accent, w * 0.07f, Offset(w * 0.5f, h * 0.66f))
+        }
+        IconGlyph.UNLOCK -> {
+            drawRoundRect(ink, Offset(w * 0.20f, h * 0.42f), Size(w * 0.60f, h * 0.52f),
+                CornerRadius(w * 0.08f), style = Stroke(stroke))
+            drawArc(ink, 150f, 150f, false,
+                topLeft = Offset(w * 0.28f, h * 0.10f), size = Size(w * 0.44f, h * 0.50f),
+                style = Stroke(stroke))
+            drawCircle(accent, w * 0.07f, Offset(w * 0.5f, h * 0.66f))
+        }
+        IconGlyph.KEY -> {
+            drawCircle(ink, w * 0.17f, Offset(w * 0.30f, h * 0.36f), style = Stroke(stroke))
+            drawLine(ink, Offset(w * 0.42f, h * 0.50f), Offset(w * 0.88f, h * 0.90f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawLine(accent, Offset(w * 0.68f, h * 0.72f), Offset(w * 0.80f, h * 0.60f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.TROPHY -> {
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.26f, h * 0.12f)
+                    lineTo(w * 0.74f, h * 0.12f)
+                    lineTo(w * 0.66f, h * 0.52f)
+                    lineTo(w * 0.34f, h * 0.52f)
+                    close()
+                }, ink
+            )
+            drawLine(ink, Offset(w * 0.5f, h * 0.52f), Offset(w * 0.5f, h * 0.82f),
+                strokeWidth = stroke)
+            drawLine(accent, Offset(w * 0.32f, h * 0.86f), Offset(w * 0.68f, h * 0.86f),
+                strokeWidth = stroke)
+        }
+        IconGlyph.MEDAL -> {
+            drawCircle(ink, w * 0.22f, Offset(w * 0.5f, h * 0.40f), style = Stroke(stroke))
+            drawCircle(accent, w * 0.11f, Offset(w * 0.5f, h * 0.40f))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.34f, h * 0.58f)
+                    lineTo(w * 0.26f, h * 0.94f)
+                    lineTo(w * 0.5f, h * 0.80f)
+                    lineTo(w * 0.74f, h * 0.94f)
+                    lineTo(w * 0.66f, h * 0.58f)
+                }, ink
+            )
+        }
+        IconGlyph.RULER -> {
+            drawRoundRect(ink, Offset(w * 0.06f, h * 0.34f), Size(w * 0.88f, h * 0.28f),
+                CornerRadius(w * 0.04f), style = Stroke(stroke))
+            repeat(4) { index ->
+                val x = w * (0.24f + index * 0.17f)
+                drawLine(accent, Offset(x, h * 0.38f), Offset(x, h * 0.50f),
+                    strokeWidth = stroke * 0.5f)
+            }
+        }
+        IconGlyph.BRUSH -> {
+            drawLine(ink, Offset(w * 0.20f, h * 0.86f), Offset(w * 0.56f, h * 0.30f),
+                strokeWidth = stroke, cap = StrokeCap.Round)
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.50f, h * 0.28f)
+                    lineTo(w * 0.90f, h * 0.10f)
+                    lineTo(w * 0.94f, h * 0.48f)
+                    close()
+                }, accent
+            )
+        }
+        IconGlyph.PENCIL -> {
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.22f, h * 0.90f)
+                    lineTo(w * 0.32f, h * 0.82f)
+                    lineTo(w * 0.82f, h * 0.22f)
+                    lineTo(w * 0.70f, h * 0.10f)
+                    lineTo(w * 0.20f, h * 0.66f)
+                    close()
+                }, ink
+            )
+            drawLine(accent, Offset(w * 0.22f, h * 0.90f), Offset(w * 0.14f, h * 0.98f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.PLANE_TAIL -> {
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.30f, h * 0.90f)
+                    lineTo(w * 0.58f, h * 0.10f)
+                    lineTo(w * 0.90f, h * 0.34f)
+                    close()
+                }, ink
+            )
+            drawLine(accent, Offset(w * 0.20f, h * 0.98f), Offset(w * 0.86f, h * 0.44f),
+                strokeWidth = stroke * 0.7f, cap = StrokeCap.Round)
+        }
+        IconGlyph.BICYCLE -> {
+            drawCircle(ink, w * 0.20f, Offset(w * 0.26f, h * 0.66f), style = Stroke(stroke))
+            drawCircle(ink, w * 0.20f, Offset(w * 0.74f, h * 0.66f), style = Stroke(stroke))
+            drawPath(
+                Path().apply {
+                    moveTo(w * 0.26f, h * 0.66f)
+                    lineTo(w * 0.46f, h * 0.34f)
+                    lineTo(w * 0.74f, h * 0.66f)
+                    lineTo(w * 0.26f, h * 0.66f)
+                }, accent, style = Stroke(stroke * 0.7f)
+            )
+        }
+        IconGlyph.GLOBE -> {
+            drawCircle(ink, w * 0.38f, Offset(w * 0.5f, h * 0.5f), style = Stroke(stroke))
+            drawOval(accent, Offset(w * 0.34f, h * 0.12f), Size(w * 0.32f, h * 0.76f),
+                style = Stroke(stroke * 0.6f))
+            drawLine(accent, Offset(w * 0.12f, h * 0.5f), Offset(w * 0.88f, h * 0.5f),
+                strokeWidth = stroke * 0.6f)
         }
         else -> {
             // A neutral rounded square with an accent dot, so an unmapped glyph still
