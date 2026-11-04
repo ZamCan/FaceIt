@@ -200,3 +200,39 @@ construction. The merge was done by hand, file by file:
   (`resolveStudioFrame`, `shouldPersistStudioSelection`,
   `resolveSelectedStyleId`) and this side's Display shelf and catalogue
   generators.
+
+## Gate 16 — catalogue audit added to CI
+
+The structural checker (`tools/verify_sources.py`) has never caught a catalogue
+defect: every red build this project has had passed it first. So a second gate was
+added ahead of the compiler, `tools/verify_catalogue.py`, which parses the
+catalogues themselves and fails on:
+
+- a catalogue entry whose argument count does not match its data class;
+- a duplicate id;
+- a theme naming a wallpaper, keyboard design, widget finish, charging style,
+  icon tile or frame shape that does not exist;
+- a frame shape or charging motif with no renderer, or a renderer route pointing
+  at a function that is not there;
+- a colour pair below the floor the design system promises (body text 4.5:1,
+  secondary and accent 3.0:1, keypad legend 4.5:1, widget time 7:1);
+- a widget preview resource missing from `res/drawable-nodpi`, or an orphan
+  preview no finish uses;
+- documentation quoting counts that have drifted.
+
+It found three real defects on its first run, all pre-existing: the `Warm Paper`,
+`Warm Ceramic` and `Pearl Shell` widget finishes had date lines between 4.20:1 and
+4.37:1 against their own cards — below the 4.5:1 the widget test claims for body
+text. They were lightened to 5.45:1, 5.78:1 and 5.56:1, the generator's preview
+colours were corrected to match, and the three preview cards were re-rendered and
+verified to contain the new colour. The widget unit test only asserted 3.0:1 for
+the date line, which is why nothing had failed before.
+
+The documentation check originally compared a hand-typed table of counts and found
+it already stale, so the rule was changed instead: `docs/PERSONALISATION_ENGINES.md`
+now defers to the audit for figures, and the audit fails if a hand-typed count
+table reappears.
+
+**Status: not yet executed by CI.** The GitHub credential for this session expired
+before the commit could be pushed, so this gate is written, run locally (PASS on
+all checks) and reviewed, but no CI run has exercised it.

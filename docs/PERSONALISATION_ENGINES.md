@@ -58,16 +58,14 @@ owner's request to generate as many resources as possible. Nothing here changes
 what the app claims to control: the widget finishes are still real AppWidgets,
 and everything else is still labelled an in-app preview.
 
-| Catalogue | Before | Now | Notes |
-|---|---|---|---|
-| Complete themes | 12 | 39 | seven families; 6 light themes; 33 distinct wallpapers paired |
-| Icon glyphs | 34 | 53 | eight drawn per theme, chosen by family rather than one shared set |
-| Drape frame shapes | 6 | 10 | all abstract geometry; still off by default |
-| Charging styles | 24 | 42 | 25 motifs, eight of them new renderers |
-| Keypad designs | 8 | 23 | every purpose represented; three light boards |
-| Writing styles | 16 | 41 | 23 message, 7 heading, 5 caption, 5 signature |
-| Clock widget finishes | 9 | 15 | each with a generated preview card |
+Counts are deliberately **not** printed here. A number typed into a document goes
+stale the moment a catalogue grows, and the catalogue audit reports the live figures:
 
+```
+python3 tools/verify_catalogue.py --verbose
+```
+
+The method behind the volume, which is what this document is for:
 How the volume was held to the design bar:
 - Every theme, keypad and charging style was checked numerically *before* it was
   written into the source: body text >= 4.5:1 on its surface, secondary text and

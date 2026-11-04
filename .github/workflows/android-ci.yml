@@ -39,6 +39,12 @@ jobs:
       - name: Verify source structure
         run: python3 tools/verify_sources.py
 
+      # Structure is not enough: a catalogue entry can be well-formed Kotlin and
+      # still be wrong. This checks constructor arity, id uniqueness, every
+      # cross-reference a theme makes, and re-measures every contrast promise.
+      - name: Audit catalogue integrity and contrast
+        run: python3 tools/verify_catalogue.py --verbose
+
       - name: Compile, run unit tests and assemble the debug APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace
 

@@ -104,7 +104,7 @@ object FaceItClockWidgetStyles {
             family = "Ceramic",
             background = 0xEAE7E0D3.toInt(),
             time = 0x292A2D.toInt(),
-            date = 0x78664D.toInt(),
+            date = 0x665540.toInt(),
             previewRes = R.drawable.faceit_widget_preview_ceramic,
             detail = "Warm ceramic, dark numerals. Built for daylight."
         ),
@@ -114,7 +114,7 @@ object FaceItClockWidgetStyles {
             family = "Ceramic",
             background = 0xECF5F0E7.toInt(),
             time = 0x221F1A.toInt(),
-            date = 0x8A6A46.toInt(),
+            date = 0x74583A.toInt(),
             previewRes = R.drawable.faceit_widget_preview_paper,
             detail = "Cream paper with brown ink."
         ),
@@ -124,7 +124,7 @@ object FaceItClockWidgetStyles {
             family = "Ceramic",
             background = 0xECF6ECEE.toInt(),
             time = 0x2A2027.toInt(),
-            date = 0x9A6079.toInt(),
+            date = 0x844E67.toInt(),
             previewRes = R.drawable.faceit_widget_preview_pearl,
             detail = "Pink pearl with a rose date line."
         ),
