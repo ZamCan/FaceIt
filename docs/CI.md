@@ -133,3 +133,70 @@ python3 tools/validate_artwork_pack.py --release
 - Also fixed on `main` while integrating: the launcher imported `matchParentSize` as
   a top-level function (it is a `BoxScope` member) and used `sp` unimported. Both
   broke `compileDebugKotlin` on `main` before this run.
+
+---
+
+## Run 15 — visual studio, artwork repolish and the optional Home launcher
+
+- Actions run: `41771790549` on `main`. Job *Content gate, build, unit tests and
+  Lint*: **success**.
+- Result: **119 tests, 0 failures, 0 errors, 0 skipped, 17 suites.** Lint
+  **0 errors / 4 warnings** — the same four `GradleDependency` version notices,
+  unchanged and deliberate (a Compose BOM bump changes rendering and cannot be
+  validated without a device).
+- Artifacts: `FaceIt-debug-apk` (~30.6 MB) and `FaceIt-reports`.
+
+### What this run proves
+
+The Kotlin in `main` compiles, all 119 unit tests pass, Lint has no errors, the
+artwork pack validates at `--release`, and the debug APK assembles.
+
+### What it does not prove
+
+Nothing here was run on a device. The optional HOME role, the app grid, the
+wallpaper compositing, the draped frame, the nine clock widget finishes and every
+charging animation are **built and unit-tested, not seen**. No emulator was
+available in this environment and the local build chain was intentionally not
+installed.
+
+### Failures found and fixed during this phase
+
+Five CI failures, one per push, each a hole in the local checker rather than in
+the design:
+
+1. `IconRenderer` routed 22 new glyphs through a `stroke` paint that file calls
+   `paint`.
+2. `PersonalisationScreens` used `Surface` without importing it.
+3. `appliedStyleFor` was deleted along with the helper composable beside it.
+4. `Color.WHITE` is an `Int` where the charging renderer takes `Long`;
+   `Path.addOval` needs an explicit `Path.Direction`.
+5. A test passed `Int` to the `Long`-based contrast helper.
+
+Then two test-level failures, both in my own new tests:
+
+6. `everyThemeAppearsInTheMainShelf…` — the Themes shelf was empty because every
+   feminine-family theme had been filed only under Feminine.
+7. `everyCategoryIsPopulated` — the Display shelf was generated but never
+   concatenated into the catalogue list.
+
+Each is recorded because the pattern matters: **`tools/verify_sources.py` checks
+structure, not types and not imports.** Everything it cannot see, CI sees.
+
+### Coordination note, stated plainly
+
+A second process was committing to this repository during this phase — 38 commits
+in one window, including a style studio that overlapped the one under
+construction. The merge was done by hand, file by file:
+
+- `tools/generate_artwork.py` — their version became the base, because their
+  seven-segment preview renderer is better (font-independent, identical output on
+  any machine). The finishing helpers and three rewritten recipes from this side
+  were carried over on top.
+- `FaceItClockWidgetStyles.kt` — theirs taken wholesale; it is a strict superset
+  (same nine finishes, plus `previewRes` and a `detail` line).
+- Widget preview PNGs — regenerated from their renderer so the binaries and the
+  drawing code agree.
+- `VisualStudio.kt` — merged, keeping their lifecycle hardening
+  (`resolveStudioFrame`, `shouldPersistStudioSelection`,
+  `resolveSelectedStyleId`) and this side's Display shelf and catalogue
+  generators.

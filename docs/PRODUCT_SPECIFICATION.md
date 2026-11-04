@@ -292,3 +292,17 @@ The product-owner reference was a "niqab" frame around the app list. It is shipp
 as **any of five drape shapes in any of six named colours, switchable off**
 (default: off). What is drawn is translucent geometry — curves, arc edges, layered
 folds — behind and around the icons. No figure, face or garment is illustrated.
+
+### Rows added in run 15
+
+| Category | Entries | Backed by | Applied for real? |
+|---|---|---|---|
+| Display | 6 (5 shapes + Off) | `themes/DisplayFrame.kt` + `VeilStyle` | Preview |
+| Keyboards | 10 | `keyboard/KeyboardDesignCatalogue.kt` | In-app only |
+| Optional Home | 1 launcher | `launcher/FaceItHomeActivity.kt` | **Yes — real HOME role, opt-in** |
+
+The optional Home launcher is a genuine `CATEGORY_HOME` activity: it lists every
+exported launcher activity, searches them, launches by explicit component, paints
+the wallpaper the user chose in Face It, honours the theme's ink and the draped
+frame, and never claims the role on its own. Android owns that decision and the
+screen says so.
