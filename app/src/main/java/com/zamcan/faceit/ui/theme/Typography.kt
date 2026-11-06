@@ -110,8 +110,8 @@ internal val FaceItTypography = Typography(
     labelSmall = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.5.sp,
-        lineHeight = 14.sp,
+        fontSize = 11.5.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
 )

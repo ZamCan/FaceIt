@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -328,10 +331,10 @@ fun FaceItApp() {
                         photoCount = PhotoLibrary.all(context).size,
                         photoSelected = environment.curatedPhotoId?.let { id ->
                             PhotoLibrary.find(context, id)?.subject
-                        }
-                            ?: FaceThemes.find(environment.themeId).let { theme ->
-                                PhotoLibrary.find(context, theme.wallpaperId)?.subject
-                            },
+                        } ?: PhotoLibrary.find(
+                            context,
+                            FaceThemes.find(environment.themeId).wallpaperId
+                        )?.subject,
                         curatedBackground = curatedBackground,
                         onOpenGallery = { showGallery = true },
                         onCreate = { destination = Destination.Create },
@@ -408,118 +411,6 @@ fun FaceItApp() {
             }
         }
 
-        if (showGallery) {
-            showGallery = false
-        } else if (destination == Destination.Tools && toolsPage != ToolsPage.Home) {
-            toolsPage = ToolsPage.Home
-        } else {
-            destination = Destination.Discover
-        }
-    }
-
-    CompositionLocalProvider(LocalMotionPolicy provides motionPolicy) {
-    FaceItBackdrop(Modifier.fillMaxSize()) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = {
-                FaceItNavigation(
-                    destination = destination,
-                    onSelect = { selected ->
-                        if (selected == Destination.Tools) toolsPage = ToolsPage.Home
-                        destination = selected
-                    }
-                )
-            }
-        ) { padding ->
-            Crossfade(
-                targetState = destination,
-                modifier = Modifier.fillMaxSize(),
-                animationSpec = if (motionPolicy.animationsEnabled) {
-                    androidx.compose.animation.core.tween(durationMillis = 220)
-                } else {
-                    snap()
-                },
-                label = "destination"
-            ) { current ->
-                when (current) {
-                    Destination.Discover -> DiscoverScreen(
-                        environment = environment,
-                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
-                        artworkObjectFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
-                        modifier = Modifier.padding(padding),
-                        photoCount = PhotoLibrary.all(context).size,
-                        photoSelected = environment.curatedPhotoId?.let { id ->
-                            PhotoLibrary.find(context, id)?.subject
-                        } ?: PhotoLibrary.find(
-                            context,
-                            FaceThemes.find(environment.themeId).wallpaperId
-                        )?.subject,
-                        curatedBackground = curatedBackground,
-                        onOpenGallery = { showGallery = true },
-                        onCreate = { destination = Destination.Create },
-                        onPreset = { preset ->
-                            update(preset)
-                            scope.launch { snackbarHostState.showSnackbar("Loaded ${preset.name}") }
-                        },
-                        onApply = { flags -> applyWallpaper(flags) }
-                    )
-
-                    Destination.Create -> CompositionScreen(
-                        initial = environment,
-                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
-                        objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
-                        modifier = Modifier.padding(padding),
-                        onSave = {
-                            update(it)
-                            scope.launch { snackbarHostState.showSnackbar("Environment saved on this device") }
-                        },
-                        onOpenLibrary = { destination = Destination.Library }
-                    )
-
-                    Destination.Themes -> VisualStudioScreen(
-                        selectedThemeId = environment.themeId,
-                        appliedStyleId = { category -> appliedStyleFor(category, environment) },
-                        onStyleChosen = applyStudioStyle,
-                        modifier = Modifier.padding(padding)
-                    )
-
-                    Destination.Library -> ArtworkStudioScreen(
-                        selectedFileName = environment.selectedArtworkFile,
-                        selectedObjectFileName = environment.selectedObjectFile,
-                        modifier = Modifier.padding(padding),
-                        onSelected = { selected, layer ->
-                            update(
-                                if (layer == "Object") {
-                                    environment.copy(selectedObjectFile = selected.fileName)
-                                } else {
-                                    environment.copy(selectedArtworkFile = selected.fileName)
-                                }
-                            )
-                            destination = Destination.Discover
-                            scope.launch { snackbarHostState.showSnackbar("${selected.title} set as ${layer.lowercase()}") }
-                        },
-                        onClearLayer = { layer ->
-                            update(
-                                if (layer == "Object") {
-                                    environment.copy(selectedObjectFile = null)
-                                } else {
-                                    environment.copy(selectedArtworkFile = null)
-                                }
-                            )
-                        }
-                    )
-
-                    Destination.Tools -> ToolsHubScreen(
-                        page = toolsPage,
-                        modifier = Modifier.padding(padding),
-                        onOpen = { toolsPage = it },
-                        onBack = { toolsPage = ToolsPage.Home }
-                    )
-                }
-            }
-        }
-
 
         // The photograph gallery, drawn above the workspace so it keeps the same
         // backdrop instead of stacking a second theme on top of it.
@@ -546,7 +437,6 @@ fun FaceItApp() {
         }
     }
 }
-    }
 }
 
 @Composable
@@ -555,10 +445,15 @@ private fun FaceItNavigation(
     onSelect: (Destination) -> Unit
 ) {
     val colors = LocalFaceItColors.current
-    Column(Modifier.fillMaxWidth().background(colors.card)) {
-        HorizontalDivider(color = colors.border)
+    FaceItGlass(
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
+        tone = GlassTone.Raised,
+        shape = RoundedCornerShape(28.dp),
+        contentPadding = 0.dp
+    ) {
         NavigationBar(
             containerColor = Color.Transparent,
+            windowInsets = WindowInsets(0, 0, 0, 0),
             tonalElevation = 0.dp
         ) {
             Destination.entries.forEach { item ->
@@ -574,7 +469,7 @@ private fun FaceItNavigation(
                                 Destination.Library -> Icons.Rounded.Collections
                                 Destination.Tools -> Icons.Rounded.Settings
                             },
-                            contentDescription = item.label,
+                            contentDescription = null,
                             modifier = Modifier.size(22.dp)
                         )
                     },
@@ -584,7 +479,7 @@ private fun FaceItNavigation(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = colors.violet,
                         selectedTextColor = colors.violet,
-                        indicatorColor = colors.violet.copy(alpha = .13f),
+                        indicatorColor = colors.violet.copy(alpha = .18f),
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -611,8 +506,11 @@ private fun DiscoverScreen(
     val colors = LocalFaceItColors.current
     var showApplyDialog by remember { mutableStateOf(false) }
 
+    BoxWithConstraints(modifier.fillMaxSize()) {
+    val canvasHeight = (maxHeight * .52f).coerceIn(260.dp, 520.dp)
     Column(
-        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -622,7 +520,7 @@ private fun DiscoverScreen(
 
         // Artwork is the home surface: no marketing hero or stacked dashboard cards.
         Box(
-            modifier = Modifier.fillMaxWidth().weight(1f).heightIn(min = 210.dp)
+            modifier = Modifier.fillMaxWidth().height(canvasHeight)
                 .clip(MaterialTheme.shapes.extraLarge)
                 .border(1.dp, colors.border, MaterialTheme.shapes.extraLarge)
         ) {
@@ -643,7 +541,7 @@ private fun DiscoverScreen(
             StatusPill(
                 text = "LIVE COMPOSITION",
                 modifier = Modifier.align(Alignment.TopStart).padding(13.dp),
-                tint = colors.mint
+                tint = Color.White
             )
             Column(Modifier.align(Alignment.BottomStart).padding(18.dp)) {
                 Text(environment.name, style = MaterialTheme.typography.headlineSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -690,7 +588,7 @@ private fun DiscoverScreen(
                 Column(Modifier.weight(1f)) {
                     Text("Photograph library", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "$photoCount real photographs · credited to their makers",
+                        "$photoCount wallpapers · photos & generated artwork",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -716,6 +614,8 @@ private fun DiscoverScreen(
                 PresetCard(preset = preset, active = preset.name == environment.name, onClick = { onPreset(preset) })
             }
         }
+    }
+
     }
 
     if (showApplyDialog) {
@@ -1084,4 +984,5 @@ private fun CompositionScreen(
         }
     }
 }
+
 

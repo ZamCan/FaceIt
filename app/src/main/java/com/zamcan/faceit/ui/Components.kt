@@ -3,6 +3,11 @@ package com.zamcan.faceit.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -222,7 +227,7 @@ fun ScreenHeader(
                 shape = CircleShape,
                 color = LocalFaceItColors.current.card,
                 border = BorderStroke(1.dp, LocalFaceItColors.current.border),
-                modifier = Modifier.size(44.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -486,15 +491,15 @@ fun <T> SegmentedChoice(
         color = colors.cardSunken,
         border = BorderStroke(1.dp, colors.border)
     ) {
-        Row(Modifier.padding(4.dp)) {
+        Row(Modifier.padding(4.dp).selectableGroup()) {
             options.forEach { (value, label) ->
                 val active = value == selected
                 Surface(
-                    onClick = { onSelected(value) },
                     shape = RoundedCornerShape(50),
                     color = if (active) colors.card else Color.Transparent,
                     border = if (active) BorderStroke(1.dp, colors.border) else null,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                        .selectable(selected = active, role = Role.RadioButton, onClick = { onSelected(value) })
                 ) {
                     Text(
                         text = label,
@@ -523,7 +528,7 @@ fun LayerRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.padding(vertical = 2.dp) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick).heightIn(min = 48.dp) else Modifier)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -746,3 +751,4 @@ fun GradientTile(
         content = content
     )
 }
+

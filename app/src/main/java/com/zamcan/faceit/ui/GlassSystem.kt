@@ -3,6 +3,10 @@ package com.zamcan.faceit.ui
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +31,9 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -137,53 +144,22 @@ fun FaceItGlass(
     contentPadding: Dp = 18.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val colors = LocalFaceItColors.current
-    val base = when (tone) {
-        GlassTone.Standard -> colors.card
-        GlassTone.Raised -> colors.cardRaised
-        GlassTone.Sunken -> colors.cardSunken
-        GlassTone.Accent -> colors.violet.copy(alpha = if (colors.isDark) .13f else .08f)
-    }
-    val tintAlpha = if (colors.isDark) .72f else .92f
-    val topTint = if (colors.isDark) Color.White.copy(alpha = .07f) else Color.White.copy(alpha = .75f)
-    val bottomTint = if (colors.isDark) Color.Black.copy(alpha = .16f) else Color.Black.copy(alpha = .03f)
-    val borderColor = if (tone == GlassTone.Accent) {
-        colors.violet.copy(alpha = .42f)
-    } else {
-        colors.border
-    }
-
+    val interactions = remember { MutableInteractionSource() }
+    val pressed by interactions.collectIsPressedAsState()
+    val motion = LocalMotionPolicy.current
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && motion.animationsEnabled) .985f else 1f,
+        animationSpec = tween(if (motion.animationsEnabled) 140 else 0),
+        label = "glassPress"
+    )
     val glassModifier = modifier
-        .clip(shape)
-        .background(base.copy(alpha = tintAlpha))
-        .background(Brush.verticalGradient(listOf(topTint, Color.Transparent, bottomTint)))
-        .drawWithCache {
-            val stroke = 1.dp.toPx()
-            val specular = Brush.linearGradient(
-                colors = listOf(
-                    Color.White.copy(alpha = if (colors.isDark) .30f else .85f),
-                    Color.Transparent,
-                    Color.Transparent
-                ),
-                start = Offset(0f, 0f),
-                end = Offset(size.width * .85f, size.height * .9f)
-            )
-            onDrawWithContent {
-                drawContent()
-                // top-edge reflection: the single cue that separates glass from a flat card
-                drawLine(
-                    brush = specular,
-                    start = Offset(stroke, stroke),
-                    end = Offset(size.width - stroke, stroke),
-                    strokeWidth = stroke
-                )
-            }
-        }
-        .border(BorderStroke(1.dp, borderColor), shape)
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .faceItGlassFinish(tone, shape, border = true)
 
     if (onClick != null) {
         Surface(
             onClick = onClick,
+            interactionSource = interactions,
             modifier = glassModifier,
             shape = shape,
             color = Color.Transparent
@@ -210,31 +186,53 @@ fun FaceItGlassBox(
     border: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
+    Box(
+        modifier = modifier.faceItGlassFinish(tone, shape, border),
+        content = content
+    )
+}
+
+/** A single optical treatment for cards, previews and the navigation dock. */
+@Composable
+private fun Modifier.faceItGlassFinish(tone: GlassTone, shape: Shape, border: Boolean): Modifier {
     val colors = LocalFaceItColors.current
+    val reduced = LocalMotionPolicy.current.staticOnly
     val base = when (tone) {
         GlassTone.Standard -> colors.card
         GlassTone.Raised -> colors.cardRaised
         GlassTone.Sunken -> colors.cardSunken
-        GlassTone.Accent -> colors.violet.copy(alpha = if (colors.isDark) .13f else .08f)
+        GlassTone.Accent -> colors.card
     }
-    val decorated = modifier
+    val edge = if (tone == GlassTone.Accent) colors.violet.copy(alpha = .44f) else colors.border
+    val elevation = if (reduced || tone == GlassTone.Sunken) 0.dp else if (tone == GlassTone.Raised) 10.dp else 4.dp
+    return this
+        .shadow(elevation, shape, clip = false)
         .clip(shape)
-        .background(base.copy(alpha = if (colors.isDark) .72f else .92f))
-        .background(
-            Brush.verticalGradient(
+        // Keep a substantial neutral substrate so text remains readable over artwork.
+        .background(base.copy(alpha = if (colors.isDark) .94f else .97f))
+        .drawWithCache {
+            val wash = Brush.linearGradient(
                 listOf(
-                    Color.White.copy(alpha = if (colors.isDark) .07f else .75f),
+                    Color.White.copy(alpha = if (colors.isDark) .09f else .66f),
+                    colors.violet.copy(alpha = if (tone == GlassTone.Accent) .10f else .025f),
                     Color.Transparent,
-                    Color.Black.copy(alpha = if (colors.isDark) .16f else .03f)
-                )
+                    Color.Black.copy(alpha = if (colors.isDark) .10f else .025f)
+                ),
+                start = Offset.Zero,
+                end = Offset(size.width * .8f, size.height)
             )
-        )
-    Box(
-        modifier = if (border) {
-            decorated.border(BorderStroke(1.dp, colors.border), shape)
-        } else {
-            decorated
-        },
-        content = content
-    )
+            val reflection = Brush.horizontalGradient(
+                listOf(Color.Transparent, Color.White.copy(alpha = if (colors.isDark) .48f else .95f), Color.Transparent)
+            )
+            onDrawWithContent {
+                drawRect(wash)
+                drawContent()
+                if (border) {
+                    drawLine(reflection, Offset(24.dp.toPx(), 1.dp.toPx()),
+                        Offset((size.width - 24.dp.toPx()).coerceAtLeast(24.dp.toPx()), 1.dp.toPx()),
+                        strokeWidth = 1.dp.toPx())
+                }
+            }
+        }
+        .then(if (border) Modifier.border(BorderStroke(1.dp, edge), shape) else Modifier)
 }
