@@ -37,8 +37,10 @@ class LocalVaultStore(context: Context) {
             bytes.toByteArray()
         }
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
-        val encrypted = cipher.doFinal(payload)
+        val encrypted = try {
+            cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+            cipher.doFinal(payload)
+        } finally { payload.fill(0) }
         val target = File(directory, "$id.vlt")
         val temporary = File(directory, "$id.tmp")
         try {
@@ -73,12 +75,14 @@ class LocalVaultStore(context: Context) {
             cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(GCM_TAG_BITS, iv))
             cipher.doFinal(encrypted)
         }
-        return DataInputStream(ByteArrayInputStream(clear)).use { input ->
-            val name = input.readUTF()
-            val size = input.readInt()
-            require(size in 1..MAX_ITEM_BYTES && size == input.available())
-            VaultItem(id, name, ByteArray(size).also(input::readFully))
-        }
+        return try {
+            DataInputStream(ByteArrayInputStream(clear)).use { input ->
+                val name = input.readUTF()
+                val size = input.readInt()
+                require(size in 1..MAX_ITEM_BYTES && size == input.available())
+                VaultItem(id, name, ByteArray(size).also(input::readFully))
+            }
+        } finally { clear.fill(0) }
     }
 
     fun listIds(): List<String> = directory.listFiles { file -> file.isFile && file.name.endsWith(".vlt") }
@@ -133,3 +137,4 @@ class LocalVaultStore(context: Context) {
         val ID_PATTERN = Regex("[0-9a-fA-F-]{36}")
     }
 }
+

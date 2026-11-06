@@ -100,6 +100,65 @@ def scene_round_trip():
     print("PASS: scene save, process restart, duplicate and restore", flush=True)
 
 
+
+def tap_description(description):
+    tree = wait_for(lambda tree: any(n.get("content-desc") == description for n in tree.iter("node")),
+                    "Missing action: " + description)
+    node = next(n for n in tree.iter("node") if n.get("content-desc") == description)
+    x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds", "")))
+    adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+
+
+def scroll_to_label(label, upward=False):
+    dimensions = list(map(int, re.findall(r"\d+", adb("shell", "wm", "size").decode())))[-2:]
+    width, height = dimensions
+    for _ in range(6):
+        if nodes(hierarchy(), label):
+            return
+        start, end = ((.3, .8) if upward else (.8, .3))
+        adb("shell", "input", "swipe", str(width // 2), str(int(height * start)),
+            str(width // 2), str(int(height * end)), "350")
+    raise AssertionError("Control not reachable by scrolling: " + label)
+
+
+def open_gallery():
+    scroll_to_label("Photograph library")
+    tap_label("Photograph library")
+    wait_for(lambda tree: bool(nodes(tree, "Search wallpapers")), "Wallpaper search did not open")
+
+
+def catalogue_round_trip():
+    open_gallery()
+    tap_label("Search wallpapers")
+    adb("shell", "input", "text", "zzzz_no_matches_777")
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    wait_for(lambda tree: any("No wallpapers match" in n.get("text", "") for n in tree.iter("node")),
+             "Search did not filter the collection")
+    adb("shell", "am", "force-stop", PACKAGE)
+    adb("shell", "am", "start", "-W", "-n", PACKAGE + "/com.zamcan.faceit.MainActivity")
+    open_gallery()
+    tap_description("Add favourite")
+    tap_label("Favourites")
+    wait_for(lambda tree: any(n.get("content-desc") == "Remove favourite" for n in tree.iter("node")),
+             "Favourite was not selected")
+    capture("gallery-favourites")
+    adb("shell", "am", "force-stop", PACKAGE)
+    adb("shell", "am", "start", "-W", "-n", PACKAGE + "/com.zamcan.faceit.MainActivity")
+    open_gallery()
+    tap_label("Favourites")
+    wait_for(lambda tree: any(n.get("content-desc") == "Remove favourite" for n in tree.iter("node")),
+             "Favourite did not survive process restart")
+    tap_description("Remove favourite")
+    wait_for(lambda tree: any("No wallpapers match" in n.get("text", "") for n in tree.iter("node")),
+             "Favourite was not removed")
+    tap_description("Back")
+    scroll_to_label("Apply", upward=True)
+    tap_label("Apply")
+    tap_label("Home screen")
+    wait_for(lambda tree: bool(nodes(tree, "Wallpaper applied")), "Android wallpaper application failed")
+    print("PASS: offline search, persistent favourite, removal and Android wallpaper application", flush=True)
+
+
 def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     font = adb("shell", "settings", "get", "system", "font_scale").decode().strip()
@@ -114,6 +173,7 @@ def main():
             visit_tabs(mode)
             if mode == "light":
                 scene_round_trip()
+                catalogue_round_trip()
     finally:
         if font == "null":
             adb("shell", "settings", "delete", "system", "font_scale")
@@ -124,4 +184,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

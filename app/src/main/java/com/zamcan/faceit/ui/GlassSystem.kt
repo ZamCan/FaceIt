@@ -1,5 +1,12 @@
 package com.zamcan.faceit.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
@@ -67,7 +74,7 @@ val LocalMotionPolicy = staticCompositionLocalOf {
     MotionPolicy(animationsEnabled = true, reason = null, thermalPressure = ThermalPressure.NONE)
 }
 
-/** Reads the platform signals once and keeps thermal status current while composed. */
+/** Event-driven platform signals stay current while the workspace is composed. */
 @Composable
 fun rememberMotionPolicy(): MotionPolicy {
     val context = LocalContext.current
@@ -84,6 +91,35 @@ fun rememberMotionPolicy(): MotionPolicy {
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    DisposableEffect(context) {
+        val powerManager = ContextCompat.getSystemService(context, PowerManager::class.java)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(receiverContext: Context?, intent: Intent?) {
+                animations = readAnimationsEnabled(context)
+            }
+        }
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                animations = readAnimationsEnabled(context)
+            }
+        }
+        ContextCompat.registerReceiver(context, receiver,
+            IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
+        context.contentResolver.registerContentObserver(
+            Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, observer)
+        val thermalListener = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && powerManager != null) {
+            PowerManager.OnThermalStatusChangedListener { thermal = readThermalPressure(context) }
+                .also { powerManager.addThermalStatusListener(context.mainExecutor, it) }
+        } else null
+        onDispose {
+            context.unregisterReceiver(receiver)
+            context.contentResolver.unregisterContentObserver(observer)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && thermalListener != null) {
+                powerManager?.removeThermalStatusListener(thermalListener)
+            }
+        }
     }
 
     val reason = when {
@@ -236,3 +272,4 @@ private fun Modifier.faceItGlassFinish(tone: GlassTone, shape: Shape, border: Bo
         }
         .then(if (border) Modifier.border(BorderStroke(1.dp, edge), shape) else Modifier)
 }
+

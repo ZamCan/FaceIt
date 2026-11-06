@@ -86,9 +86,13 @@ enum class NameScript(val id: String, val label: String, val cursive: Boolean) {
             SANS -> Typeface.SANS_SERIF
             MONO -> Typeface.MONOSPACE
         }
-        var style = Typeface.NORMAL
-        if (bold) style = style or Typeface.BOLD
-        if (italic || (this == SCRIPT)) style = style or Typeface.ITALIC
+        val useItalic = italic || this == SCRIPT
+        val style = when {
+            bold && useItalic -> Typeface.BOLD_ITALIC
+            bold -> Typeface.BOLD
+            useItalic -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
         return Typeface.create(base, style)
     }
 
@@ -381,3 +385,4 @@ object NameMonogram {
         return (min(255.0, 40.0 + wave * 150.0 * (finish.glowRadius / 26f))).toInt()
     }
 }
+

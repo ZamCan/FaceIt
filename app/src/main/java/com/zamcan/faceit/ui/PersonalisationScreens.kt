@@ -1,5 +1,18 @@
 package com.zamcan.faceit.ui
 
+import android.app.Activity
+import android.app.KeyguardManager
+import android.content.Context
+import android.net.Uri
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -221,52 +234,109 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
     var ids by remember { mutableStateOf(vault.listIds()) }
     var selected by remember { mutableStateOf<LocalVaultStore.VaultItem?>(null) }
     var pendingDelete by remember { mutableStateOf<String?>(null) }
-    var pendingExport by remember { mutableStateOf<ByteArray?>(null) }
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    var exportId by remember { mutableStateOf<String?>(null) }
+    var authId by remember { mutableStateOf<String?>(null) }
+    var authExportUri by remember { mutableStateOf<Uri?>(null) }
+    val keyguard = remember { context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager }
+    fun clearSelected() { selected?.bytes?.fill(0); selected = null }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) clearSelected()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer); clearSelected() }
+    }
+
+    val credentials = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val id = authId
+        val destination = authExportUri
+        authId = null
+        authExportUri = null
+        if (result.resultCode == Activity.RESULT_OK && id != null && keyguard.isDeviceSecure) {
+            busy = true
+            scope.launch {
+                try {
+                    if (destination == null) {
+                        val item = withContext(Dispatchers.IO) { vault.open(id) }
+                        clearSelected()
+                        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) selected = item
+                        else item.bytes.fill(0)
+                    } else {
+                        withContext(Dispatchers.IO) {
+                            val item = vault.open(id)
+                            try {
+                                context.contentResolver.openOutputStream(destination)?.use { it.write(item.bytes) }
+                                    ?: error("Unable to write export")
+                            } finally { item.bytes.fill(0) }
+                        }
+                        Toast.makeText(context, "Vault item exported", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Toast.makeText(context, error.localizedMessage ?: "Vault access failed", Toast.LENGTH_LONG).show()
+                } finally { busy = false }
+            }
+        }
+    }
+    fun authenticate(id: String, destination: Uri? = null) {
+        clearSelected()
+        if (!keyguard.isDeviceSecure) {
+            Toast.makeText(context, "Set a PIN, password or pattern in Android settings before opening or exporting Vault files.", Toast.LENGTH_LONG).show()
+            return
+        }
+        @Suppress("DEPRECATION")
+        val intent = keyguard.createConfirmDeviceCredentialIntent("Unlock Face It Vault", "Confirm your device screen lock to access this file.")
+        if (intent == null) {
+            Toast.makeText(context, "Device authentication is unavailable. The encrypted file was kept.", Toast.LENGTH_LONG).show()
+            return
+        }
+        authId = id
+        authExportUri = destination
+        runCatching { credentials.launch(intent) }.onFailure {
+            authId = null; authExportUri = null
+            Toast.makeText(context, "Device authentication could not be opened.", Toast.LENGTH_LONG).show()
+        }
+    }
 
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) runCatching {
-            val size = context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
-            require(size == -1L || size in 1..(25L * 1024 * 1024)) {
-                "Choose a file no larger than 25 MiB"
+        if (uri != null) {
+            busy = true
+            scope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val size = context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
+                        require(size == -1L || size in 1..(25L * 1024 * 1024)) { "Choose a file no larger than 25 MiB" }
+                        val bytes = context.contentResolver.openInputStream(uri)?.use { readLimited(it, 25 * 1024 * 1024) }
+                            ?: error("Unable to read selected file")
+                        try {
+                            require(bytes.isNotEmpty()) { "The selected file is empty" }
+                            val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                                ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
+                                ?.take(120)?.ifBlank { "Private file" } ?: "Private file"
+                            vault.store(name, bytes)
+                        } finally { bytes.fill(0) }
+                    }
+                }
+                busy = false
+                result.onSuccess {
+                    ids = vault.listIds()
+                    Toast.makeText(context, "Encrypted file added to Vault", Toast.LENGTH_SHORT).show()
+                }.onFailure {
+                    Toast.makeText(context, it.localizedMessage ?: "Vault import failed", Toast.LENGTH_LONG).show()
+                }
             }
-            val bytes = context.contentResolver.openInputStream(uri)?.use {
-                readLimited(it, 25 * 1024 * 1024)
-            } ?: error("Unable to read selected file")
-            require(bytes.isNotEmpty()) { "The selected file is empty" }
-            val name = context.contentResolver
-                .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
-                ?.take(120)
-                ?.ifBlank { "Private file" }
-                ?: "Private file"
-            vault.store(name, bytes)
-            ids = vault.listIds()
-            Toast.makeText(context, "Encrypted file added to Vault", Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            Toast.makeText(
-                context,
-                it.localizedMessage ?: "Vault import failed",
-                Toast.LENGTH_LONG
-            ).show()
         }
     }
 
     val exportPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-        val bytes = pendingExport
-        if (uri != null && bytes != null) {
-            runCatching {
-                context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
-                    ?: error("Unable to write export")
-                Toast.makeText(context, "Vault item exported", Toast.LENGTH_SHORT).show()
-            }.onFailure {
-                Toast.makeText(
-                    context,
-                    it.localizedMessage ?: "Export failed",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-        pendingExport = null
+        val id = exportId
+        exportId = null
+        // Keep only the encrypted record ID while Android's picker is open.
+        if (uri != null && id != null) authenticate(id, uri)
     }
 
     LazyColumn(
@@ -287,6 +357,7 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
         item {
             Button(
                 onClick = { importPicker.launch(arrayOf("*/*")) },
+                enabled = !busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
@@ -334,11 +405,8 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
                             )
                         }
                         OutlinedButton(
-                            onClick = {
-                                runCatching { vault.open(id) }.onSuccess { selected = it }.onFailure {
-                                    Toast.makeText(context, it.localizedMessage, Toast.LENGTH_LONG).show()
-                                }
-                            },
+                            onClick = { authenticate(id) },
+                            enabled = !busy && authId == null,
                             shape = MaterialTheme.shapes.small,
                             border = BorderStroke(1.dp, colors.border)
                         ) { Text("Open") }
@@ -357,7 +425,7 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
 
         item {
             InfoNote(
-                text = "Keep a separate safe copy of anything important. If the Android Keystore key is lost, encrypted items may become unrecoverable. FaceIt will not silently replace a missing key.",
+                text = "Opening and exporting require your Android PIN, password or pattern. No biometric-specific protection or account recovery is claimed. Keep a separate safe copy of anything important. If the Android Keystore key is lost, encrypted items may become unrecoverable. FaceIt will not silently replace a missing key.",
                 tint = colors.warning,
                 icon = Icons.Rounded.Shield
             )
@@ -366,7 +434,7 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
 
     selected?.let { item ->
         AlertDialog(
-            onDismissRequest = { selected = null },
+            onDismissRequest = { clearSelected() },
             containerColor = colors.card,
             shape = MaterialTheme.shapes.extraLarge,
             title = {
@@ -390,13 +458,13 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
-                        pendingExport = item.bytes
+                        exportId = item.id
                         val safeName = item.displayName
                             .substringAfterLast('/')
                             .substringAfterLast('\\')
                             .take(120)
                             .ifBlank { "vault-export.bin" }
-                        selected = null
+                        clearSelected()
                         exportPicker.launch(safeName)
                     },
                     shape = MaterialTheme.shapes.medium
@@ -407,7 +475,7 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
                 }
             },
             dismissButton = {
-                TextButton(onClick = { selected = null }) { Text("Close") }
+                TextButton(onClick = { clearSelected() }) { Text("Close") }
             }
         )
     }
@@ -423,7 +491,7 @@ private fun VaultScreen(modifier: Modifier, onBack: () -> Unit) {
                 TextButton(onClick = {
                     vault.delete(id)
                     ids = vault.listIds()
-                    if (selected?.id == id) selected = null
+                    if (selected?.id == id) clearSelected()
                     pendingDelete = null
                 }) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -656,3 +724,4 @@ private fun SegmentMetric(label: String, value: String, modifier: Modifier = Mod
         )
     }
 }
+

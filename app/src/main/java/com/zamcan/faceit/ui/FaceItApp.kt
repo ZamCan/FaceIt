@@ -421,7 +421,7 @@ fun FaceItApp() {
                         ToolsHubScreen(
                             page = toolsPage,
                             modifier = Modifier.padding(padding),
-                            onOpen = { toolsPage = it },
+                            onOpen = { if (it == ToolsPage.Personalisation) destination = Destination.Themes else toolsPage = it },
                             onBack = { toolsPage = ToolsPage.Home }
                         )
                     }
