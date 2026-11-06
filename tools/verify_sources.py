@@ -261,6 +261,39 @@ def check_policies() -> None:
             errors.append(f"{path.relative_to(ROOT)}: signing material must never be committed")
 
 
+
+HEX8 = re.compile(r"0x([0-9A-Fa-f]{8})(?![0-9A-Fa-f])(?!\.toInt\()")
+COLOUR_API = re.compile(
+    r"(intArrayOf|drawColor|setColor|\bcolor\s*=|\bargb\s*=|\btint\s*=|\bstrokeColor\s*=)"
+)
+
+
+def check_long_literals(files, problems):
+    """An 8-digit hex literal above 0x7FFFFFFF is a Long in Kotlin.
+
+    Passing one where an Int is required is a compile error, and it is invisible
+    while reading, because `0x88000000` looks exactly like a colour. A shader
+    colour literal has already reached CI as a Long once, which is what this guard
+    is for. Compose's `Color(0x...)` is exempt: that overload takes a Long and is
+    correct as written.
+    """
+    for path in files:
+        for number, line in enumerate(path.read_text().splitlines(), 1):
+            if line.lstrip().startswith(("*", "//", "/*")):
+                continue
+            if not COLOUR_API.search(line):
+                continue
+            # Color(0x...) / Color(0x...) in Compose takes a Long on purpose.
+            if "Color(0x" in line and "intArrayOf" not in line:
+                continue
+            for digits in HEX8.findall(line):
+                if int(digits, 16) > 0x7FFFFFFF:
+                    problems.append(
+                        f"{path.name}:{number}: 0x{digits} is a Long where an Int is "
+                        f"required - add .toInt()"
+                    )
+
+
 def main() -> int:
     kotlin = sorted(SRC.rglob("*.kt"))
     if not kotlin:
@@ -277,6 +310,7 @@ def main() -> int:
     check_duplicates()
     check_resources()
     check_policies()
+    check_long_literals(kotlin, errors)
 
     print(f"Face It source verification: {len(kotlin)} Kotlin files, {len(declared_types)} declared types")
     # Split so a file added but never picked up is visible rather than silently

@@ -226,7 +226,7 @@ object NameMonogram {
     fun backdrop(finish: NameFinish): Int = when (finish) {
         NameFinish.IVORY -> 0xFF14120E.toInt()
         NameFinish.MINT, NameFinish.TURQUOISE, NameFinish.EMERALD -> 0xFF06120F.toInt()
-        NameFinish.BLUSH, NameFinish.CORAL, NameFinish.RUBY -> 0xFF12060910.toInt() or 0
+        NameFinish.BLUSH, NameFinish.CORAL, NameFinish.RUBY -> 0xFF120609.toInt()
         NameFinish.LILAC -> 0xFF0C0913.toInt()
         NameFinish.SAPPHIRE, NameFinish.PLATINUM -> 0xFF07090F.toInt()
         else -> 0xFF08080A.toInt()
@@ -363,7 +363,7 @@ object NameMonogram {
         val corners = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = RadialGradient(
                 width / 2f, height * 0.46f, max(width, height) * 0.72f,
-                intArrayOf(0x00000000, 0x00000000, 0x88000000),
+                intArrayOf(0x00000000, 0x00000000, 0x88000000.toInt()),
                 floatArrayOf(0f, 0.6f, 1f), Shader.TileMode.CLAMP
             )
         }
