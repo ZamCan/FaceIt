@@ -92,6 +92,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.zamcan.faceit.data.CompositionLibrary
+import com.zamcan.faceit.data.EditHistory
 import com.zamcan.faceit.data.ArtworkRepository
 import com.zamcan.faceit.graphics.PhotoComposer
 import com.zamcan.faceit.data.PhotoBitmaps
@@ -155,6 +157,8 @@ fun FaceItApp() {
     val setThemePreset = com.zamcan.faceit.ui.theme.LocalSetFaceItThemePresetId.current
     val store = remember { EnvironmentStore(context) }
     val artworkRepository = remember { ArtworkRepository(context) }
+    val sceneLibrary = remember { CompositionLibrary(context) }
+    var libraryPage by remember { mutableStateOf("Artwork") }
     var showGallery by remember { mutableStateOf(false) }
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
@@ -210,20 +214,15 @@ fun FaceItApp() {
     // shown, so a fresh install still has a real background. The name engine is
     // composed on top here, which is why every name field is a key: typing a
     // letter has to redraw the surface behind the words.
-    LaunchedEffect(
-        environment.curatedPhotoId, environment.themeId, environment.nameEnabled,
-        environment.nameText, environment.nameFinishId, environment.nameScriptId,
-        environment.nameSettingId, environment.nameAnchor, environment.namePlaque,
-        environment.nameGroundId
-    ) {
-        curatedBackground?.takeUnless { it.isRecycled }?.recycle()
+    LaunchedEffect(environment) {
         curatedBackground = withContext(Dispatchers.IO) {
-            WallpaperComposition.compose(context, environment, 1080, 2400)
+            WallpaperComposition.compose(context, environment, 540, 1200)
         }
     }
+
     DisposableEffect(Unit) {
         onDispose {
-            curatedBackground?.takeUnless { it.isRecycled }?.recycle()
+            curatedBackground = null
             photoBitmaps.trimMemory()
         }
     }
@@ -232,17 +231,8 @@ fun FaceItApp() {
         scope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val bitmap = WallpaperRenderer.render(
-                        width = 1080,
-                        height = 2400,
-                        environment = environment,
-                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
-                        objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
-                        // Only the ground is handed to the renderer; it draws the
-                        // name itself, so the name is never laid down twice.
-                        curatedArtwork = WallpaperComposition.groundIdFor(environment)
-                            ?.let { WallpaperComposition.loadGround(context, it, 1080) }
-                    )
+                    val bitmap = WallpaperComposition.composeWallpaper(context, environment)
+                        ?: error("The composition could not be rendered")
                     try {
                         WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
                     } finally {
@@ -339,7 +329,7 @@ fun FaceItApp() {
                         onOpenGallery = { showGallery = true },
                         onCreate = { destination = Destination.Create },
                         onPreset = { preset ->
-                            update(preset)
+                            update(preset.copy(useProceduralBackground = true))
                             scope.launch { snackbarHostState.showSnackbar("Loaded ${preset.name}") }
                         },
                         onApply = { flags -> applyWallpaper(flags) }
@@ -350,9 +340,14 @@ fun FaceItApp() {
                         artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
                         objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
                         modifier = Modifier.padding(padding),
-                        onSave = {
-                            update(it)
-                            scope.launch { snackbarHostState.showSnackbar("Environment saved on this device") }
+                        onSave = { scene ->
+                            scope.launch {
+                                val result = withContext(Dispatchers.IO) { runCatching { sceneLibrary.save(scene) } }
+                                result.onSuccess {
+                                    update(scene)
+                                    snackbarHostState.showSnackbar("${scene.name} saved to your scene library")
+                                }.onFailure { snackbarHostState.showSnackbar(it.message ?: "Unable to save scene") }
+                            }
                         },
                         onOpenLibrary = { destination = Destination.Library }
                     )
@@ -364,16 +359,33 @@ fun FaceItApp() {
                         modifier = Modifier.padding(padding)
                     )
 
-                    Destination.Library -> ArtworkStudioScreen(
+                    Destination.Library -> Column(Modifier.padding(padding).fillMaxSize()) {
+                        SegmentedChoice(
+                            options = listOf("Artwork" to "Artwork", "Scenes" to "Saved scenes"),
+                            selected = libraryPage,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                            onSelected = { libraryPage = it }
+                        )
+                        if (libraryPage == "Scenes") {
+                            CompositionLibraryScreen(
+                                modifier = Modifier.weight(1f),
+                                onRestore = { scene ->
+                                    setThemePreset(scene.themeId)
+                                    update(scene)
+                                    destination = Destination.Discover
+                                }
+                            )
+                        } else {
+                        ArtworkStudioScreen(
                         selectedFileName = environment.selectedArtworkFile,
                         selectedObjectFileName = environment.selectedObjectFile,
-                        modifier = Modifier.padding(padding),
+                        modifier = Modifier.weight(1f),
                         onSelected = { selected, layer ->
                             update(
                                 if (layer == "Object") {
                                     environment.copy(selectedObjectFile = selected.fileName)
                                 } else {
-                                    environment.copy(selectedArtworkFile = selected.fileName)
+                                    environment.copy(selectedArtworkFile = selected.fileName, nameGroundId = null)
                                 }
                             )
                             destination = Destination.Discover
@@ -389,6 +401,8 @@ fun FaceItApp() {
                             )
                         }
                     )
+                        }
+                    }
 
                     Destination.Tools -> if (toolsPage == ToolsPage.NameStudio) {
                         // Drawn by the shell rather than the hub, because the studio
@@ -424,7 +438,8 @@ fun FaceItApp() {
                     modifier = Modifier.fillMaxSize().padding(top = 24.dp),
                     selectedId = environment.curatedPhotoId,
                     onSelect = { photo ->
-                        update(environment.copy(curatedPhotoId = photo.id))
+                        update(environment.copy(curatedPhotoId = photo.id, selectedArtworkFile = null, useProceduralBackground = false,
+                            nameGroundId = if (environment.nameEnabled) photo.id else null))
                         showGallery = false
                         scope.launch {
                             snackbarHostState.showSnackbar("${photo.subject} set as background")
@@ -795,21 +810,20 @@ private fun CompositionScreen(
     val colors = LocalFaceItColors.current
     val context = LocalContext.current
     val photoBitmaps = remember { PhotoBitmaps(context) }
-    var value by remember(initial) { mutableStateOf(initial) }
+    var history by remember(initial) { mutableStateOf(EditHistory(initial)) }
+    val value = history.current
+    fun change(next: PersonalEnvironment) { history = history.record(next) }
     var studioBackground by remember { mutableStateOf<Bitmap?>(null) }
 
-    LaunchedEffect(
-        value.curatedPhotoId, value.themeId, value.nameEnabled, value.nameText,
-        value.nameFinishId, value.nameScriptId, value.nameSettingId, value.nameAnchor,
-        value.namePlaque, value.nameGroundId
-    ) {
+    LaunchedEffect(value) {
         studioBackground = withContext(Dispatchers.IO) {
             WallpaperComposition.compose(context, value, 540, 1200)
         }
     }
+
     DisposableEffect(Unit) {
         onDispose {
-            studioBackground?.takeUnless { it.isRecycled }?.recycle()
+            studioBackground = null
             photoBitmaps.trimMemory()
         }
     }
@@ -834,6 +848,20 @@ private fun CompositionScreen(
                     title = "Build your environment",
                     description = "Change one layer without resetting the others."
                 )
+            }
+
+            item {
+                OutlinedTextField(
+                    value = value.name,
+                    onValueChange = { change(value.copy(name = it.take(80))) },
+                    label = { Text("Scene name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { history = history.undo() }, enabled = history.canUndo) { Text("Undo") }
+                    TextButton(onClick = { history = history.redo() }, enabled = history.canRedo) { Text("Redo") }
+                }
             }
 
             item {
@@ -867,7 +895,10 @@ private fun CompositionScreen(
                         options = CompositionPresets.all.map { it.name },
                         selected = activePreset?.name ?: "",
                         onSelected = { name ->
-                            CompositionPresets.find(name)?.let { value = it }
+                            CompositionPresets.find(name)?.let { preset ->
+                                change(value.copy(name = preset.name, background = preset.background,
+                                    mainObject = preset.mainObject, material = preset.material, useProceduralBackground = true))
+                            }
                         }
                     )
                 }
@@ -887,7 +918,7 @@ private fun CompositionScreen(
                                 "Automotive"
                             ),
                             selected = value.background,
-                            onSelected = { value = value.copy(background = it) }
+                            onSelected = { change(value.copy(background = it, useProceduralBackground = true, nameGroundId = null)) }
                         )
                     } else {
                         LayerRow("IMPORTED BACKGROUND", "Using your artwork", Icons.Rounded.Image)
@@ -915,7 +946,7 @@ private fun CompositionScreen(
                                 "None"
                             ),
                             selected = value.mainObject,
-                            onSelected = { value = value.copy(mainObject = it) }
+                            onSelected = { change(value.copy(mainObject = it)) }
                         )
                         if (value.mainObject != "None") {
                             Spacer(Modifier.height(18.dp))
@@ -926,7 +957,7 @@ private fun CompositionScreen(
                                 supporting = "Material is drawn procedurally, so it stays crisp at any size.",
                                 options = MATERIAL_FINISHES,
                                 selected = value.material,
-                                onSelected = { value = value.copy(material = it) }
+                                onSelected = { change(value.copy(material = it)) }
                             )
                         }
                     } else {
@@ -959,7 +990,7 @@ private fun CompositionScreen(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        if (dirty) "Unsaved changes" else "All changes saved",
+                        if (dirty) "Unsaved changes" else "Ready to save a copy",
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
                         color = if (dirty) colors.warning else colors.success
                     )
@@ -972,7 +1003,7 @@ private fun CompositionScreen(
                 Spacer(Modifier.width(12.dp))
                 Button(
                     onClick = { onSave(value) },
-                    enabled = dirty,
+                    enabled = value.name.isNotBlank(),
                     modifier = Modifier.height(50.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -984,5 +1015,6 @@ private fun CompositionScreen(
         }
     }
 }
+
 
 

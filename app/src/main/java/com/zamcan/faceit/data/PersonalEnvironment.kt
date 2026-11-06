@@ -36,6 +36,8 @@ data class PersonalEnvironment(
      * every wallpaper that ships with the app is now a photograph.
      */
     val curatedPhotoId: String? = null,
+    /** Explicitly show the editable procedural scene instead of a theme photograph. */
+    val useProceduralBackground: Boolean = false,
     /**
      * The name engine. Whatever the user types is set at render time in one of
      * the metal finishes, so a name is never a bundled picture and never a
@@ -85,6 +87,7 @@ data class PersonalEnvironment(
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
         put("curatedPhotoId", curatedPhotoId)
+        put("useProceduralBackground", useProceduralBackground)
         put("nameEnabled", nameEnabled)
         put("nameText", nameText)
         put("nameFinishId", nameFinishId)
@@ -126,6 +129,7 @@ data class PersonalEnvironment(
                     // `curatedObjectId` from the removed pack. They are dropped
                     // rather than migrated: the files no longer exist, and a
                     // dangling id would resolve to no wallpaper at all.
+                    useProceduralBackground = json.optBoolean("useProceduralBackground", false),
                     nameEnabled = json.optBoolean("nameEnabled", false),
                     nameText = json.optString("nameText", "Naomi"),
                     nameFinishId = json.optString("nameFinishId", "rose_gold"),
@@ -158,3 +162,4 @@ class EnvironmentStore(context: Context) {
         prefs.edit().putString("environment", value.toJson()).apply()
     }
 }
+

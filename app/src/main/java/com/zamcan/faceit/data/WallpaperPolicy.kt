@@ -35,7 +35,7 @@ object WallpaperPolicy {
         val bundled = PhotoLibrary.find(context, key)
         if (bundled != null) return photos.fullSize(bundled, targetWidthPx)
         return ArtworkRepository(context).list()
-            .firstOrNull { it.id == key }
+            .firstOrNull { it.id == key || it.fileName == key }
             ?.let { ArtworkRepository(context).fileFor(it.fileName) }
             ?.takeIf { it.isFile }
             ?.let { file ->
@@ -46,3 +46,4 @@ object WallpaperPolicy {
             }
     }
 }
+

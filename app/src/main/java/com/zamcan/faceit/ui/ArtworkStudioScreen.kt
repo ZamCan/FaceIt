@@ -477,31 +477,15 @@ fun CompositionPreview(
 ) {
     val colors = LocalFaceItColors.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(
-        environment,
-        artworkFile?.absolutePath,
-        artworkFile?.lastModified(),
-        objectArtworkFile?.absolutePath,
-        objectArtworkFile?.lastModified(),
-        curatedBackground
-    ) {
-        val next = withContext(Dispatchers.Default) {
+    LaunchedEffect(environment, artworkFile?.absolutePath, objectArtworkFile?.absolutePath, curatedBackground) {
+        // A composed image already contains the object and name. Never draw them twice.
+        bitmap = curatedBackground ?: withContext(Dispatchers.Default) {
             com.zamcan.faceit.graphics.WallpaperRenderer.render(
-                width = 540,
-                height = 960,
-                environment = environment,
-                artworkFile = artworkFile,
-                objectArtworkFile = objectArtworkFile,
-                curatedArtwork = curatedBackground
+                540, 1200, environment, artworkFile, objectArtworkFile
             )
         }
-        val previous = bitmap
-        bitmap = next
-        previous?.recycle()
     }
-    DisposableEffect(Unit) {
-        onDispose { bitmap?.recycle() }
-    }
+
     val current = bitmap
     if (current != null) {
         Image(
@@ -525,3 +509,4 @@ fun CompositionPreview(
         }
     }
 }
+

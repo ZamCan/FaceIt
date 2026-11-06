@@ -73,6 +73,33 @@ def visit_tabs(mode):
     print("PASS: all five destinations remain selected in " + mode, flush=True)
 
 
+
+def tap_label(label):
+    tree = wait_for(lambda tree: bool(nodes(tree, label)), "Missing control: " + label)
+    bounds = list(map(int, re.findall(r"\d+", nodes(tree, label)[-1].get("bounds", ""))))
+    x1, y1, x2, y2 = bounds
+    adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+
+
+def scene_round_trip():
+    tap_label("Create")
+    tap_label("Save")
+    wait_for(lambda tree: any("saved to your scene library" in n.get("text", "")
+                             for n in tree.iter("node")), "Scene was not saved")
+    # Verify the collection survives process death, not just composition state.
+    adb("shell", "am", "force-stop", PACKAGE)
+    adb("shell", "am", "start", "-W", "-n", PACKAGE + "/com.zamcan.faceit.MainActivity")
+    tap_label("Library")
+    tap_label("Saved scenes")
+    wait_for(lambda tree: len(nodes(tree, "Restore scene")) == 1, "Saved scene did not survive restart")
+    tap_label("Duplicate")
+    wait_for(lambda tree: len(nodes(tree, "Restore scene")) == 2, "Duplicate was not added")
+    capture("saved-scenes")
+    tap_label("Restore scene")
+    wait_for(lambda tree: selected(tree, "Discover"), "Restore did not return to the composition")
+    print("PASS: scene save, process restart, duplicate and restore", flush=True)
+
+
 def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     font = adb("shell", "settings", "get", "system", "font_scale").decode().strip()
@@ -85,6 +112,8 @@ def main():
             adb("shell", "cmd", "uimode", "night", night_mode)
             adb("shell", "settings", "put", "system", "font_scale", scale)
             visit_tabs(mode)
+            if mode == "light":
+                scene_round_trip()
     finally:
         if font == "null":
             adb("shell", "settings", "delete", "system", "font_scale")
@@ -95,3 +124,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
