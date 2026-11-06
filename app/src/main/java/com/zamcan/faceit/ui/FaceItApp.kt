@@ -98,9 +98,11 @@ import com.zamcan.faceit.data.CompositionPresets
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.data.ThemeWallpaperMode
+import com.zamcan.faceit.data.WallpaperPolicy
 import com.zamcan.faceit.data.applyingTheme
 import com.zamcan.faceit.themes.FaceTheme
 import com.zamcan.faceit.themes.FaceThemes
+import com.zamcan.faceit.graphics.WallpaperComposition
 import com.zamcan.faceit.graphics.WallpaperRenderer
 import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
@@ -137,6 +139,7 @@ private fun appliedStyleFor(category: StudioCategory, environment: PersonalEnvir
 
 internal enum class ToolsPage(val label: String) {
     Home("Tools"),
+    NameStudio("Name studio"),
     KeyboardDesigns("Keyboard designs"),
     Vault("Private Vault"),
     Sms("SMS composer"),
@@ -201,14 +204,18 @@ fun FaceItApp() {
     var curatedBackground by remember { mutableStateOf<Bitmap?>(null) }
 
     // A photograph the user picked wins; otherwise the theme's own photograph is
-    // shown, so a fresh install still has a real background.
-    LaunchedEffect(environment.curatedPhotoId, environment.themeId) {
+    // shown, so a fresh install still has a real background. The name engine is
+    // composed on top here, which is why every name field is a key: typing a
+    // letter has to redraw the surface behind the words.
+    LaunchedEffect(
+        environment.curatedPhotoId, environment.themeId, environment.nameEnabled,
+        environment.nameText, environment.nameFinishId, environment.nameScriptId,
+        environment.nameSettingId, environment.nameAnchor, environment.namePlaque,
+        environment.nameGroundId
+    ) {
         curatedBackground?.takeUnless { it.isRecycled }?.recycle()
-        curatedBackground = null
-        val id = WallpaperPolicy.resolveId(environment, FaceThemes.find(environment.themeId))
-            ?: return@LaunchedEffect
         curatedBackground = withContext(Dispatchers.IO) {
-            PhotoLibrary.find(context, id)?.let { photoBitmaps.fullSize(it, 1080) }
+            WallpaperComposition.compose(context, environment, 1080, 2400)
         }
     }
     DisposableEffect(Unit) {
@@ -228,7 +235,10 @@ fun FaceItApp() {
                         environment = environment,
                         artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
                         objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
-                        curatedArtwork = curatedBackground
+                        // Only the ground is handed to the renderer; it draws the
+                        // name itself, so the name is never laid down twice.
+                        curatedArtwork = WallpaperComposition.groundIdFor(environment)
+                            ?.let { WallpaperComposition.loadGround(context, it, 1080) }
                     )
                     try {
                         WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
@@ -377,12 +387,23 @@ fun FaceItApp() {
                         }
                     )
 
-                    Destination.Tools -> ToolsHubScreen(
-                        page = toolsPage,
-                        modifier = Modifier.padding(padding),
-                        onOpen = { toolsPage = it },
-                        onBack = { toolsPage = ToolsPage.Home }
-                    )
+                    Destination.Tools -> if (toolsPage == ToolsPage.NameStudio) {
+                        // Drawn by the shell rather than the hub, because the studio
+                        // edits the live environment; the hub only routes.
+                        NameStudioScreen(
+                            environment = environment,
+                            onChange = { update(it) },
+                            onOpenLibrary = { showGallery = true },
+                            modifier = Modifier.padding(padding)
+                        )
+                    } else {
+                        ToolsHubScreen(
+                            page = toolsPage,
+                            modifier = Modifier.padding(padding),
+                            onOpen = { toolsPage = it },
+                            onBack = { toolsPage = ToolsPage.Home }
+                        )
+                    }
                 }
             }
         }
@@ -610,8 +631,6 @@ private fun DiscoverScreen(
                 artworkFile = artworkFile,
                 objectArtworkFile = artworkObjectFile,
                 curatedBackground = curatedBackground,
-                curatedObject = curatedObject,
-                materialTexture = materialTexture,
                 modifier = Modifier.fillMaxSize()
             )
             Box(
@@ -879,10 +898,13 @@ private fun CompositionScreen(
     var value by remember(initial) { mutableStateOf(initial) }
     var studioBackground by remember { mutableStateOf<Bitmap?>(null) }
 
-    LaunchedEffect(value.curatedPhotoId, value.themeId) {
+    LaunchedEffect(
+        value.curatedPhotoId, value.themeId, value.nameEnabled, value.nameText,
+        value.nameFinishId, value.nameScriptId, value.nameSettingId, value.nameAnchor,
+        value.namePlaque, value.nameGroundId
+    ) {
         studioBackground = withContext(Dispatchers.IO) {
-            val id = WallpaperPolicy.resolveId(value, FaceThemes.find(value.themeId))
-            PhotoLibrary.find(context, id)?.let { photoBitmaps.fullSize(it, 540) }
+            WallpaperComposition.compose(context, value, 540, 1200)
         }
     }
     DisposableEffect(Unit) {

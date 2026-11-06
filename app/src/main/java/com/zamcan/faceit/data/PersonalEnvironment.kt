@@ -36,9 +36,37 @@ data class PersonalEnvironment(
      * every wallpaper that ships with the app is now a photograph.
      */
     val curatedPhotoId: String? = null,
+    /**
+     * The name engine. Whatever the user types is set at render time in one of
+     * the metal finishes, so a name is never a bundled picture and never a
+     * look-alike character. Off, the wallpaper is just the photograph.
+     */
+    val nameEnabled: Boolean = false,
+    val nameText: String = "Naomi",
+    val nameFinishId: String = "rose_gold",
+    val nameScriptId: String = "script",
+    val nameSettingId: String = "normal",
+    /** Vertical position of the name, 0 = top of the screen, 1 = bottom. */
+    val nameAnchor: Float = 0.42f,
+    val namePlaque: Boolean = true,
+    /** Photograph the name sits on, or null for the finish's own backdrop. */
+    val nameGroundId: String? = null,
     /** Ordered composition layers; the renderer draws these back to front. */
     val layers: List<CompositionLayer> = CompositionLayer.defaults()
 ) {
+    /** The name to draw, or null when the user has it switched off. */
+    fun nameDesignOrNull(): com.zamcan.faceit.graphics.NameDesign? =
+        if (!nameEnabled) null else com.zamcan.faceit.graphics.NameDesign(
+            text = nameText,
+            finishId = nameFinishId,
+            scriptId = nameScriptId,
+            settingId = nameSettingId,
+            anchor = nameAnchor,
+            uppercase = true,
+            plaque = namePlaque,
+            groundId = nameGroundId
+        )
+
     fun toJson() = JSONObject().apply {
         put("name", name)
         put("background", background)
@@ -57,6 +85,14 @@ data class PersonalEnvironment(
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
         put("curatedPhotoId", curatedPhotoId)
+        put("nameEnabled", nameEnabled)
+        put("nameText", nameText)
+        put("nameFinishId", nameFinishId)
+        put("nameScriptId", nameScriptId)
+        put("nameSettingId", nameSettingId)
+        put("nameAnchor", nameAnchor.toDouble())
+        put("namePlaque", namePlaque)
+        put("nameGroundId", nameGroundId)
         put("layers", org.json.JSONArray().apply { layers.forEach { put(it.toJson()) } })
     }.toString()
 
@@ -90,6 +126,16 @@ data class PersonalEnvironment(
                     // `curatedObjectId` from the removed pack. They are dropped
                     // rather than migrated: the files no longer exist, and a
                     // dangling id would resolve to no wallpaper at all.
+                    nameEnabled = json.optBoolean("nameEnabled", false),
+                    nameText = json.optString("nameText", "Naomi"),
+                    nameFinishId = json.optString("nameFinishId", "rose_gold"),
+                    nameScriptId = json.optString("nameScriptId", "script"),
+                    nameSettingId = json.optString("nameSettingId", "normal"),
+                    nameAnchor = json.optDouble("nameAnchor", 0.42).toFloat()
+                        .coerceIn(0.08f, 0.92f),
+                    namePlaque = json.optBoolean("namePlaque", true),
+                    nameGroundId = json.optString("nameGroundId", "")
+                        .takeIf { it.isNotBlank() && it != "null" },
                     curatedPhotoId = json.optString("curatedPhotoId", "")
                         .takeIf { it.isNotBlank() && it != "null" },
                     layers = json.optJSONArray("layers")?.let { array ->

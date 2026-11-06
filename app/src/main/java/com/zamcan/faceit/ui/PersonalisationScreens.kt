@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Lock
@@ -85,6 +86,9 @@ internal fun ToolsHubScreen(
         ToolsPage.Personalisation -> ToolsHomeScreen(modifier, onOpen)
         ToolsPage.Vault -> VaultScreen(modifier, onBack)
         ToolsPage.Sms -> SmsComposerScreen(modifier, onBack)
+        // The name studio needs the live environment, so the shell draws it; see
+        // the FaceItApp call site. This branch is only reached if it is not wired.
+        ToolsPage.NameStudio -> Unit
     }
 }
 
@@ -113,6 +117,13 @@ private fun ToolsHomeScreen(
             description = "Nine clock finishes for the real home-screen widget. Adding one opens the widget picker's own configuration.",
             meta = "Real AppWidget",
             onClick = { onOpen(ToolsPage.Personalisation) }
+        )
+        ToolCard(
+            icon = Icons.Rounded.Edit,
+            title = "Name studio",
+            description = "Type any name and set it in metal — rose gold, coral, turquoise, sapphire — over any photograph in the pack.",
+            meta = "Set on device",
+            onClick = { onOpen(ToolsPage.NameStudio) }
         )
         ToolCard(
             icon = Icons.Rounded.Keyboard,

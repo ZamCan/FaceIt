@@ -473,9 +473,7 @@ fun CompositionPreview(
     artworkFile: File?,
     objectArtworkFile: File?,
     modifier: Modifier = Modifier,
-    curatedBackground: Bitmap? = null,
-    curatedObject: Bitmap? = null,
-    materialTexture: Bitmap? = null
+    curatedBackground: Bitmap? = null
 ) {
     val colors = LocalFaceItColors.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -485,9 +483,7 @@ fun CompositionPreview(
         artworkFile?.lastModified(),
         objectArtworkFile?.absolutePath,
         objectArtworkFile?.lastModified(),
-        curatedBackground,
-        curatedObject,
-        materialTexture
+        curatedBackground
     ) {
         val next = withContext(Dispatchers.Default) {
             com.zamcan.faceit.graphics.WallpaperRenderer.render(
@@ -496,9 +492,7 @@ fun CompositionPreview(
                 environment = environment,
                 artworkFile = artworkFile,
                 objectArtworkFile = objectArtworkFile,
-                curatedArtwork = curatedBackground,
-                curatedObject = curatedObject,
-                materialTexture = materialTexture
+                curatedArtwork = curatedBackground
             )
         }
         val previous = bitmap

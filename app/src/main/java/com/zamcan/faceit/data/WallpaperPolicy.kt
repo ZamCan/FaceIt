@@ -2,6 +2,7 @@ package com.zamcan.faceit.data
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.zamcan.faceit.themes.FaceTheme
 
 /**
  * Which wallpaper is showing, decided in one place.

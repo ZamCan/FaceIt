@@ -22,12 +22,8 @@ object WallpaperRenderer {
         environment: PersonalEnvironment,
         artworkFile: File? = null,
         objectArtworkFile: File? = null,
-        curatedArtwork: Bitmap? = null,
-        curatedObject: Bitmap? = null,
-        materialTexture: Bitmap? = null
+        curatedArtwork: Bitmap? = null
     ): Bitmap {
-        // `curatedObject` is retained for source compatibility with the preview
-        // renderer; no bundled object artwork ships any more.
         require(width > 0 && height > 0)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -72,6 +68,12 @@ object WallpaperRenderer {
             drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
         }
         drawVignette(canvas, width, height)
+
+        // The name engine draws last, on top of the ground and the object: it is
+        // the user's own signature on the composition, so nothing covers it.
+        environment.nameDesignOrNull()?.let { design ->
+            NameMonogram.draw(canvas, width, height, design)
+        }
         return bitmap
     }
 
@@ -87,6 +89,8 @@ object WallpaperRenderer {
             category.contains("Nature", true) -> intArrayOf(0xFF182F3B.toInt(), 0xFF71836E.toInt(), 0xFF273B32.toInt())
             category.contains("Geometry", true) -> intArrayOf(0xFF211B32.toInt(), 0xFF54445F.toInt(), 0xFF161923.toInt())
             category.contains("City", true) -> intArrayOf(0xFF202A3B.toInt(), 0xFF7B6C66.toInt(), 0xFF171B25.toInt())
+            category.contains("Peak", true) || category.contains("Mountain", true) ->
+                intArrayOf(0xFF150F1E.toInt(), 0xFFE0876A.toInt(), 0xFF2A1526.toInt())
             category.contains("Automotive", true) -> intArrayOf(0xFF1A2028.toInt(), 0xFF4E555C.toInt(), 0xFF101318.toInt())
             else -> intArrayOf(0xFF171923.toInt(), 0xFF292B32.toInt(), 0xFF101B1A.toInt())
         }
@@ -100,6 +104,8 @@ object WallpaperRenderer {
             category.contains("Nature", true) -> drawLandscape(canvas, width, height, px)
             category.contains("Geometry", true) -> drawGeometry(canvas, width, height, px)
             category.contains("City", true) -> drawCityscape(canvas, width, height, px)
+            category.contains("Peak", true) || category.contains("Mountain", true) ->
+                drawMountainSilhouette(canvas, width, height, px)
             category.contains("Automotive", true) -> drawRoad(canvas, width, height, px)
             else -> drawStadium(canvas, width, height, px)
         }
@@ -180,6 +186,33 @@ object WallpaperRenderer {
             val angle = i * Math.PI / 6.0
             canvas.drawLine(cx, cy, cx + cos(angle).toFloat() * width, cy + sin(angle).toFloat() * height, paint)
         }
+    }
+
+    /** A single cone under a graded sky: Kilimanjaro's shape, drawn not traced. */
+    private fun drawMountainSilhouette(canvas: Canvas, width: Int, height: Int, px: (Float) -> Float) {
+        val horizon = height * 0.58f
+        val peak = height * 0.30f
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f, peak, 0f, horizon,
+                intArrayOf(0xFFFFE7CE.toInt(), 0xFFC0705A.toInt(), 0xFF2A1A22.toInt()),
+                null, Shader.TileMode.CLAMP
+            )
+        }
+        val path = Path().apply {
+            moveTo(0f, horizon)
+            cubicTo(width * .18f, horizon * .96f, width * .34f, horizon * .84f, width * .44f, peak * 1.06f)
+            cubicTo(width * .48f, peak * .94f, width * .56f, peak * .96f, width * .60f, peak * 1.10f)
+            cubicTo(width * .74f, horizon * .86f, width * .90f, horizon * .95f, width.toFloat(), horizon)
+            lineTo(width.toFloat(), horizon * 1.24f)
+            lineTo(0f, horizon * 1.24f)
+            close()
+        }
+        canvas.drawPath(path, paint)
+        canvas.drawRect(
+            0f, horizon * 1.2f, width.toFloat(), height.toFloat(),
+            Paint().apply { color = 0xFF1A1018.toInt() }
+        )
     }
 
     private fun drawCityscape(canvas: Canvas, width: Int, height: Int, px: (Float) -> Float) {

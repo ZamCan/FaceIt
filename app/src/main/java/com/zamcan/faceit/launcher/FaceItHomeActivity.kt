@@ -104,8 +104,6 @@ internal data class FaceItLaunchableApp(
 class FaceItHomeActivity : ComponentActivity() {
 
     private var isDefaultHome by mutableStateOf(false)
-    private val photoBitmaps by lazy { com.zamcan.faceit.data.PhotoBitmaps(applicationContext) }
-    private val photoLibrary get() = com.zamcan.faceit.data.PhotoLibrary
 
     private val homeRoleRequest = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -131,10 +129,17 @@ class FaceItHomeActivity : ComponentActivity() {
         // One rule decides the wallpaper, shared with the rest of the app: an
         // imported file, then the photograph the user picked, then the theme's
         // own photograph. A launcher must paint what the user last chose.
-        val wallpaperId = com.zamcan.faceit.data.WallpaperPolicy.resolveId(environment, theme)
+        // The launcher composes exactly what the workspace composes, so the name
+        // engine appears on the home screen too — a launcher that quietly dropped
+        // it would be showing a different wallpaper from the one the user built.
+        val wallpaperKey = "${environment.nameEnabled}|${environment.nameText}|" +
+            "${environment.nameFinishId}|${environment.nameScriptId}|${environment.nameSettingId}|" +
+            "${environment.nameAnchor}|${environment.namePlaque}|" +
+            com.zamcan.faceit.graphics.WallpaperComposition.groundIdFor(environment)
 
         setContent {
             FaceItTheme {
+                val localContext = this@FaceItHomeActivity
                 var apps by remember { mutableStateOf<List<FaceItLaunchableApp>>(emptyList()) }
                 var loading by remember { mutableStateOf(true) }
                 var wallpaper by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -144,11 +149,13 @@ class FaceItHomeActivity : ComponentActivity() {
                     apps = withContext(Dispatchers.IO) { loadLaunchableApps() }
                     loading = false
                 }
-                LaunchedEffect(wallpaperId) {
+                LaunchedEffect(wallpaperKey) {
                     wallpaper = withContext(Dispatchers.IO) {
-                        photoLibrary.find(this@FaceItHomeActivity, wallpaperId)?.let { photo ->
-                            photoBitmaps.fullSize(photo, 1080)?.asImageBitmap()
-                        }
+                        val composed = com.zamcan.faceit.graphics.WallpaperComposition
+                            .compose(localContext, environment, 1080, 2400)
+                        composedWallpaper?.takeUnless { it.isRecycled }?.recycle()
+                        composedWallpaper = composed
+                        composed?.asImageBitmap()
                     }
                 }
                 FaceItHomeScreen(
@@ -168,6 +175,17 @@ class FaceItHomeActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        // The composed wallpaper is a full-screen bitmap; a launcher lives a long
+        // time, so release it rather than holding it for the process's lifetime.
+        composedWallpaper?.takeUnless { it.isRecycled }?.recycle()
+        composedWallpaper = null
+        super.onDestroy()
+    }
+
+    /** The bitmap behind [wallpaper]; kept so it can be recycled on destroy. */
+    private var composedWallpaper: android.graphics.Bitmap? = null
 
     override fun onResume() {
         super.onResume()

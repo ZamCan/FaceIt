@@ -3,13 +3,13 @@
 Face It ships two independent wallpaper packs. This document is the record for
 the second one, and it exists because that pack contains **other people's work**.
 
-* **153 wallpapers**, all inside `assets/photos/`. There is no second pack: the
+* **161 wallpapers**, all inside `assets/photos/`. There is no second pack: the
   drawn artwork collection that used to ship alongside these was removed on
   instruction, along with its object renders and material tiles.
 * **148 of them are real photographs** under free licences, each carrying its
   creator, its licence and a link to its source page.
-* **5 are images generated for this application**, marked `synthetic: true` in the
-  index. They are ours, dedicated to the public domain, and the index says so
+* **13 are images generated for this application**, marked `synthetic: true` in
+  the index. They are ours, dedicated to the public domain, and the index says so
   rather than dressing them up as photographs.
 
 The distinction matters and the app does not blur it: the gallery shows each
@@ -25,11 +25,26 @@ from a generated image so the two can never be conflated.
 | `generated-fluorite-cathedral` | minerals | backlit blue-green fluorite cluster |
 | `generated-damascus-steel-macro` | metalwork | forged Damascus-pattern steel |
 | `generated-turbine-hall` | ironwork | cast-iron turbine hall in raking light |
+| `generated-rose-gold-bangle-stack` | bracelets | stacked rose-gold bangles, pink sapphire |
+| `generated-turquoise-pearl-cuff` | bracelets | turquoise, pearl and gold cuff |
+| `generated-sapphire-halo-ring` | diamonds | blue sapphire ring with diamond halo |
+| `generated-blush-silk` | luxury | blush and coral silk satin |
+| `generated-lilac-velvet` | luxury | lilac and rose crushed velvet |
+| `generated-coral-lacquer` | luxury | hot coral and tangerine lacquer |
+| `generated-pink-quartz-slab` | luxury | backlit pink quartz and agate |
+| `generated-amber-selenite-cave` | minerals | amber selenite crystal cave |
 
-These exist because the free-licence pool does not contain the register the pack
-was asked for — the hard-lit, high-contrast, rendered look. They are the only
-images in the app that were not photographed by someone else, and they are
-labelled as such.
+They exist because the free-licence pool does not contain the register the pack
+was asked for — the hard-lit, high-contrast, rendered look — and because the pack
+had to include Kilimanjaro and the warm feminine palette (blush, coral,
+tangerine, lilac) that the pool is thin on. They are the only images in the app
+that were not photographed by someone else, and they are labelled as such.
+
+**Colour coverage.** The palette is deliberately wide rather than uniformly
+moody: rose gold, gold and champagne; blush, coral and tangerine; lilac and
+pink; turquoise, mint and emerald; sapphire and ruby; obsidian, platinum and
+ivory. The name engine can set a name in any of those metals over any ground,
+which is where the colour variety actually reaches the user.
 
 ## What is in the pack
 
@@ -41,17 +56,17 @@ changed direction.
 
 | Category | Count | What it covers |
 |---|---|---|
-| minerals | 36 | amethyst, fluorite, pyrite, malachite, azurite, quartz, obsidian, tourmaline, topaz, gypsum, halite, sulfur, smithsonite, geodes, agate slices |
+| minerals | 37 | amethyst, fluorite, pyrite, malachite, azurite, quartz, obsidian, tourmaline, topaz, gypsum, halite, sulfur, smithsonite, geodes, agate slices |
 | technology | 32 | circuit boards, computer hardware, server rooms, laboratory equipment, graphics cards, solar and wind power, telescopes, printers |
-| luxury | 17 | watches, leather, silk, marble, crystal, still life |
+| luxury | 21 | watches, leather, silk, marble, crystal, still life |
 | ironwork | 16 | turbine halls, power station interiors, gantry cranes, stock sheds, machine halls, industrial spaces |
 | fashion | 15 | shoes, bags, hats, scarves, knitwear, lace, tweed, linen |
-| bracelets | 12 | bangles, charm bracelets, pearl strands, gold chains, tiara, filigree, ruby and gemstone rings |
-| diamonds | 13 | brilliant cuts, solitaire rings, rough stones, gemstone macro |
+| bracelets | 14 | bangles, charm bracelets, pearl strands, gold chains, tiara, filigree, ruby and gemstone rings |
+| diamonds | 14 | brilliant cuts, solitaire rings, rough stones, gemstone macro |
 | metalwork | 12 | forged iron, rivets, wrought iron railings, anvils, steel trusses, iron bridges, forge fire |
-| **total** | **153** | 148 photographs by 120 photographers and institutions, plus 5 generated images |
+| **total** | **161** | 148 photographs by 120 photographers and institutions, plus 13 generated images |
 
-Total on-disk size: **52.2 MB**, masters at 1920 px long edge plus 640 px
+Total on-disk size: **54.4 MB**, masters at 1920 px long edge plus 640 px
 thumbnails. A 2500 px master is right for print and wrong for an APK — Android
 ships the JPEG unchanged, so the pack is re-encoded to a size a phone screen can
 show. The original dimensions are kept in the index as `sourceWidth` /
@@ -62,12 +77,12 @@ rather than implied.
 
 | Licence | Count | Obligation |
 |---|---|---|
-| CC0 / public domain | 23 | none |
+| CC0 / public domain | 31 | none |
 | CC BY | 43 | credit the creator, link the licence |
 | CC BY-SA | 87 | credit the creator, link the licence, share derivatives alike |
-| **total** | **153** | (5 of the CC0 entries are generated images) |
+| **total** | **161** | (13 of the CC0 entries are generated images) |
 
-**87 of the 153 are share-alike.** That is a deliberate, recorded decision, not an
+**87 of the 161 are share-alike.** That is a deliberate, recorded decision, not an
 oversight:
 
 * Shipping the photographs unmodified inside the app is permitted by CC BY-SA.
@@ -96,7 +111,9 @@ preference order in that script already takes CC0 first.
   and all-rights-reserved files are refused by the pipeline and re-checked by the
   app at read time.
 * **Animals and landscapes.** Removed on instruction. No kittens, no forests, no
-  mountains, no beaches.
+  beaches. Mountains are the one exception the product owner asked for; the
+  Kilimanjaro renders are finished and held until the category can meet the pack's
+  five-image floor, because a two-image category reads as an accident.
 * **Drawn artwork.** The 100 vector-derived wallpapers, 10 object renders and 8
   material tiles were deleted, along with `artwork_index.json` and the code that
   read them. Everything the app ships as a wallpaper is now a photograph or a

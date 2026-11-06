@@ -32,7 +32,7 @@ Every asset has a record in `photos/photo_index.json` with:
 - the quality measurements the file passed.
 
 148 of the records are photographs from Wikimedia Commons under CC0, CC BY or
-CC BY-SA. 5 are images generated for this application, marked `synthetic: true`
+CC BY-SA. 13 are images generated for this application, marked `synthetic: true`
 and dedicated to CC0, because the free-licence pool does not contain the rendered
 register the pack was asked for.
 
