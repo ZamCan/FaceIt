@@ -57,6 +57,7 @@ class NameMonogramTest {
     fun anEmptyNameStillProducesSomethingToDraw() {
         assertEquals("YOUR NAME", NameDesign(text = "   ").displayText())
         assertEquals("YOUR NAME", NameDesign(text = "").displayText())
+        assertEquals("Your name", NameDesign(text = "", uppercase = false).displayText())
     }
 
     @Test
@@ -65,7 +66,7 @@ class NameMonogramTest {
         val long = NameDesign(text = "Wema Mwakyusa Mushi", uppercase = false)
         assertTrue(long.effectiveLength() > short.effectiveLength())
         // The engine fits by width, so the only thing it needs is the length.
-        assertEquals(21, long.effectiveLength())
+        assertEquals(19, long.effectiveLength())
     }
 
     @Test

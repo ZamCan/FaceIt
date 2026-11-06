@@ -134,8 +134,7 @@ data class NameDesign(
 
     /** What actually gets set: the user's words, normalised, never substituted. */
     fun displayText(): String {
-        val trimmed = text.replace(Regex("\\s+"), " ").trim()
-        if (trimmed.isEmpty()) return "Your name"
+        val trimmed = text.replace(Regex("\\s+"), " ").trim().ifEmpty { "Your name" }
         return if (uppercase) trimmed.uppercase() else trimmed
     }
 
