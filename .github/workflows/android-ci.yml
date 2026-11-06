@@ -52,10 +52,8 @@ jobs:
       - name: Compile, run unit tests and assemble the debug APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace
 
-      # Lint is recorded, not gated: the report is the artefact, and a failure here
-      # must not hide the build and test result above.
+      # Lint is a required quality gate; reports are still uploaded on failure.
       - name: Android Lint
-        continue-on-error: true
         run: gradle --no-daemon lintDebug
 
       - name: Summarise test results
@@ -143,3 +141,4 @@ jobs:
             app/build/reports/lint-results-debug.html
             app/build/reports/lint-results-debug.txt
           if-no-files-found: warn
+

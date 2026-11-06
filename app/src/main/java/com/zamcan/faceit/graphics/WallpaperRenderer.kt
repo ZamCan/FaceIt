@@ -39,7 +39,7 @@ object WallpaperRenderer {
         val curated = composed
         val imported = curated ?: artworkFile?.takeIf { it.isFile }?.let { decodeForTarget(it, width, height) }
         if (imported != null) {
-            drawCenterCrop(canvas, imported, width, height)
+            drawCenterCrop(canvas, imported, width, height, environment.cropX, environment.cropY)
             if (imported !== curated) imported.recycle()
             if (composed != null) composed.recycle()
             canvas.drawRect(
@@ -59,6 +59,12 @@ object WallpaperRenderer {
         // The object layer and the material grain are both drawn procedurally
         // now: the bundled object renders and material tiles were part of the
         // removed artwork pack. A user's own imported object still wins.
+        if (environment.objectOpacity < 1f) {
+            canvas.saveLayerAlpha(0f, 0f, width.toFloat(), height.toFloat(),
+                (environment.objectOpacity.coerceIn(0f, 1f) * 255).toInt())
+        } else canvas.save()
+        canvas.translate((environment.objectX - .5f) * width, (environment.objectY - .38f) * height)
+        canvas.scale(environment.objectScale, environment.objectScale, width / 2f, height * .38f)
         val importedObject = objectArtworkFile?.takeIf { it.isFile }
             ?.let { decodeForObject(it, width, height) }
         if (importedObject != null) {
@@ -67,6 +73,7 @@ object WallpaperRenderer {
         } else {
             drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
         }
+        canvas.restore()
         drawVignette(canvas, width, height)
 
         // The name engine draws last, on top of the ground and the object: it is
@@ -408,18 +415,19 @@ object WallpaperRenderer {
         return sample
     }
 
-    private fun drawCenterCrop(canvas: Canvas, source: Bitmap, width: Int, height: Int) {
+    private fun drawCenterCrop(canvas: Canvas, source: Bitmap, width: Int, height: Int, focusX: Float, focusY: Float) {
         val sourceRatio = source.width.toFloat() / source.height
         val targetRatio = width.toFloat() / height
         val sourceRect = if (sourceRatio > targetRatio) {
             val cropWidth = (source.height * targetRatio).toInt().coerceAtLeast(1)
-            val left = (source.width - cropWidth) / 2
+            val left = ((source.width - cropWidth) * focusX.coerceIn(0f, 1f)).toInt()
             Rect(left, 0, left + cropWidth, source.height)
         } else {
             val cropHeight = (source.width / targetRatio).toInt().coerceAtLeast(1)
-            val top = (source.height - cropHeight) / 2
+            val top = ((source.height - cropHeight) * focusY.coerceIn(0f, 1f)).toInt()
             Rect(0, top, source.width, top + cropHeight)
         }
         canvas.drawBitmap(source, sourceRect, Rect(0, 0, width, height), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
     }
 }
+

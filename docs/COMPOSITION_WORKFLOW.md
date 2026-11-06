@@ -32,3 +32,19 @@ The emulator smoke check also saves a scene, restarts the process, duplicates
 it and restores it. These checks do not replace physical-phone wallpaper,
 storage-pressure or upgrade validation.
 
+
+## Placement and catalogue controls
+
+Object scale, horizontal/vertical position and opacity are independent saved
+fields. Imported backgrounds have independent crop focus. Older environments
+keep the original placement defaults; out-of-range stored values are clamped.
+A slider drag is one undo step. Resetting object placement keeps the background
+and material; centring the crop keeps the object settings.
+
+The wallpaper gallery supports offline multi-term search across title, subject,
+category, creator, licence and generated/photograph labels. Category and
+favourite filters combine; favourites persist by stable catalogue ID. Details
+shows a larger image, full attribution, original source and licence links.
+Applying a gallery image explicitly offers Home, Lock or Both. Viewing online
+source/licence pages is optional; search, favourites and applying are offline.
+

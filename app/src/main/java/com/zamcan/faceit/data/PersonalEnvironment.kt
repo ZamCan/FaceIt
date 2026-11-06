@@ -38,6 +38,12 @@ data class PersonalEnvironment(
     val curatedPhotoId: String? = null,
     /** Explicitly show the editable procedural scene instead of a theme photograph. */
     val useProceduralBackground: Boolean = false,
+    val objectScale: Float = 1f,
+    val objectX: Float = .5f,
+    val objectY: Float = .38f,
+    val objectOpacity: Float = 1f,
+    val cropX: Float = .5f,
+    val cropY: Float = .5f,
     /**
      * The name engine. Whatever the user types is set at render time in one of
      * the metal finishes, so a name is never a bundled picture and never a
@@ -88,6 +94,12 @@ data class PersonalEnvironment(
         put("selectedObjectFile", selectedObjectFile)
         put("curatedPhotoId", curatedPhotoId)
         put("useProceduralBackground", useProceduralBackground)
+        put("objectScale", objectScale.toDouble())
+        put("objectX", objectX.toDouble())
+        put("objectY", objectY.toDouble())
+        put("objectOpacity", objectOpacity.toDouble())
+        put("cropX", cropX.toDouble())
+        put("cropY", cropY.toDouble())
         put("nameEnabled", nameEnabled)
         put("nameText", nameText)
         put("nameFinishId", nameFinishId)
@@ -100,6 +112,9 @@ data class PersonalEnvironment(
     }.toString()
 
     companion object {
+        private fun boundedFloat(json: JSONObject, key: String, fallback: Float, min: Float, max: Float): Float =
+            json.optDouble(key, fallback.toDouble()).toFloat().takeIf { it.isFinite() }?.coerceIn(min, max) ?: fallback
+
         fun fromJson(raw: String?): PersonalEnvironment {
             if (raw.isNullOrBlank()) return PersonalEnvironment()
             return runCatching {
@@ -130,6 +145,12 @@ data class PersonalEnvironment(
                     // rather than migrated: the files no longer exist, and a
                     // dangling id would resolve to no wallpaper at all.
                     useProceduralBackground = json.optBoolean("useProceduralBackground", false),
+                    objectScale = boundedFloat(json, "objectScale", 1f, .25f, 2f),
+                    objectX = boundedFloat(json, "objectX", .5f, 0f, 1f),
+                    objectY = boundedFloat(json, "objectY", .38f, 0f, 1f),
+                    objectOpacity = boundedFloat(json, "objectOpacity", 1f, 0f, 1f),
+                    cropX = boundedFloat(json, "cropX", .5f, 0f, 1f),
+                    cropY = boundedFloat(json, "cropY", .5f, 0f, 1f),
                     nameEnabled = json.optBoolean("nameEnabled", false),
                     nameText = json.optString("nameText", "Naomi"),
                     nameFinishId = json.optString("nameFinishId", "rose_gold"),

@@ -65,6 +65,9 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -270,7 +273,8 @@ fun FaceItApp() {
                 }
             }
             result.onSuccess {
-                snackbarHostState.showSnackbar("${photo.subject} applied — photo by ${photo.creator}")
+                snackbarHostState.showSnackbar(if (photo.synthetic) "${photo.subject} applied — generated artwork"
+                    else "${photo.subject} applied — photo by ${photo.creator}")
             }.onFailure {
                 snackbarHostState.showSnackbar("Unable to apply this photograph")
             }
@@ -445,7 +449,7 @@ fun FaceItApp() {
                             snackbarHostState.showSnackbar("${photo.subject} set as background")
                         }
                     },
-                    onApply = { photo -> applyPhoto(photo, WallpaperManager.FLAG_SYSTEM) },
+                    onApply = { photo, flags -> applyPhoto(photo, flags) },
                     onBack = { showGallery = false }
                 )
             }
@@ -716,7 +720,7 @@ private fun PresetCard(
 }
 
 @Composable
-private fun ApplyWallpaperDialog(
+internal fun ApplyWallpaperDialog(
     onDismiss: () -> Unit,
     onApply: (Int) -> Unit
 ) {
@@ -813,6 +817,15 @@ private fun CompositionScreen(
     var history by remember(initial) { mutableStateOf(EditHistory(initial)) }
     val value = history.current
     fun change(next: PersonalEnvironment) { history = history.record(next) }
+    var gestureBase by remember(initial) { mutableStateOf<EditHistory<PersonalEnvironment>?>(null) }
+    fun adjust(next: PersonalEnvironment) {
+        if (gestureBase == null) gestureBase = history
+        history = history.copy(current = next)
+    }
+    fun finishAdjustment() {
+        gestureBase?.let { history = it.record(history.current) }
+        gestureBase = null
+    }
     var studioBackground by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(value) {
@@ -968,6 +981,39 @@ private fun CompositionScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp)
                         ) { Text("Manage imported artwork") }
+                    }
+                }
+            }
+
+            item {
+                FaceItCard {
+                    Text("Object placement", style = MaterialTheme.typography.titleMedium)
+                    Text("Move, scale and fade the object independently of the background.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Scale", style = MaterialTheme.typography.labelLarge)
+                    Slider(value = value.objectScale, onValueChange = { adjust(value.copy(objectScale = it)) }, onValueChangeFinished = { finishAdjustment() },
+                        valueRange = .25f..2f, modifier = Modifier.semantics { contentDescription = "Object scale" })
+                    Text("Horizontal position", style = MaterialTheme.typography.labelLarge)
+                    Slider(value = value.objectX, onValueChange = { adjust(value.copy(objectX = it)) }, onValueChangeFinished = { finishAdjustment() },
+                        modifier = Modifier.semantics { contentDescription = "Object horizontal position" })
+                    Text("Vertical position", style = MaterialTheme.typography.labelLarge)
+                    Slider(value = value.objectY, onValueChange = { adjust(value.copy(objectY = it)) }, onValueChangeFinished = { finishAdjustment() },
+                        modifier = Modifier.semantics { contentDescription = "Object vertical position" })
+                    Text("Opacity", style = MaterialTheme.typography.labelLarge)
+                    Slider(value = value.objectOpacity, onValueChange = { adjust(value.copy(objectOpacity = it)) }, onValueChangeFinished = { finishAdjustment() },
+                        modifier = Modifier.semantics { contentDescription = "Object opacity" })
+                    TextButton(onClick = { change(value.copy(objectScale = 1f, objectX = .5f, objectY = .38f, objectOpacity = 1f)) }) {
+                        Text("Reset object placement")
+                    }
+                    if (value.selectedArtworkFile != null) {
+                        HorizontalDivider()
+                        Text("Imported background crop", style = MaterialTheme.typography.titleMedium)
+                        Text("Choose the part of your image that fills the canvas.", style = MaterialTheme.typography.bodySmall)
+                        Slider(value = value.cropX, onValueChange = { adjust(value.copy(cropX = it)) }, onValueChangeFinished = { finishAdjustment() },
+                            modifier = Modifier.semantics { contentDescription = "Background horizontal crop" })
+                        Slider(value = value.cropY, onValueChange = { adjust(value.copy(cropY = it)) }, onValueChangeFinished = { finishAdjustment() },
+                            modifier = Modifier.semantics { contentDescription = "Background vertical crop" })
+                        TextButton(onClick = { change(value.copy(cropX = .5f, cropY = .5f)) }) { Text("Centre crop") }
                     }
                 }
             }

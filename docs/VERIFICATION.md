@@ -6,7 +6,21 @@ AGENTS.md §2 and §19 forbid claiming that a build, test, device check or relea
 succeeded unless the result was actually observed. This file is the place where
 that evidence lives.
 
-## Current status
+## Current observed checks
+
+- [Composition build and unit tests](https://github.com/ZamCan/FaceIt/actions/runs/42292811024):
+  source structure, content/contrast audit, photograph integrity, unit tests,
+  debug APK and Android Lint passed for `d01f0ce`.
+- [Built-app emulator check](https://github.com/ZamCan/FaceIt/actions/runs/42292810943):
+  all five tabs remained selected in light, dark and 150% text size. Saving a
+  scene, restarting the process, duplicating it and restoring it passed.
+  Actual screenshots and hierarchy XML are retained in the run artifact.
+- Physical-device acceptance, production signing and release checks remain open.
+  Emulator checks do not certify manufacturer-specific behaviour.
+- The records below are historical evidence, not the current shipped asset
+  inventory or current test totals. Deleted-pack checks are retired.
+
+## Historical records
 
 | Area | Status | Evidence |
 |---|---|---|
@@ -41,8 +55,8 @@ The device row is still a release gate. Build, test and Lint are observed CI fac
 
 ```bash
 # Content and asset integrity
-python3 tools/validate_artwork_pack.py
-python3 tools/validate_artwork_pack.py --release   # requires the full 100-wallpaper pack
+python3 tools/fetch_photo_pack.py --verify
+python3 tools/verify_catalogue.py --verbose
 
 # Source self-check (structural only — not a compiler)
 python3 tools/verify_sources.py
@@ -92,3 +106,4 @@ or verify behaviour. A pass is necessary but not sufficient.
   foldable widths.
 - Reduced-motion and battery-saver behaviour: confirm the demo skips press
   animation and the destination crossfade snaps.
+
