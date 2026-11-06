@@ -213,7 +213,14 @@ Do not simulate 3D with a static image while claiming interactive 3D. Do not mak
 
 ## 7. Wallpaper, artwork and internal asset library
 
-The repository now contains a **100-wallpaper bundled offline baseline**: 100 distinct 1080×2400 PNG masters, 100 thumbnails, 10 transparent object renders and 8 material textures. The release validator checks the manifest, file presence, dimensions, hashes and provenance metadata; the artwork contact sheet has been reviewed collection by collection. This baseline is real and bundled, but it is not a substitute for continued art direction or full-screen review on physical phones. Do not inflate the count, call vector-derived art photography, or present unfinished future collections as shipped.
+The active offline catalogue is `app/src/main/assets/photos/photo_index.json`.
+It contains licensed photographs and explicitly labelled generated JPEG images;
+the former 100-wallpaper PNG pack, object renders and material textures were
+removed. Do not restore that cancelled pack or use its retained historical
+manifest as a release inventory. Validate the current pack with
+`python3 tools/fetch_photo_pack.py --verify` and
+`python3 tools/verify_catalogue.py`. Continue art direction and full-screen
+physical-device review before making release claims.
 
 ### Collection breadth
 
@@ -221,7 +228,7 @@ Build a rich, coherent library covering:
 - World cities, landmark architecture and historic urban environments.
 - Geometric art, ornamental craft, calligraphic forms and architectural detail.
 - Football and wider sporting culture.
-- Nature, wildlife, landscapes and atmospheric scenes.
+- Minerals, landscapes and atmospheric scenes.
 - Automotive, transportation and industrial design.
 - Professional fields such as medicine, science, engineering, law, finance and technology.
 - Fashion, luxury materials, jewellery and refined product photography.
@@ -534,7 +541,7 @@ Work in this order unless a blocking defect requires a different sequence:
 - SMS composer accuracy and safe handoff.
 
 **P4 — Content and advanced experiences**
-- Expand the shipped 100-wallpaper baseline with additional art-directed, provenance-verified PNG collections.
+- Expand the current photograph and labelled generated-image catalogue with art-directed, provenance-verified collections; do not restore the cancelled drawn PNG pack.
 - Object and material asset library.
 - On-demand 3D studio and carefully controlled advanced effects.
 - Additional curated visual universes and optional content packs.
@@ -583,7 +590,7 @@ Face It must bring themes, native widgets, icon design, app presentation, keyboa
 
 ### Required visual collections
 
-- Build a dedicated optional feminine collection with professionally art-directed colour palettes, cats and other cute animals, floral and jewellery-inspired details, colourful app-symbol families, pearl, satin, ceramic and soft-glass materials. It must remain one creative universe among many; never force gendered assumptions or lock users out of other styles.
+- Build a dedicated optional feminine collection with professionally art-directed colour palettes, mineral, floral and jewellery-inspired details, colourful app-symbol families, pearl, satin, ceramic and soft-glass materials. It must remain one creative universe among many; never force gendered assumptions or lock users out of other styles.
 - Include an optional **Niqab-inspired display frame**: a respectful, refined draped visual frame around a device/app-grid preview. Users can independently choose its colour (Onyx, Rose, Plum, Pearl, Sage, Sand), combine it with other wallpapers and visual treatments, and turn it off. Do not reduce it to a costume icon or use it as a mandatory app mask.
 - Keep the visual preview beautiful and recognisable as a phone composition: real app-symbol artwork, widgets, display content and contextual status elements should appear within the frame opening. Avoid a generic card dashboard.
 

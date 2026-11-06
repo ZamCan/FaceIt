@@ -51,7 +51,7 @@ Content rules:
 - Science and research.
 - Automotive and transportation.
 - Fashion, jewellery and luxury.
-- Nature, wildlife and landscapes.
+- Landscapes, minerals and atmospheric scenes.
 - Geometry, abstract art and 3D objects.
 - General cities, travel and world cultures.
 
@@ -113,26 +113,21 @@ Face It brings the following visual surfaces together in one Style Studio. Users
 
 ### Feminine and expressive collections
 
-Include a dedicated, optional feminine design collection without forcing it on any user or reducing it to a single palette. It may include elegant pastel and saturated colourways, cute animal and cat artwork, playful but polished icon families, floral and jewellery-inspired details, soft glass, pearl, satin and ceramic materials. Users can mix these with other visual universes.
+Include a dedicated, optional feminine design collection without forcing it on any user or reducing it to a single palette. It may include elegant pastel and saturated colourways, mineral and jewellery artwork, playful but polished icon families, floral and jewellery-inspired details, soft glass, pearl, satin and ceramic materials. Users can mix these with other visual universes.
 
 Niqab-inspired display frames are an optional respectful design family, not a default or a restriction. Users can select a frame style, choose its colour independently and combine it with different wallpapers, app-grid presentations, widgets and icon treatments. The frame is available in Face It Home when the user explicitly selects that launcher; elsewhere it remains an in-app preview. Keep the visual treatment refined and culturally respectful.
 
 ## 5. Wallpaper and offline artwork library
 
-The first release must include at least **100 high-quality PNG wallpapers** as actual bundled offline assets.
-
-Proposed initial allocation (editable during curation):
-- Islamic cities and architecture: 20.
-- Football and sporting culture: 15.
-- Geometry, 3D and abstract: 15.
-- Nature, wildlife and landscapes: 15.
-- Health, engineering and science: 10.
-- Programming and technology: 10.
-- Finance, law and business: 5.
-- Automotive, fashion and luxury: 10.
+The current bundled pack uses licensed photographs and labelled generated JPEGs.
+The earlier 100-PNG drawn-pack requirement and its collection allocations are
+superseded. The active inventory and rights record is
+`app/src/main/assets/photos/photo_index.json`; see `docs/PHOTO_PACK.md`.
+Keep minerals, jewellery, ironwork, industrial spaces and the other approved
+subjects; do not reintroduce the cancelled animal collection.
 
 Requirements:
-- Keep the original PNG artwork in the offline library.
+- Preserve the bundled JPEG masters and their attribution records.
 - Generate thumbnails and appropriate preview derivatives.
 - Load assets lazily; never decode the entire library into memory.
 - Support crop, position, preview, favourite, download/export where applicable and apply through supported wallpaper APIs.

@@ -3,7 +3,7 @@ package com.zamcan.faceit.data
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import java.util.LinkedHashMap
+import android.util.LruCache
 
 /**
  * Bitmap access for the bundled photograph pack — the only wallpaper pack.
@@ -18,16 +18,15 @@ import java.util.LinkedHashMap
  */
 class PhotoBitmaps(private val context: Context) {
 
-    private val cache = object : LinkedHashMap<String, Bitmap>(16, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>?): Boolean =
-            size > MAX
+    private val cache = object : LruCache<String, Bitmap>(MAX_CACHE_BYTES) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.allocationByteCount
     }
 
     fun thumbnail(photo: PhotoWallpaper, targetWidthPx: Int = 320): Bitmap? {
         val key = "${photo.id}@$targetWidthPx"
-        synchronized(cache) { cache[key] }?.let { if (!it.isRecycled) return it }
+        cache.get(key)?.let { if (!it.isRecycled) return it }
         val bitmap = decode(photo.thumbnail, targetWidthPx) ?: return null
-        synchronized(cache) { cache[key] = bitmap }
+        cache.put(key, bitmap)
         return bitmap
     }
 
@@ -60,14 +59,13 @@ class PhotoBitmaps(private val context: Context) {
     }.getOrNull()
 
     fun trimMemory() {
-        synchronized(cache) {
-            cache.values.forEach { if (!it.isRecycled) it.recycle() }
-            cache.clear()
-        }
+        // Compose and launcher consumers may still display these bitmaps. Evict
+        // only our references; recycling here invalidates a visible image.
+        cache.evictAll()
     }
 
     private companion object {
-        // Photo thumbnails are much heavier than drawn tiles; keep the cache small.
-        const val MAX = 12
+        // Bound actual allocation, including unusually tall or high-density thumbnails.
+        const val MAX_CACHE_BYTES = 8 * 1024 * 1024
     }
 }

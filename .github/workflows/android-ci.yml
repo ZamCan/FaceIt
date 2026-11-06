@@ -99,6 +99,7 @@ jobs:
         run: |
           python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           from pathlib import Path
+          import json
 
           print()
           print("## Artefacts")
@@ -111,10 +112,17 @@ jobs:
           else:
               print("| Debug APK | not produced |")
           assets = Path("app/src/main/assets")
-          bundled = sum(p.stat().st_size for p in assets.rglob("*.png"))
-          print(f"| Bundled PNG assets | {bundled / 1e6:.1f} MB |")
-          wallpapers = list((assets / "wallpapers").glob("*.png"))
-          print(f"| Wallpapers | {len(wallpapers)} files |")
+          bundled = sum(p.stat().st_size for p in assets.rglob("*") if p.is_file())
+          print(f"| All bundled assets | {bundled / 1e6:.1f} MB |")
+          index = assets / "photos/photo_index.json"
+          if index.is_file():
+              photos = json.loads(index.read_text(encoding="utf-8"))["photos"]
+              generated = sum(bool(photo.get("synthetic", False)) for photo in photos)
+              print(f"| Catalogue wallpapers | {len(photos)} files |")
+              print(f"| Licensed photographs | {len(photos) - generated} files |")
+              print(f"| Labelled generated images | {generated} files |")
+          else:
+              print("| Catalogue wallpapers | index missing |")
           PY
 
       - name: Upload debug APK

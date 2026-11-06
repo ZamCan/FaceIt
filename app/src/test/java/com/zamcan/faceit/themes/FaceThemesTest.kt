@@ -101,13 +101,22 @@ class FaceThemesTest {
 
     @Test
     fun followThemesWallpaperModeAdoptsTheThemeWallpaper() {
-        val current = PersonalEnvironment(curatedPhotoId = "amethyst-cluster-brazil")
+        val current = PersonalEnvironment(
+            curatedPhotoId = "amethyst-cluster-brazil",
+            selectedArtworkFile = "my-background.png",
+            selectedObjectFile = "my-object.png",
+            material = "Marble"
+        )
         val theme = FaceThemes.find("heritage_gold")
 
         val applied = current.applyingTheme(theme, keepWallpaper = false)
 
         assertEquals(theme.wallpaperId, applied.curatedPhotoId)
-        assertNotEquals("nature-001", applied.curatedArtworkId)
+        assertNotEquals(current.curatedPhotoId, applied.curatedPhotoId)
+        assertEquals(current.selectedArtworkFile, applied.selectedArtworkFile)
+        assertEquals(current.selectedObjectFile, applied.selectedObjectFile)
+        assertEquals(current.material, applied.material)
+        assertEquals(current.layers, applied.layers)
         assertEquals(ThemeWallpaperMode.FOLLOW_THEME, applied.wallpaperMode)
     }
 
