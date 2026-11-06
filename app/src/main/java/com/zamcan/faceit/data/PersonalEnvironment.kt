@@ -29,10 +29,13 @@ data class PersonalEnvironment(
     val frameColourId: String = "None",
     val selectedArtworkFile: String? = null,
     val selectedObjectFile: String? = null,
-    /** Curated bundled wallpaper id from the shipped pack, or null. */
-    val curatedArtworkId: String? = null,
-    /** Curated object artwork id from `assets/objects`, or null. */
-    val curatedObjectId: String? = null,
+    /**
+     * Bundled photograph id from `assets/photos`.
+     *
+     * The drawn artwork pack and its object renders were removed on instruction;
+     * every wallpaper that ships with the app is now a photograph.
+     */
+    val curatedPhotoId: String? = null,
     /** Ordered composition layers; the renderer draws these back to front. */
     val layers: List<CompositionLayer> = CompositionLayer.defaults()
 ) {
@@ -53,8 +56,7 @@ data class PersonalEnvironment(
         put("frameColourId", frameColourId)
         put("selectedArtworkFile", selectedArtworkFile)
         put("selectedObjectFile", selectedObjectFile)
-        put("curatedArtworkId", curatedArtworkId)
-        put("curatedObjectId", curatedObjectId)
+        put("curatedPhotoId", curatedPhotoId)
         put("layers", org.json.JSONArray().apply { layers.forEach { put(it.toJson()) } })
     }.toString()
 
@@ -84,9 +86,11 @@ data class PersonalEnvironment(
                         .takeIf { it.isNotBlank() && it != "null" },
                     selectedObjectFile = json.optString("selectedObjectFile", "")
                         .takeIf { it.isNotBlank() && it != "null" },
-                    curatedArtworkId = json.optString("curatedArtworkId", "")
-                        .takeIf { it.isNotBlank() && it != "null" },
-                    curatedObjectId = json.optString("curatedObjectId", "")
+                    // Older saved environments carry `curatedArtworkId` and
+                    // `curatedObjectId` from the removed pack. They are dropped
+                    // rather than migrated: the files no longer exist, and a
+                    // dangling id would resolve to no wallpaper at all.
+                    curatedPhotoId = json.optString("curatedPhotoId", "")
                         .takeIf { it.isNotBlank() && it != "null" },
                     layers = json.optJSONArray("layers")?.let { array ->
                         buildList {

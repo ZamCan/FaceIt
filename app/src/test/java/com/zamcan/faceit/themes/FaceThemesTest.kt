@@ -85,9 +85,8 @@ class FaceThemesTest {
     fun selectingAThemeKeepsLayersItDoesNotOwn() {
         val current = PersonalEnvironment(
             selectedArtworkFile = "my-photo.png",
-            curatedObjectId = "object-crystal",
             material = "Marble",
-            curatedArtworkId = "nature-001"
+            curatedPhotoId = "amethyst-cluster-brazil"
         )
         val theme = FaceThemes.find("lavender_cat")
 
@@ -95,20 +94,19 @@ class FaceThemesTest {
 
         assertEquals(theme.id, applied.themeId)
         assertEquals("my-photo.png", applied.selectedArtworkFile)
-        assertEquals("object-crystal", applied.curatedObjectId)
         assertEquals("Marble", applied.material)
-        assertEquals("nature-001", applied.curatedArtworkId)
+        assertEquals("amethyst-cluster-brazil", applied.curatedPhotoId)
         assertEquals(ThemeWallpaperMode.KEEP, applied.wallpaperMode)
     }
 
     @Test
     fun followThemesWallpaperModeAdoptsTheThemeWallpaper() {
-        val current = PersonalEnvironment(curatedArtworkId = "nature-001")
+        val current = PersonalEnvironment(curatedPhotoId = "amethyst-cluster-brazil")
         val theme = FaceThemes.find("heritage_gold")
 
         val applied = current.applyingTheme(theme, keepWallpaper = false)
 
-        assertEquals(theme.wallpaperId, applied.curatedArtworkId)
+        assertEquals(theme.wallpaperId, applied.curatedPhotoId)
         assertNotEquals("nature-001", applied.curatedArtworkId)
         assertEquals(ThemeWallpaperMode.FOLLOW_THEME, applied.wallpaperMode)
     }

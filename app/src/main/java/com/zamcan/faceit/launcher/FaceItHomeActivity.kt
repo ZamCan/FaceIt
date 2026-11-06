@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import com.zamcan.faceit.data.CuratedLibrary
 import com.zamcan.faceit.themes.FaceTheme
 import com.zamcan.faceit.themes.FaceThemes
 import com.zamcan.faceit.ui.DrapeFrame
@@ -105,7 +104,8 @@ internal data class FaceItLaunchableApp(
 class FaceItHomeActivity : ComponentActivity() {
 
     private var isDefaultHome by mutableStateOf(false)
-    private val curatedLibrary by lazy { CuratedLibrary(applicationContext) }
+    private val photoBitmaps by lazy { com.zamcan.faceit.data.PhotoBitmaps(applicationContext) }
+    private val photoLibrary get() = com.zamcan.faceit.data.PhotoLibrary
 
     private val homeRoleRequest = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -128,11 +128,10 @@ class FaceItHomeActivity : ComponentActivity() {
             ?: FaceThemes.all.first()
         val displayStyle = TopicCatalogue.find(preferences.selected(StudioCategory.DISPLAY))
         val frame = resolveStudioFrame(theme, preferences.frameColour(), displayStyle?.veilShape)
-        // Imported artwork wins, then the curated pick, then the theme's own
-        // wallpaper. A launcher must paint what the user last chose.
-        val wallpaperId = environment.selectedArtworkFile?.takeIf { it.isNotBlank() }
-            ?: environment.curatedArtworkId?.takeIf { it.isNotBlank() }
-            ?: theme.wallpaperId
+        // One rule decides the wallpaper, shared with the rest of the app: an
+        // imported file, then the photograph the user picked, then the theme's
+        // own photograph. A launcher must paint what the user last chose.
+        val wallpaperId = com.zamcan.faceit.data.WallpaperPolicy.resolveId(environment, theme)
 
         setContent {
             FaceItTheme {
@@ -147,8 +146,8 @@ class FaceItHomeActivity : ComponentActivity() {
                 }
                 LaunchedEffect(wallpaperId) {
                     wallpaper = withContext(Dispatchers.IO) {
-                        curatedLibrary.find(wallpaperId)?.let { artwork ->
-                            curatedLibrary.thumbnail(artwork, 1080)?.asImageBitmap()
+                        photoLibrary.find(this@FaceItHomeActivity, wallpaperId)?.let { photo ->
+                            photoBitmaps.fullSize(photo, 1080)?.asImageBitmap()
                         }
                     }
                 }

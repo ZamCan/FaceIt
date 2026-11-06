@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backspace
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Collections
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Explore
@@ -89,9 +90,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zamcan.faceit.data.ArtworkRepository
-import com.zamcan.faceit.data.CuratedArtwork
+import com.zamcan.faceit.graphics.PhotoComposer
+import com.zamcan.faceit.data.PhotoBitmaps
+import com.zamcan.faceit.data.PhotoLibrary
+import com.zamcan.faceit.data.PhotoWallpaper
 import com.zamcan.faceit.data.CompositionPresets
-import com.zamcan.faceit.data.CuratedLibrary
 import com.zamcan.faceit.data.EnvironmentStore
 import com.zamcan.faceit.data.PersonalEnvironment
 import com.zamcan.faceit.data.ThemeWallpaperMode
@@ -103,6 +106,12 @@ import com.zamcan.faceit.ui.theme.LocalFaceItColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+/** Material finishes the studio offers. Drawn procedurally; no raster tiles ship. */
+private val MATERIAL_FINISHES = listOf(
+    "Marble", "Travertine", "Glazed ceramic", "Natural stone", "Brushed metal",
+    "Frosted glass", "Basalt", "Sandstone"
+)
 
 private enum class Destination(val label: String) {
     Discover("Discover"),
@@ -140,7 +149,6 @@ fun FaceItApp() {
     val setThemePreset = com.zamcan.faceit.ui.theme.LocalSetFaceItThemePresetId.current
     val store = remember { EnvironmentStore(context) }
     val artworkRepository = remember { ArtworkRepository(context) }
-    val curatedLibrary = remember { CuratedLibrary(context) }
     var showGallery by remember { mutableStateOf(false) }
     var environment by remember { mutableStateOf(store.load()) }
     var destination by remember { mutableStateOf(Destination.Discover) }
@@ -186,38 +194,27 @@ fun FaceItApp() {
         }
     }
 
-    // Curated layers are decoded off the main thread and released as soon as the
-    // selection changes, so browsing cannot accumulate full-size bitmaps.
+    // The background is always a photograph now. It is decoded off the main
+    // thread and released as soon as the selection changes, so browsing the
+    // gallery cannot accumulate full-size bitmaps.
+    val photoBitmaps = remember { PhotoBitmaps(context) }
     var curatedBackground by remember { mutableStateOf<Bitmap?>(null) }
-    var curatedObject by remember { mutableStateOf<Bitmap?>(null) }
-    var materialTexture by remember { mutableStateOf<Bitmap?>(null) }
 
-    LaunchedEffect(environment.curatedArtworkId) {
+    // A photograph the user picked wins; otherwise the theme's own photograph is
+    // shown, so a fresh install still has a real background.
+    LaunchedEffect(environment.curatedPhotoId, environment.themeId) {
         curatedBackground?.takeUnless { it.isRecycled }?.recycle()
         curatedBackground = null
-        val id = environment.curatedArtworkId ?: return@LaunchedEffect
+        val id = WallpaperPolicy.resolveId(environment, FaceThemes.find(environment.themeId))
+            ?: return@LaunchedEffect
         curatedBackground = withContext(Dispatchers.IO) {
-            curatedLibrary.find(id)?.let { curatedLibrary.fullSize(it, 1080) }
+            PhotoLibrary.find(context, id)?.let { photoBitmaps.fullSize(it, 1080) }
         }
-    }
-    LaunchedEffect(environment.curatedObjectId) {
-        curatedObject?.takeUnless { it.isRecycled }?.recycle()
-        curatedObject = null
-        val id = environment.curatedObjectId ?: return@LaunchedEffect
-        curatedObject = withContext(Dispatchers.IO) { curatedLibrary.objectArtwork(id, 900) }
-    }
-    LaunchedEffect(environment.material) {
-        materialTexture?.takeUnless { it.isRecycled }?.recycle()
-        materialTexture = null
-        val finish = CuratedLibrary.textureForFinish(environment.material) ?: return@LaunchedEffect
-        materialTexture = withContext(Dispatchers.IO) { curatedLibrary.texture(finish, 512) }
     }
     DisposableEffect(Unit) {
         onDispose {
             curatedBackground?.takeUnless { it.isRecycled }?.recycle()
-            curatedObject?.takeUnless { it.isRecycled }?.recycle()
-            materialTexture?.takeUnless { it.isRecycled }?.recycle()
-            curatedLibrary.trimMemory()
+            photoBitmaps.trimMemory()
         }
     }
 
@@ -231,9 +228,7 @@ fun FaceItApp() {
                         environment = environment,
                         artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
                         objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
-                        curatedArtwork = curatedBackground,
-                        curatedObject = curatedObject,
-                        materialTexture = materialTexture
+                        curatedArtwork = curatedBackground
                     )
                     try {
                         WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
@@ -252,23 +247,29 @@ fun FaceItApp() {
         }
     }
 
-    fun applyCurated(artwork: CuratedArtwork, targetFlags: Int) {
+    fun applyPhoto(photo: PhotoWallpaper, targetFlags: Int) {
         scope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val bitmap = curatedLibrary.fullSize(artwork, 1440)
-                        ?: error("The bundled wallpaper could not be decoded")
+                    val source = photoBitmaps.fullSize(photo, 1440)
+                        ?: error("The bundled photograph could not be decoded")
                     try {
-                        WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, targetFlags)
+                        val composed = PhotoComposer.compose(1080, 2400, source)
+                        try {
+                            WallpaperManager.getInstance(context)
+                                .setBitmap(composed, null, true, targetFlags)
+                        } finally {
+                            composed.recycle()
+                        }
                     } finally {
-                        bitmap.recycle()
+                        source.recycle()
                     }
                 }
             }
             result.onSuccess {
-                snackbarHostState.showSnackbar("${artwork.title} applied")
+                snackbarHostState.showSnackbar("${photo.subject} applied — photo by ${photo.creator}")
             }.onFailure {
-                snackbarHostState.showSnackbar("Unable to apply this wallpaper")
+                snackbarHostState.showSnackbar("Unable to apply this photograph")
             }
         }
     }
@@ -314,10 +315,14 @@ fun FaceItApp() {
                         artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
                         artworkObjectFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
                         modifier = Modifier.padding(padding),
-                        curatedCount = curatedLibrary.wallpapers().size,
+                        photoCount = PhotoLibrary.all(context).size,
+                        photoSelected = environment.curatedPhotoId?.let { id ->
+                            PhotoLibrary.find(context, id)?.subject
+                        }
+                            ?: FaceThemes.find(environment.themeId).let { theme ->
+                                PhotoLibrary.find(context, theme.wallpaperId)?.subject
+                            },
                         curatedBackground = curatedBackground,
-                        curatedObject = curatedObject,
-                        materialTexture = materialTexture,
                         onOpenGallery = { showGallery = true },
                         onCreate = { destination = Destination.Create },
                         onPreset = { preset ->
@@ -382,7 +387,120 @@ fun FaceItApp() {
             }
         }
 
-        // Curated pack browser, drawn above the workspace so it keeps the same
+        if (showGallery) {
+            showGallery = false
+        } else if (destination == Destination.Tools && toolsPage != ToolsPage.Home) {
+            toolsPage = ToolsPage.Home
+        } else {
+            destination = Destination.Discover
+        }
+    }
+
+    CompositionLocalProvider(LocalMotionPolicy provides motionPolicy) {
+    FaceItBackdrop(Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            bottomBar = {
+                FaceItNavigation(
+                    destination = destination,
+                    onSelect = { selected ->
+                        if (selected == Destination.Tools) toolsPage = ToolsPage.Home
+                        destination = selected
+                    }
+                )
+            }
+        ) { padding ->
+            Crossfade(
+                targetState = destination,
+                modifier = Modifier.fillMaxSize(),
+                animationSpec = if (motionPolicy.animationsEnabled) {
+                    androidx.compose.animation.core.tween(durationMillis = 220)
+                } else {
+                    snap()
+                },
+                label = "destination"
+            ) { current ->
+                when (current) {
+                    Destination.Discover -> DiscoverScreen(
+                        environment = environment,
+                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
+                        artworkObjectFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
+                        modifier = Modifier.padding(padding),
+                        photoCount = PhotoLibrary.all(context).size,
+                        photoSelected = environment.curatedPhotoId?.let { id ->
+                            PhotoLibrary.find(context, id)?.subject
+                        } ?: PhotoLibrary.find(
+                            context,
+                            FaceThemes.find(environment.themeId).wallpaperId
+                        )?.subject,
+                        curatedBackground = curatedBackground,
+                        onOpenGallery = { showGallery = true },
+                        onCreate = { destination = Destination.Create },
+                        onPreset = { preset ->
+                            update(preset)
+                            scope.launch { snackbarHostState.showSnackbar("Loaded ${preset.name}") }
+                        },
+                        onApply = { flags -> applyWallpaper(flags) }
+                    )
+
+                    Destination.Create -> CompositionScreen(
+                        initial = environment,
+                        artworkFile = artworkRepository.fileFor(environment.selectedArtworkFile.orEmpty()),
+                        objectArtworkFile = artworkRepository.fileFor(environment.selectedObjectFile.orEmpty()),
+                        modifier = Modifier.padding(padding),
+                        onSave = {
+                            update(it)
+                            scope.launch { snackbarHostState.showSnackbar("Environment saved on this device") }
+                        },
+                        onOpenLibrary = { destination = Destination.Library }
+                    )
+
+                    Destination.Themes -> VisualStudioScreen(
+                        selectedThemeId = environment.themeId,
+                        appliedStyleId = { category -> appliedStyleFor(category, environment) },
+                        onStyleChosen = applyStudioStyle,
+                        modifier = Modifier.padding(padding)
+                    )
+
+                    Destination.Library -> ArtworkStudioScreen(
+                        selectedFileName = environment.selectedArtworkFile,
+                        selectedObjectFileName = environment.selectedObjectFile,
+                        modifier = Modifier.padding(padding),
+                        onSelected = { selected, layer ->
+                            update(
+                                if (layer == "Object") {
+                                    environment.copy(selectedObjectFile = selected.fileName)
+                                } else {
+                                    environment.copy(selectedArtworkFile = selected.fileName)
+                                }
+                            )
+                            destination = Destination.Discover
+                            scope.launch { snackbarHostState.showSnackbar("${selected.title} set as ${layer.lowercase()}") }
+                        },
+                        onClearLayer = { layer ->
+                            update(
+                                if (layer == "Object") {
+                                    environment.copy(selectedObjectFile = null)
+                                } else {
+                                    environment.copy(selectedArtworkFile = null)
+                                }
+                            )
+                        }
+                    )
+
+                    Destination.Tools -> ToolsHubScreen(
+                        page = toolsPage,
+                        modifier = Modifier.padding(padding),
+                        onOpen = { toolsPage = it },
+                        onBack = { toolsPage = ToolsPage.Home }
+                    )
+                }
+            }
+        }
+
+
+        // The photograph gallery, drawn above the workspace so it keeps the same
         // backdrop instead of stacking a second theme on top of it.
         if (showGallery) {
             Box(
@@ -390,17 +508,17 @@ fun FaceItApp() {
                     .fillMaxSize()
                     .background(LocalFaceItColors.current.backdropTop)
             ) {
-                CuratedGalleryScreen(
+                PhotoGalleryScreen(
                     modifier = Modifier.fillMaxSize().padding(top = 24.dp),
-                    selectedId = environment.curatedArtworkId,
-                    onSelect = { artwork ->
-                        update(environment.copy(curatedArtworkId = artwork.id))
+                    selectedId = environment.curatedPhotoId,
+                    onSelect = { photo ->
+                        update(environment.copy(curatedPhotoId = photo.id))
                         showGallery = false
                         scope.launch {
-                            snackbarHostState.showSnackbar("${artwork.title} set as background")
+                            snackbarHostState.showSnackbar("${photo.subject} set as background")
                         }
                     },
-                    onApply = { artwork -> applyCurated(artwork, WallpaperManager.FLAG_SYSTEM) },
+                    onApply = { photo -> applyPhoto(photo, WallpaperManager.FLAG_SYSTEM) },
                     onBack = { showGallery = false }
                 )
             }
@@ -408,6 +526,7 @@ fun FaceItApp() {
     }
 }
     }
+}
 
 @Composable
 private fun FaceItNavigation(
@@ -460,10 +579,9 @@ private fun DiscoverScreen(
     artworkFile: java.io.File?,
     artworkObjectFile: java.io.File?,
     modifier: Modifier,
-    curatedCount: Int,
+    photoCount: Int,
+    photoSelected: String?,
     curatedBackground: Bitmap?,
-    curatedObject: Bitmap?,
-    materialTexture: Bitmap?,
     onOpenGallery: () -> Unit,
     onCreate: () -> Unit,
     onPreset: (PersonalEnvironment) -> Unit,
@@ -548,13 +666,24 @@ private fun DiscoverScreen(
 
         FaceItGlass(modifier = Modifier.fillMaxWidth(), onClick = onOpenGallery, tone = GlassTone.Accent, contentPadding = 12.dp) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.Collections, contentDescription = null, tint = colors.violet, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.CameraAlt, contentDescription = null, tint = colors.mint, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Artwork library", style = MaterialTheme.typography.titleSmall)
-                    Text("$curatedCount offline wallpapers", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Photograph library", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "$photoCount real photographs · credited to their makers",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (photoSelected != null) {
+                        Text(
+                            "Showing: $photoSelected",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.mint
+                        )
+                    }
                 }
-                Text("EXPLORE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.1.sp), color = colors.violet)
+                Text("OPEN", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.1.sp), color = colors.mint)
             }
         }
 
@@ -746,32 +875,20 @@ private fun CompositionScreen(
 ) {
     val colors = LocalFaceItColors.current
     val context = LocalContext.current
-    val gallery = remember { CuratedLibrary(context) }
+    val photoBitmaps = remember { PhotoBitmaps(context) }
     var value by remember(initial) { mutableStateOf(initial) }
     var studioBackground by remember { mutableStateOf<Bitmap?>(null) }
-    var studioObject by remember { mutableStateOf<Bitmap?>(null) }
-    var studioTexture by remember { mutableStateOf<Bitmap?>(null) }
 
-    LaunchedEffect(value.curatedArtworkId) {
+    LaunchedEffect(value.curatedPhotoId, value.themeId) {
         studioBackground = withContext(Dispatchers.IO) {
-            value.curatedArtworkId?.let { gallery.find(it) }?.let { gallery.fullSize(it, 540) }
-        }
-    }
-    LaunchedEffect(value.curatedObjectId) {
-        studioObject = withContext(Dispatchers.IO) {
-            value.curatedObjectId?.let { gallery.objectArtwork(it, 400) }
-        }
-    }
-    LaunchedEffect(value.material) {
-        studioTexture = withContext(Dispatchers.IO) {
-            CuratedLibrary.textureForFinish(value.material)?.let { gallery.texture(it, 256) }
+            val id = WallpaperPolicy.resolveId(value, FaceThemes.find(value.themeId))
+            PhotoLibrary.find(context, id)?.let { photoBitmaps.fullSize(it, 540) }
         }
     }
     DisposableEffect(Unit) {
         onDispose {
             studioBackground?.takeUnless { it.isRecycled }?.recycle()
-            studioObject?.takeUnless { it.isRecycled }?.recycle()
-            studioTexture?.takeUnless { it.isRecycled }?.recycle()
+            photoBitmaps.trimMemory()
         }
     }
 
@@ -810,8 +927,6 @@ private fun CompositionScreen(
                         artworkFile = artworkFile,
                         objectArtworkFile = objectArtworkFile,
                         curatedBackground = studioBackground,
-                        curatedObject = studioObject,
-                        materialTexture = studioTexture,
                         modifier = Modifier.fillMaxSize()
                     )
                     StatusPill(
@@ -867,16 +982,9 @@ private fun CompositionScreen(
             item {
                 FaceItCard {
                     if (value.selectedObjectFile == null) {
-                        CuratedObjectPicker(
-                            selectedId = value.curatedObjectId,
-                            onSelected = { value = value.copy(curatedObjectId = it) }
-                        )
-                        Spacer(Modifier.height(18.dp))
-                        HorizontalDivider(color = colors.border.copy(alpha = .7f))
-                        Spacer(Modifier.height(16.dp))
                         ChoiceChips(
                             title = "Studio object",
-                            supporting = "The drawn recipe used when no curated object is selected.",
+                            supporting = "Drawn procedurally on the device, never sampled from a raster pack.",
                             options = listOf(
                                 "Lion sculpture",
                                 "Geometric crystal",
@@ -887,14 +995,14 @@ private fun CompositionScreen(
                             selected = value.mainObject,
                             onSelected = { value = value.copy(mainObject = it) }
                         )
-                        if (value.mainObject != "None" || value.curatedObjectId != null) {
+                        if (value.mainObject != "None") {
                             Spacer(Modifier.height(18.dp))
                             HorizontalDivider(color = colors.border.copy(alpha = .7f))
                             Spacer(Modifier.height(16.dp))
                             ChoiceChips(
                                 title = "Material",
-                                supporting = "Curated finishes are real material tiles, rendered into the result.",
-                                options = CuratedLibrary.TEXTURES.map { it.label },
+                                supporting = "Material is drawn procedurally, so it stays crisp at any size.",
+                                options = MATERIAL_FINISHES,
                                 selected = value.material,
                                 onSelected = { value = value.copy(material = it) }
                             )
@@ -955,79 +1063,3 @@ private fun CompositionScreen(
     }
 }
 
-@Composable
-private fun CuratedObjectPicker(
-    selectedId: String?,
-    onSelected: (String?) -> Unit
-) {
-    val colors = LocalFaceItColors.current
-    val context = LocalContext.current
-    val library = remember { CuratedLibrary(context) }
-
-    Text(text = "Curated object", style = MaterialTheme.typography.titleSmall)
-    Text(
-        text = "Ten object renders from the bundled pack, drawn as your main object.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Spacer(Modifier.height(10.dp))
-
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        item {
-            Surface(
-                onClick = { onSelected(null) },
-                shape = MaterialTheme.shapes.medium,
-                color = if (selectedId == null) colors.violet.copy(alpha = .14f) else colors.cardRaised,
-                border = BorderStroke(
-                    1.dp,
-                    if (selectedId == null) colors.violet.copy(alpha = .6f) else colors.border
-                )
-            ) {
-                Box(Modifier.size(84.dp), contentAlignment = Alignment.Center) {
-                    Text("None", style = MaterialTheme.typography.labelMedium)
-                }
-            }
-        }
-        items(CuratedLibrary.OBJECT_IDS) { id ->
-            val selected = id == selectedId
-            var thumb by remember(id) { mutableStateOf<Bitmap?>(null) }
-            LaunchedEffect(id) {
-                thumb = withContext(Dispatchers.IO) { library.objectArtwork(id, 200) }
-            }
-            Surface(
-                onClick = { onSelected(if (selected) null else id) },
-                shape = MaterialTheme.shapes.medium,
-                color = if (selected) colors.violet.copy(alpha = .14f) else colors.cardRaised,
-                border = BorderStroke(
-                    if (selected) 1.5.dp else 1.dp,
-                    if (selected) colors.violet.copy(alpha = .6f) else colors.border
-                )
-            ) {
-                Box(
-                    modifier = Modifier.size(84.dp).padding(6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val current = thumb
-                    if (current != null) {
-                        Image(
-                            bitmap = current.asImageBitmap(),
-                            contentDescription = CuratedLibrary.objectLabel(id),
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = colors.violet
-                        )
-                    }
-                }
-            }
-        }
-    }
-    Spacer(Modifier.height(8.dp))
-    if (selectedId != null) {
-        TextButton(onClick = { onSelected(null) }) { Text("Clear curated object") }
-    }
-}

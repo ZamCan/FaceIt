@@ -33,6 +33,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -553,11 +554,14 @@ def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: 
     unreachable = sorted(f for f in finishes if f not in set(themes.get("widgets", [])))
     if unreachable:
         problem(f"widget finishes no theme uses: {unreachable}")
-    index = json.loads((ASSETS / "artwork_index.json").read_text(encoding="utf-8"))
-    wallpapers = {w["id"] for w in index["wallpapers"]}
-    unknown = sorted({w for w in themes["wallpapers"] if w not in wallpapers})
+    # Every theme picks a wallpaper, and every wallpaper is now a photograph from
+    # the bundled pack. A theme pointing at a drawn artwork id would resolve to
+    # nothing and leave the user on an empty backdrop.
+    photo_index = json.loads((ASSETS / "photos" / "photo_index.json").read_text(encoding="utf-8"))
+    photographs = {p["id"] for p in photo_index["photos"]}
+    unknown = sorted({w for w in themes["wallpapers"] if w not in photographs})
     if unknown:
-        problem(f"themes naming wallpapers that do not exist: {unknown}")
+        problem(f"themes naming wallpapers that are not in the photograph pack: {unknown}")
 
     catalogue = source("keyboard/KeyboardDesignCatalogue.kt")
     keyboard_ids = set(re.findall(r'id = "([a-z_0-9]+)"', catalogue)) | set(
@@ -621,6 +625,190 @@ def audit_cross_references(themes: dict, charging: dict, keypads: dict, glyphs: 
         problem(f"studio naming glyphs that do not exist: {unknown}")
 
 
+def image_size(path: Path) -> tuple[int, int] | None:
+    """Read pixel dimensions from a JPEG or PNG header.
+
+    The CI runner has no imaging library and this check does not need one: the
+    only question is whether the file on disk is the size the index claims, and
+    that is in the frame header. Parsing it here keeps the audit dependency-free
+    rather than making the build install Pillow to look at 168 files.
+    """
+    try:
+        data = path.read_bytes()[:65536]
+    except OSError:
+        return None
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    if data[:2] != b"\xff\xd8":
+        return None
+    index = 2
+    while index + 9 < len(data):
+        if data[index] != 0xFF:
+            index += 1
+            continue
+        marker = data[index + 1]
+        # SOF0-SOF15 carry the frame size; C4/C8/CC are not frame headers.
+        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+            height = int.from_bytes(data[index + 5:index + 7], "big")
+            width = int.from_bytes(data[index + 7:index + 9], "big")
+            return width, height
+        length = int.from_bytes(data[index + 2:index + 4], "big")
+        if length < 2:
+            return None
+        index += 2 + length
+    return None
+
+
+def audit_photo_pack() -> dict:
+    """Audit the photographic pack.
+
+    The generated artwork is audited by construction; a photo pack is different
+    because its contents come from outside. What can be checked statically is
+    that every record has complete attribution, that the licences are ones we may
+    ship, that the files exist at the size the index claims, and that the app's
+    Kotlin reader agrees with the schema here. A photograph credited to nobody, or
+    bundled under a licence we cannot use, is the one failure that must never
+    reach a release.
+    """
+    index_path = ASSETS / "photos" / "photo_index.json"
+    if not index_path.is_file():
+        problem("photo_index.json is missing; the photographic pack is absent")
+        return {}
+
+    index = json.loads(index_path.read_text())
+    photos = index.get("photos", [])
+    if not photos:
+        problem("photo_index.json lists no photographs")
+        return {}
+
+    if index.get("count") != len(photos):
+        problem(f"photo index says count {index.get('count')} but lists {len(photos)}")
+
+    shippable = {"cc0", "pdm", "publicdomain", "cc-by", "cc-by-sa"}
+    ids, sha_seen = set(), {}
+    categories, licences = {}, {}
+    synthetic_count = 0
+    share_alike = 0
+    total_bytes = 0
+
+    for entry in photos:
+        photo_id = entry.get("id", "")
+        if not photo_id:
+            problem("a photograph has no id")
+            continue
+        if photo_id in ids:
+            problem(f"duplicate photograph id: {photo_id}")
+        ids.add(photo_id)
+
+        licence = entry.get("licence", "")
+        synthetic = bool(entry.get("synthetic"))
+        synthetic_count = (synthetic_count + 1) if synthetic else synthetic_count
+        licences[licence] = licences.get(licence, 0) + 1
+        if licence not in shippable:
+            problem(f"{photo_id}: licence '{licence}' may not be bundled")
+        if synthetic and entry.get("provider") != "generated":
+            problem(f"{photo_id}: marked synthetic but its provider is not 'generated'")
+        tokens = re.split(r"[-_ ]", licence.lower())
+        if any(token in {"nc", "nd", "gfdl"} for token in tokens):
+            problem(f"{photo_id}: licence '{licence}' is not redistributable")
+
+        for field in ("title", "creator", "licenceUrl", "source", "asset", "thumbnail"):
+            if not str(entry.get(field, "")).strip():
+                problem(f"{photo_id}: missing {field}; attribution incomplete")
+
+        if entry.get("shareAlike"):
+            share_alike += 1
+            if licence != "cc-by-sa":
+                problem(f"{photo_id}: shareAlike set but licence is {licence}")
+
+        category = entry.get("category", "?")
+        categories[category] = categories.get(category, 0) + 1
+
+        asset = ASSETS / entry.get("asset", "")
+        thumb = ASSETS / entry.get("thumbnail", "")
+        if not asset.is_file():
+            problem(f"{photo_id}: asset file is missing")
+            continue
+        if not thumb.is_file():
+            problem(f"{photo_id}: thumbnail is missing")
+        if asset.stat().st_size != entry.get("bytes"):
+            problem(f"{photo_id}: recorded size does not match the file on disk")
+        total_bytes += asset.stat().st_size
+
+        digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+        if digest != entry.get("sha256"):
+            problem(f"{photo_id}: sha256 does not match the file on disk")
+        if digest in sha_seen:
+            problem(f"{photo_id}: identical to {sha_seen[digest]}; duplicate photograph")
+        sha_seen[digest] = photo_id
+
+        size = image_size(asset)
+        if size is None:
+            problem(f"{photo_id}: could not read the image header")
+        else:
+            if size != (entry.get("width"), entry.get("height")):
+                problem(f"{photo_id}: index dimensions disagree with the file")
+            if max(size) > 2400:
+                problem(f"{photo_id}: {size} is larger than a phone needs")
+
+    # Orphaned files are invisible to every other check and go straight into the
+    # APK. 408 of them accumulated across three rounds of curation and cost 87 MB
+    # before anyone noticed, so the audit now refuses to let them come back.
+    referenced = set()
+    for entry in photos:
+        for key in ("asset", "thumbnail"):
+            path = ASSETS / entry.get(key, "")
+            referenced.add(path.resolve())
+    for directory in (ASSETS / "photos", ASSETS / "photos" / "thumbs"):
+        if not directory.is_dir():
+            continue
+        for candidate in directory.iterdir():
+            if candidate.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+                continue
+            if candidate.resolve() not in referenced:
+                problem(f"orphaned photograph file with no index entry: {candidate.name}")
+
+    if len(categories) < 3:
+        problem(f"photo pack covers only {sorted(categories)}; breadth requested was wider")
+    for category, count in sorted(categories.items()):
+        if count < 5:
+            problem(f"category '{category}' has only {count} photographs")
+
+    # The app reads these fields by name; a rename in Kotlin would break the
+    # gallery silently, so the reader is checked against this schema.
+    reader_path = SRC / "data" / "PhotoLibrary.kt"
+    reader = strip_comments(reader_path.read_text()) if reader_path.is_file() else ""
+    if not reader:
+        problem("data/PhotoLibrary.kt is missing; the gallery has no reader")
+    for field in ("title", "creator", "licence", "licenceUrl", "source", "asset",
+                  "thumbnail", "shareAlike", "category", "width", "height", "synthetic"):
+        if f'"{field}"' not in reader:
+            problem(f"PhotoLibrary.kt does not read '{field}', which the index provides")
+
+    docs = ROOT / "docs" / "PHOTO_PACK.md"
+    if not docs.is_file():
+        problem("docs/PHOTO_PACK.md is missing; the pack needs a written licence record")
+    else:
+        text = docs.read_text()
+        if str(len(photos)) not in text:
+            problem(f"docs/PHOTO_PACK.md does not state the pack size ({len(photos)})")
+        for category in categories:
+            if category not in text:
+                problem(f"docs/PHOTO_PACK.md does not mention the '{category}' category")
+
+    if synthetic_count and "generated" not in (ROOT / "docs" / "PHOTO_PACK.md").read_text().lower():
+        problem("the pack contains generated images that PHOTO_PACK.md does not disclose")
+
+    return {
+        "count": len(photos),
+        "synthetic": synthetic_count,
+        "categories": categories,
+        "licences": licences,
+        "share_alike": share_alike,
+        "megabytes": round(total_bytes / 1048576, 1),
+    }
+
+
 def audit_documentation() -> None:
     """The docs must not quote figures that can drift from the source.
 
@@ -653,6 +841,7 @@ def main() -> int:
     writing = audit_writing()
     glyphs = audit_glyphs()
     widgets = audit_widget_finishes()
+    photos = audit_photo_pack()
     audit_cross_references(themes, charging, keypads, glyphs)
     audit_documentation()
 
@@ -666,7 +855,12 @@ def main() -> int:
         print("keypads     ", keypads.get("count"))
         print("writing     ", writing.get("count"), "|", writing.get("surfaces"))
         print("widgets     ", widgets.get("count"))
-        print("distinct wallpapers paired:", len(set(themes.get("wallpapers", []))))
+        print("distinct photographs paired to themes:", len(set(themes.get("wallpapers", []))))
+        if photos:
+            print("photographs ", photos["count"], "|", photos["megabytes"], "MB |",
+                  "share-alike", photos["share_alike"], "| generated", photos.get("synthetic", 0))
+            print("             ", photos["categories"])
+            print("             ", photos["licences"])
 
     if PROBLEMS:
         print(f"Catalogue audit FAILED: {len(PROBLEMS)} problem(s)")

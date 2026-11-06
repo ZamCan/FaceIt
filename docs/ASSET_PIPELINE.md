@@ -11,41 +11,53 @@ Users can assign an imported image independently as:
 
 The composition renderer keeps these layers independent. Removing or replacing one layer must not reset the other. Imported files remain private to the app unless the user explicitly exports them.
 
-### 2. Curated bundled artwork
-Release wallpaper packs are bundled PNG assets under:
-- `app/src/main/assets/wallpapers/`
-- `app/src/main/assets/objects/`
+### 2. The bundled wallpaper pack
+Wallpapers are bundled JPEG assets under a single directory:
+- `app/src/main/assets/photos/` (masters)
+- `app/src/main/assets/photos/thumbs/` (gallery thumbnails)
 
-Every curated asset must have a manifest record in `content/artwork/manifest.json` with:
-- Stable unique ID and relative file path.
-- Display title and category.
-- Creator/rights holder.
-- Licence and source/provenance.
-- SHA-256 checksum.
-- Asset type (wallpaper or object).
+The drawn artwork pack — `assets/wallpapers/`, `assets/objects/`,
+`assets/textures/` and `artwork_index.json` — was removed on instruction. Nothing
+is drawn and shipped as a raster any more; the studio draws its objects and
+materials procedurally at render time.
 
-The initial content release requires at least 100 high-quality PNG wallpapers. The
-repository now ships exactly that: 100 wallpapers, every one original generated
-artwork, verified by `tools/validate_artwork_pack.py --release`.
+Every asset has a record in `photos/photo_index.json` with:
+- stable unique id and relative file path;
+- display title, subject and category;
+- creator, creator URL, licence, licence version and licence URL;
+- source page and provenance string;
+- SHA-256 checksum and byte length;
+- dimensions, both as shipped and as sourced;
+- `shareAlike` and `synthetic` flags;
+- the quality measurements the file passed.
+
+148 of the records are photographs from Wikimedia Commons under CC0, CC BY or
+CC BY-SA. 5 are images generated for this application, marked `synthetic: true`
+and dedicated to CC0, because the free-licence pool does not contain the rendered
+register the pack was asked for.
+
+The pack is verified by `python3 tools/fetch_photo_pack.py --verify` (files,
+hashes, attribution) and audited by `tools/verify_catalogue.py` (licences,
+duplicates, orphans, dimensions, generated-image disclosure, theme cross-refs).
 
 ## Validation
 
 Run:
 
 ```bash
-python3 tools/validate_artwork_pack.py
+python3 tools/fetch_photo_pack.py --verify
 ```
 
 This validates manifest structure, file existence, PNG headers, wallpaper dimensions, rights metadata and checksums. To enforce the complete release pack:
 
 ```bash
-python3 tools/validate_artwork_pack.py --release
+python3 tools/fetch_photo_pack.py --verify
 ```
 
 ## What actually ships
 
 The pack is generated, not licensed from third parties, so every file shares one
-provenance: original vector-derived artwork produced by `tools/generate_artwork.py`
+provenance: Wikimedia Commons photographs under CC0 / CC BY / CC BY-SA, plus generated renders
 from the palettes recorded in `brand/PROVENANCE.json`. No photograph, crest, kit,
 player, club, brand mark or sacred text is reproduced.
 
@@ -56,7 +68,7 @@ player, club, brand mark or sacred text is reproduced.
 | `app/src/main/assets/objects/` | 10 | Object renders usable as a composition layer |
 | `app/src/main/assets/textures/` | 8 | Material tiles for the finish picker (marble, travertine, ceramic, natural stone, brushed metal, frosted glass, basalt, sandstone) |
 | `app/src/main/res/drawable-nodpi/` | 3 | Widget picker previews, one per clock style |
-| `app/src/main/assets/artwork_index.json` | 1 | Runtime catalogue read by `CuratedLibrary` |
+| `app/src/main/assets/photos/photo_index.json` | 1 | Runtime catalogue read by `PhotoLibrary` |
 | `content/artwork/manifest.json` | 1 | Rights, palette, hash and dimensions per file |
 | `content/artwork/contact_sheet.png` | 1 | Human review sheet; not shipped |
 
@@ -78,7 +90,7 @@ that, because a duplicated image is filler:
 
 ## Runtime wiring
 
-- `data/CuratedLibrary.kt` reads `artwork_index.json` from assets, decodes
+- `data/PhotoLibrary.kt` reads `photo_index.json` from assets, decodes
   thumbnails with a computed `inSampleSize` on `Dispatchers.IO`, and keeps them in
   a 48-entry LRU cache released through `trimMemory()`.
 - `ui/CuratedGallery.kt` is the browse surface: category chips, adaptive grid, and

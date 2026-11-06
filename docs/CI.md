@@ -256,6 +256,16 @@ wrong, because the run log is only useful if it is honest.
 | 24 | 1388c9a | **success** | widget finishes 15 -> 21, every one reachable from a theme |
 | 25 | 8321f3e | **success** | drape shapes 9 -> 13 |
 | 26 | d835376 | **success** | themes 66 -> 105; all 100 shipped wallpapers now paired. Verified from the uploaded XML: 129 tests / 0 failures / 0 errors / 0 skipped across 18 classes, Lint 0 errors / 4 warnings |
+| 27 | aeb97be | **success** | runs 24-26 written up from the artifact XML |
+| 28 | b0642cb | failure | the catalogue audit imported Pillow, which the runner does not install |
+| 29 | a9ae0a1 | failure | two Kotlin errors: the licence filter was applied to `add()`'s Unit return, and `Icons.Rounded.PhotoLibrary` resolved against the imported data class of the same name |
+| 30 | 93d3690 | failure | a test passed a list where the overload wanted a Context |
+| 31 | 77d5435 | failure | that test then asserted a filtered-out entry was still present — it was asserting against the design, which drops the entry |
+| 32 | 7712a1f | **success** | photographic pack green end to end: 138 tests / 0 / 0 / 0 across 19 classes, Lint 0 errors / 4 warnings. Verified from the uploaded XML |
+| 33 | 72e0080 | **success** | photographs composed for a portrait screen instead of centre-cropped |
+| 34 | cb4a708 | **success** | photographic pack recorded in README and VERIFICATION |
+| 35 | 7c5b15a | **success** | fashion category added: 184 photographs across five categories. Verified from the XML: 138 tests / 0 / 0 / 0 across 19 classes, Lint 0 errors / 4 warnings, debug APK 128.0 MB |
+| 36 | 7c773e5 | **success** | subject matter replaced: animals and nature removed, minerals / diamonds / bracelets / ironwork / metalwork added. 148 photographs, 50.8 MB. Verified from the XML: 138 tests / 0 / 0 / 0 across 19 classes, Lint 0 errors / 4 warnings, debug APK 97.2 MB |
 
 **Every one of those failures passed the local checkers first.** That is the lesson
 of this stretch, and the reason `tools/verify_catalogue.py` now checks constructor
@@ -282,6 +292,35 @@ are now paired with a theme, up from 16), 68 glyphs, 12 tile finishes, 9 drape
 shapes plus off, 58 charging styles across 33 motifs, 36 keypads, 52 writing styles,
 15 widget finishes with generated previews. Roughly 476 studio cards.
 
+## Run 32-33: the photographic pack
+
+`b0642cb` replaced "wallpapers are generated artwork" with "wallpapers are
+generated artwork **and** real photographs". The four failures above it were
+not one mistake repeated: the audit needed an imaging library it was not allowed
+to have, a `buildList` result was never assigned so the filter ran on `Unit`, an
+icon name collided with a data class introduced by the same commit, and a test
+asserted the opposite of what the parser does. Each was caught by the runner
+because there is no local build — which is the reason the runner is watched
+rather than trusted.
+
+What the pack changed in numbers:
+
+- **138 tests** (up from 129) across 19 classes; Lint unchanged at 0 errors, 4 warnings.
+- **148 photographs**, 50.8 MB of masters plus thumbnails, after the subject
+  matter was changed and the animal and nature categories were removed.
+- Eight categories: minerals 35, technology 32, luxury 17, ironwork 15,
+  fashion 15, bracelets 12, diamonds 11, metalwork 11; 120 creators.
+- Licences: CC0 18, CC BY 43, CC BY-SA 87 — the share-alike decision and its
+  reasoning are in `PHOTO_PACK.md`, not left to be inferred.
+
+Twenty-four files were removed after looking at them rather than after measuring
+them: two photographs of a Jeff Koons flower sculpture returned by the animal
+search, a watercolour catalogued as a storm, a museum diorama as an alpine meadow,
+a satellite composite as marble, industrial gaskets as jewellery, a CGI product
+render as a watch, and a taxidermy tiger, and three photographs of surgical stitches returned for
+"silk tie". Quality metrics passed every one of them — entropy, edge density and sharpness measure a photograph well and cannot
+tell you what it is a photograph *of*.
+
 ### What is still not verified
 
 - No physical-device review of any of it. Ten frame shapes, twelve tile finishes and
@@ -291,3 +330,12 @@ shapes plus off, 58 charging styles across 33 motifs, 36 keypads, 52 writing sty
 - Seven of the fifteen widget finishes still have no theme pointing at them.
 - CI success is not device certification; the release gates in
   `PERSONALISATION_ENGINES.md` are unchanged.
+- **No photograph has been seen on a real screen.** The pack was reviewed as
+  contact sheets and the composition was modelled in Python, not rendered through
+  `PhotoComposer` on a device. The treatment — fit by width over a blurred
+  enlargement of itself — is a judgement about how a landscape should sit on a
+  9:20 screen, and it has not been checked against a real wallpaper crop on a
+  phone with a notch or a curved edge.
+- `PhotoComposer` has no passing test of its own. It cannot run on the JVM: it is
+  `android.graphics`, and the unit tests only cover the index parser and the
+  licence gate.

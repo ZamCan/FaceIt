@@ -26,8 +26,11 @@ fun PersonalEnvironment.applyingTheme(
     name = theme.name,
     keypadDesignId = keypadDesignIdFor(theme),
     wallpaperMode = if (keepWallpaper) ThemeWallpaperMode.KEEP else ThemeWallpaperMode.FOLLOW_THEME,
-    curatedArtworkId = when {
-        keepWallpaper -> curatedArtworkId
+    // Appling a theme replaces whatever background is showing. A photograph the
+    // user chose stays if they asked to keep their wallpaper, and is replaced by
+    // the theme's own photograph otherwise.
+    curatedPhotoId = when {
+        keepWallpaper -> curatedPhotoId
         else -> theme.wallpaperId
     }
 )

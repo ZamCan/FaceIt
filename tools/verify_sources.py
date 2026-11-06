@@ -279,6 +279,10 @@ def main() -> int:
     check_policies()
 
     print(f"Face It source verification: {len(kotlin)} Kotlin files, {len(declared_types)} declared types")
+    # Split so a file added but never picked up is visible rather than silently
+    # absorbed into a total that also counts something else.
+    test_sources = sorted(ROOT.glob("app/src/test/**/*.kt"))
+    print(f"  main sources: {len(kotlin)} · test sources: {len(test_sources)}")
     if errors:
         for error in errors:
             print(f"ERROR: {error}")

@@ -40,7 +40,7 @@ The current main branch includes:
 
 The keyboard feature is a design gallery inside Face It. There is no `InputMethodService` in the manifest, no system-keyboard enable step, and selecting a design never changes Gboard, Samsung Keyboard or any third-party keyboard. Design preferences (selected design and favourites) persist on the device, and a returning user's previous appearance choice is migrated rather than reset.
 
-The in-app dialer keypad is not yet a replacement for the phone's default dialler. Face It Home is an optional launcher, not a universal icon-pack mechanism or a reskin of Samsung One UI. The current wallpaper composition renderer provides a procedural foundation; the bundled 100-wallpaper baseline is original vector-derived artwork, not a photographic collection, and continued high-end art direction plus physical-device review remain necessary.
+The in-app dialer keypad is not yet a replacement for the phone's default dialler. Face It Home is an optional launcher, not a universal icon-pack mechanism or a reskin of Samsung One UI. Wallpapers are 153 bundled images: 148 real photographs under free licences — gemstones and minerals, diamonds, bracelets and jewellery, ironwork and industrial spaces, metalwork, wearable design and electronics — each credited to its maker on the tile, plus 5 images generated for this app and labelled as generated. The 100 vector-derived wallpapers, object renders and material tiles were removed. The full record is `docs/PHOTO_PACK.md`. The photographs require attribution and, for 88 of them, share-alike terms; the app shows the credit and the licence rather than hiding it, and it refuses to load a photograph whose credit or licence is incomplete. Continued high-end art direction plus physical-device review remain necessary, and no photograph has yet been seen on a real screen.
 
 ## Important implementation boundaries
 
@@ -48,7 +48,7 @@ Keyboard Designs are in-app visual presets. A real system text-entry keyboard wo
 
 ## Planned capabilities
 
-- Expanded and further art-directed heritage architecture, football, professional, nature, city and design collections beyond the current 100-wallpaper generated baseline.
+- Expanded and further art-directed heritage architecture, football, professional, city and design collections beyond the current 100-wallpaper generated baseline.
 - Native widget studio and deeper widget configuration.
 - Supported icon personalisation.
 - Optional default-dialer integration, subject to Android role and telephony requirements.

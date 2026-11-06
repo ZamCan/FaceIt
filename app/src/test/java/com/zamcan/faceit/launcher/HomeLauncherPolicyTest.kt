@@ -50,15 +50,16 @@ class HomeLauncherPolicyTest {
 
     @Test
     fun wallpaperChoiceFollowsTheSameOrderAsTheRestOfTheApp() {
-        // Imported artwork, then the curated pick, then the theme's own wallpaper.
+        // Imported artwork, then the chosen photograph, then the theme's own
+        // photograph — the same order WallpaperPolicy applies in the app.
         fun resolve(imported: String?, curated: String?, theme: String) =
             imported?.takeIf { it.isNotBlank() }
                 ?: curated?.takeIf { it.isNotBlank() }
                 ?: theme
 
-        assertEquals("mine.png", resolve("mine.png", "curated-1", "nature-015"))
-        assertEquals("curated-1", resolve(null, "curated-1", "nature-015"))
-        assertEquals("curated-1", resolve("   ", "curated-1", "nature-015"))
-        assertEquals("nature-015", resolve(null, null, "nature-015"))
+        assertEquals("mine.png", resolve("mine.png", "curated-1", "fluorite-specimen"))
+        assertEquals("curated-1", resolve(null, "curated-1", "fluorite-specimen"))
+        assertEquals("curated-1", resolve("   ", "curated-1", "fluorite-specimen"))
+        assertEquals("fluorite-specimen", resolve(null, null, "fluorite-specimen"))
     }
 }

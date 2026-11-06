@@ -33,9 +33,10 @@ jobs:
 
       # Cheap structural checks first: a colour literal, a stray brace or a broken
       # manifest fails in seconds instead of waiting for the compiler.
-      - name: Validate artwork manifest and bundled assets
-        run: python3 tools/validate_artwork_pack.py --release
-
+      #
+      # The drawn artwork pack was removed, so its manifest validator has nothing
+      # left to check. The photograph pack is now audited by verify_catalogue.py,
+      # which checks attribution, licences, hashes, dimensions and orphaned files.
       - name: Verify source structure
         run: python3 tools/verify_sources.py
 
@@ -44,6 +45,9 @@ jobs:
       # cross-reference a theme makes, and re-measures every contrast promise.
       - name: Audit catalogue integrity and contrast
         run: python3 tools/verify_catalogue.py --verbose
+
+      - name: Verify the photograph pack is complete and credited
+        run: python3 tools/fetch_photo_pack.py --verify
 
       - name: Compile, run unit tests and assemble the debug APK
         run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace

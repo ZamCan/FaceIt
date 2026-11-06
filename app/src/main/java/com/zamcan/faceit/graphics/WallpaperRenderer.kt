@@ -26,17 +26,26 @@ object WallpaperRenderer {
         curatedObject: Bitmap? = null,
         materialTexture: Bitmap? = null
     ): Bitmap {
+        // `curatedObject` is retained for source compatibility with the preview
+        // renderer; no bundled object artwork ships any more.
         require(width > 0 && height > 0)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val scale = width / 1080f
         fun px(value: Float) = value * scale
 
-        val curated = curatedArtwork?.takeIf { !it.isRecycled }
+        // Every bundled wallpaper is a photograph now. It is composed to the
+        // screen shape first — a landscape cropped to 9:20 would lose two thirds
+        // of its width and go soft, so PhotoComposer fits it by width over a
+        // blurred enlargement of itself.
+        val photo = curatedArtwork?.takeIf { !it.isRecycled }
+        val composed = photo?.let { PhotoComposer.compose(width, height, it) }
+        val curated = composed
         val imported = curated ?: artworkFile?.takeIf { it.isFile }?.let { decodeForTarget(it, width, height) }
         if (imported != null) {
             drawCenterCrop(canvas, imported, width, height)
             if (imported !== curated) imported.recycle()
+            if (composed != null) composed.recycle()
             canvas.drawRect(
                 0f, 0f, width.toFloat(), height.toFloat(),
                 Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -51,17 +60,16 @@ object WallpaperRenderer {
             drawBackground(canvas, width, height, environment.background, ::px)
         }
 
-        val curatedObjectBitmap = curatedObject?.takeIf { !it.isRecycled }
-        val importedObject = curatedObjectBitmap
-            ?: objectArtworkFile?.takeIf { it.isFile }?.let { decodeForObject(it, width, height) }
+        // The object layer and the material grain are both drawn procedurally
+        // now: the bundled object renders and material tiles were part of the
+        // removed artwork pack. A user's own imported object still wins.
+        val importedObject = objectArtworkFile?.takeIf { it.isFile }
+            ?.let { decodeForObject(it, width, height) }
         if (importedObject != null) {
             drawImportedObject(canvas, importedObject, width, height)
-            if (importedObject !== curatedObjectBitmap) importedObject.recycle()
+            importedObject.recycle()
         } else {
             drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
-        }
-        if (materialTexture != null && !materialTexture.isRecycled) {
-            drawMaterialGrain(canvas, materialTexture, width, height)
         }
         drawVignette(canvas, width, height)
         return bitmap
@@ -358,18 +366,6 @@ object WallpaperRenderer {
      * wallpaper is, and a fixed low alpha makes the finish a texture rather than
      * a filter over the user's artwork.
      */
-    private fun drawMaterialGrain(canvas: Canvas, texture: Bitmap, width: Int, height: Int) {
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-            shader = android.graphics.BitmapShader(
-                texture,
-                Shader.TileMode.REPEAT,
-                Shader.TileMode.REPEAT
-            )
-            alpha = 46
-        }
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
-    }
-
     private fun sampleSize(sourceWidth: Int, sourceHeight: Int, targetWidth: Int, targetHeight: Int): Int {
         val pixelBudget = targetWidth.toLong() * targetHeight.toLong() * 4L
         var sample = 1

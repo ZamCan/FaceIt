@@ -76,7 +76,7 @@ How the volume was held to the design bar:
   referenced by a theme was resolved against the shipped catalogues, so no theme
   points at art that does not exist.
 - The six new widget finishes have six newly rendered preview cards from
-  `tools/generate_artwork.py`; their colours are duplicated by hand in that
+  the photograph pack's index; their colours are duplicated by hand in that
   generator, which is the one place the two files can drift.
 - Unit-test floors were raised for every catalogue, so a lost generator shows up
   as a red build instead of a smaller app.
