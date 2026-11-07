@@ -9,6 +9,9 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.RadialGradient
+import android.graphics.Color
+import com.zamcan.faceit.data.SceneLighting
 import com.zamcan.faceit.data.PersonalEnvironment
 import java.io.File
 import kotlin.math.cos
@@ -74,6 +77,7 @@ object WallpaperRenderer {
             drawMainObject(canvas, width, height, environment.mainObject, environment.material, ::px)
         }
         canvas.restore()
+        drawSceneLighting(canvas, width, height, environment.lighting)
         drawVignette(canvas, width, height)
 
         // The name engine draws last, on top of the ground and the object: it is
@@ -82,6 +86,29 @@ object WallpaperRenderer {
             NameMonogram.draw(canvas, width, height, design)
         }
         return bitmap
+    }
+
+    /** Bounded shader passes: no animation loop, blur allocation or external texture. */
+    private fun drawSceneLighting(canvas: Canvas, width: Int, height: Int, lighting: SceneLighting) {
+        if (!lighting.enabled || lighting.intensity <= 0f) return
+        val intensity = lighting.intensity.coerceIn(0f, 1f)
+        val warmth = lighting.warmth.coerceIn(-1f, 1f)
+        val red = (255 - 65 * (-warmth).coerceAtLeast(0f)).toInt()
+        val green = (255 - 35 * kotlin.math.abs(warmth)).toInt()
+        val blue = (255 - 80 * warmth.coerceAtLeast(0f)).toInt()
+        val radius = maxOf(width, height) * (.35f + lighting.softness.coerceIn(0f, 1f) * .8f)
+        val highlight = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(width * lighting.direction.x, height * lighting.direction.y,
+                radius, intArrayOf(Color.argb((intensity * 95).toInt(), red, green, blue), Color.TRANSPARENT),
+                null, Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), highlight)
+        val shade = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(width * (1f - lighting.direction.x), height * (1f - lighting.direction.y),
+                radius, intArrayOf(Color.argb((intensity * 65).toInt(), 0, 0, 0), Color.TRANSPARENT),
+                null, Shader.TileMode.CLAMP)
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), shade)
     }
 
     private fun drawBackground(

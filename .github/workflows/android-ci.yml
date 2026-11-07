@@ -49,8 +49,8 @@ jobs:
       - name: Verify the photograph pack is complete and credited
         run: python3 tools/fetch_photo_pack.py --verify
 
-      - name: Compile, run unit tests and assemble the debug APK
-        run: gradle --no-daemon testDebugUnitTest assembleDebug --stacktrace
+      - name: Compile, test and assemble debug and unsigned release APKs
+        run: gradle --no-daemon testDebugUnitTest assembleDebug assembleRelease --stacktrace
 
       # Lint is a required quality gate; reports are still uploaded on failure.
       - name: Android Lint
@@ -109,6 +109,9 @@ jobs:
               print(f"| Debug APK | {apk.stat().st_size / 1e6:.1f} MB |")
           else:
               print("| Debug APK | not produced |")
+          release = Path("app/build/outputs/apk/release/app-release-unsigned.apk")
+          if release.exists():
+              print(f"| Unsigned release candidate | {release.stat().st_size / 1e6:.1f} MB |")
           assets = Path("app/src/main/assets")
           bundled = sum(p.stat().st_size for p in assets.rglob("*") if p.is_file())
           print(f"| All bundled assets | {bundled / 1e6:.1f} MB |")
@@ -128,6 +131,13 @@ jobs:
         with:
           name: FaceIt-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Upload unsigned release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: FaceIt-unsigned-release-apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
 
       - name: Upload test and lint reports

@@ -48,3 +48,22 @@ shows a larger image, full attribution, original source and licence links.
 Applying a gallery image explicitly offers Home, Lock or Both. Viewing online
 source/licence pages is optional; search, favourites and applying are offline.
 
+
+## Independent scene lighting
+
+Create offers an optional static scene-lighting pass with five directions,
+intensity, softness and cool/warm tint. Two bounded radial shader passes light
+and shade the composition before the name is drawn. They do not start a renderer
+loop or allocate a blur texture. This is 2D scene illumination, not a claim of
+interactive 3D or physically based relighting of a photograph.
+
+Lighting is a separate persisted setting. Older scenes load with it disabled,
+so upgrading preserves their previous appearance. Changing or resetting lighting
+keeps sources, materials, crop and placement intact. Slider gestures use the same
+single-step undo handling as placement controls. Reset draft resets composition
+settings without deleting imports or stored scenes; Undo restores the draft.
+
+The editor and Discover fit the complete portrait render inside the preview;
+wallpaper verification observes Android's wallpaper IDs instead of depending on
+the duration of a success snackbar. Emulator failures retain screenshots,
+accessibility hierarchy, wallpaper state and logcat when available.

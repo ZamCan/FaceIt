@@ -5,6 +5,7 @@ Run against an installed debug APK on a disposable emulator. This changes its
 night mode/font scale and restores the original settings in finally.
 """
 import re
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -83,6 +84,14 @@ def tap_label(label):
 
 def scene_round_trip():
     tap_label("Create")
+    scroll_to_label("Scene lighting")
+    tap_description("Enable scene lighting")
+    scroll_to_label("Upper right")
+    tap_label("Upper right")
+    scroll_to_label("Scene name", upward=True)
+    tap_label("Undo")
+    tap_label("Redo")
+    capture("lighting-preview")
     tap_label("Save")
     wait_for(lambda tree: any("saved to your scene library" in n.get("text", "")
                              for n in tree.iter("node")), "Scene was not saved")
@@ -91,6 +100,10 @@ def scene_round_trip():
     adb("shell", "am", "start", "-W", "-n", PACKAGE + "/com.zamcan.faceit.MainActivity")
     tap_label("Library")
     tap_label("Saved scenes")
+    stored = ET.fromstring(adb("shell", "run-as", PACKAGE, "cat", "shared_prefs/faceit_saved_scenes.xml"))
+    items = json.loads(stored.find("string[@name='items']").text)
+    assert items[0]["environment"]["lighting"]["enabled"] is True
+    assert items[0]["environment"]["lighting"]["direction"] == "UPPER_RIGHT"
     wait_for(lambda tree: len(nodes(tree, "Restore scene")) == 1, "Saved scene did not survive restart")
     tap_label("Duplicate")
     wait_for(lambda tree: len(nodes(tree, "Restore scene")) == 2, "Duplicate was not added")

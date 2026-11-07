@@ -874,6 +874,8 @@ private fun CompositionScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = { history = history.undo() }, enabled = history.canUndo) { Text("Undo") }
                     TextButton(onClick = { history = history.redo() }, enabled = history.canRedo) { Text("Redo") }
+                    TextButton(onClick = { change(PersonalEnvironment(name = value.name, themeId = value.themeId,
+                        keypadDesignId = value.keypadDesignId, writingStyleId = value.writingStyleId, frameColourId = value.frameColourId)) }) { Text("Reset draft") }
                 }
             }
 
@@ -1016,6 +1018,13 @@ private fun CompositionScreen(
                         TextButton(onClick = { change(value.copy(cropX = .5f, cropY = .5f)) }) { Text("Centre crop") }
                     }
                 }
+            }
+
+            item {
+                SceneLightingControls(value = value.lighting,
+                    onChange = { change(value.copy(lighting = it)) },
+                    onAdjust = { adjust(value.copy(lighting = it)) },
+                    onAdjustmentFinished = { finishAdjustment() })
             }
 
             item {

@@ -44,6 +44,7 @@ data class PersonalEnvironment(
     val objectOpacity: Float = 1f,
     val cropX: Float = .5f,
     val cropY: Float = .5f,
+    val lighting: SceneLighting = SceneLighting(),
     /**
      * The name engine. Whatever the user types is set at render time in one of
      * the metal finishes, so a name is never a bundled picture and never a
@@ -100,6 +101,7 @@ data class PersonalEnvironment(
         put("objectOpacity", objectOpacity.toDouble())
         put("cropX", cropX.toDouble())
         put("cropY", cropY.toDouble())
+        put("lighting", lighting.toJson())
         put("nameEnabled", nameEnabled)
         put("nameText", nameText)
         put("nameFinishId", nameFinishId)
@@ -151,6 +153,7 @@ data class PersonalEnvironment(
                     objectOpacity = boundedFloat(json, "objectOpacity", 1f, 0f, 1f),
                     cropX = boundedFloat(json, "cropX", .5f, 0f, 1f),
                     cropY = boundedFloat(json, "cropY", .5f, 0f, 1f),
+                    lighting = SceneLighting.fromJson(json.optJSONObject("lighting")),
                     nameEnabled = json.optBoolean("nameEnabled", false),
                     nameText = json.optString("nameText", "Naomi"),
                     nameFinishId = json.optString("nameFinishId", "rose_gold"),

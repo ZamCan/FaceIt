@@ -71,7 +71,7 @@ python3 brand/generate_mark.py     # regenerate every icon asset
 
 The Android project uses Gradle, Kotlin and Jetpack Compose.
 
-GitHub Actions runs artwork-manifest validation, unit tests and a debug APK build on pushes to `main`. The debug APK is published as the `FaceIt-debug-apk` workflow artifact.
+GitHub Actions runs artwork-manifest validation, unit tests and a debug APK build on pushes to `main`. The debug APK is published as the `FaceIt-debug-apk` workflow artifact. CI also builds the minified release variant and retains it as `FaceIt-unsigned-release-apk`; this unsigned candidate is for engineering review and is not a signed production release.
 
 ## Project references
 
