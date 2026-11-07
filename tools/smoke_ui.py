@@ -127,6 +127,26 @@ def open_gallery():
     wait_for(lambda tree: bool(nodes(tree, "Search wallpapers")), "Wallpaper search did not open")
 
 
+
+def wallpaper_ids():
+    dump = adb("shell", "dumpsys", "wallpaper").decode()
+    (OUTPUT / "wallpaper-state.txt").write_text(dump)
+    ids = set(re.findall(r"(?:mWallpaperId|\bid)\s*=\s*(\d+)", dump))
+    assert ids, "Android did not report wallpaper identifiers; inspect wallpaper-state.txt"
+    return ids
+
+
+def wait_for_wallpaper_change(previous):
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        current = wallpaper_ids()
+        if current - previous:
+            print("Wallpaper identifiers changed from " + str(sorted(previous)) + " to " + str(sorted(current)), flush=True)
+            return
+        time.sleep(1)
+    raise AssertionError("Android wallpaper identifiers did not change after Apply")
+
+
 def catalogue_round_trip():
     open_gallery()
     tap_label("Search wallpapers")
@@ -153,9 +173,11 @@ def catalogue_round_trip():
              "Favourite was not removed")
     tap_description("Back")
     scroll_to_label("Apply", upward=True)
+    previous_wallpapers = wallpaper_ids()
     tap_label("Apply")
     tap_label("Home screen")
-    wait_for(lambda tree: bool(nodes(tree, "Wallpaper applied")), "Android wallpaper application failed")
+    wait_for_wallpaper_change(previous_wallpapers)
+    capture("wallpaper-applied")
     print("PASS: offline search, persistent favourite, removal and Android wallpaper application", flush=True)
 
 
@@ -183,6 +205,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException:
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        try:
+            capture("failure")
+            (OUTPUT / "failure-logcat.txt").write_bytes(adb("logcat", "-d", "-t", "1500"))
+        except Exception:
+            pass
+        raise
 
 

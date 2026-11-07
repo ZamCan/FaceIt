@@ -491,8 +491,8 @@ fun CompositionPreview(
         Image(
             bitmap = current.asImageBitmap(),
             contentDescription = "Live preview of the FaceIt composition",
-            modifier = modifier.clip(MaterialTheme.shapes.extraLarge),
-            contentScale = ContentScale.Crop
+            modifier = modifier.clip(MaterialTheme.shapes.extraLarge).background(colors.cardSunken),
+            contentScale = ContentScale.Fit
         )
     } else {
         Box(
